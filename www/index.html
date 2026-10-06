@@ -640,13 +640,27 @@ window.addEventListener('resize',()=>{ if(!$('modalOverlay').classList.contains(
 function tutupFab(){ $('fabMenu').classList.add('hidden'); }
 $('fabUtama').addEventListener('click',e=>{ e.stopPropagation(); $('fabMenu').classList.toggle('hidden'); });
 
-$('btnBackup').addEventListener('click',()=>{
+$('btnBackup').addEventListener('click',async()=>{
   tutupFab();
-  const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
+  const isi=JSON.stringify(data,null,1);
+  const t=new Date(); const p=n=>String(n).padStart(2,'0');
+  const namaFile=`akar-keluarga-${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}.json`;
+  const cap=window.Capacitor;
+  const plg=cap&&cap.Plugins;
+  if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&plg&&plg.Filesystem&&plg.Share){
+    try{
+      const r=await plg.Filesystem.writeFile({path:namaFile,data:isi,directory:'CACHE',encoding:'utf8'});
+      await plg.Share.share({title:'Backup Akar Keluarga',dialogTitle:'Simpan backup ke...',files:[r.uri]});
+    }catch(err){
+      const m=String((err&&err.message)||err||'');
+      if(!/cancel|dismiss/i.test(m)) alert('Backup gagal: '+m);
+    }
+    return;
+  }
+  const blob=new Blob([isi],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  const t=new Date(); const p=n=>String(n).padStart(2,'0');
-  a.href=url; a.download=`akar-keluarga-${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}.json`;
+  a.href=url; a.download=namaFile;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
 });
