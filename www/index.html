@@ -132,7 +132,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .dlg-tombol button.bahaya{background:var(--meninggal);border-color:var(--meninggal);color:#fff;}
 
 @media print{
-  .btn-pusat,.btn-menu,.drawer,.scrim,.kartu-overlay,.dlg-overlay,.pin-akar,.sheet-overlay{display:none !important;}
+  .btn-pusat,.btn-menu,.btn-ringkasan,.drawer,.scrim,.kartu-overlay,.dlg-overlay,.pin-akar,.sheet-overlay{display:none !important;}
 }
 
 /* ===== Status pada kartu ===== */
@@ -193,6 +193,26 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .sheet-warna button{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);}
 .sheet-warna button.pilih{box-shadow:0 0 0 3px var(--gold);}
 
+
+/* ===== Ringkasan generasi ===== */
+.btn-ringkasan{position:absolute;left:18px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.btn-ringkasan:active{background:#eadfc6;}
+.ringkasan{width:min(100%,340px);max-height:78dvh;background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.ringkasan-kepala{padding:16px 18px 12px;background:var(--root-deep);color:#f3ede0;}
+.ringkasan-kepala h3{margin:0;font-family:var(--font-title);font-weight:normal;font-size:19px;}
+.ringkasan-kepala p{margin:3px 0 0;font-size:12px;opacity:.78;}
+.ringkasan-isi{padding:12px 18px 16px;overflow-y:auto;}
+.rk-judul{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 6px;}
+.rk-gen{margin:7px 0;}
+.rk-gen-atas{display:flex;justify-content:space-between;font-size:14px;color:var(--ink);}
+.rk-gen-atas b{font-weight:normal;color:var(--root-deep);}
+.rk-bar{height:6px;border-radius:3px;background:#e9e0c8;margin-top:4px;overflow:hidden;}
+.rk-bar i{display:block;height:100%;border-radius:3px;background:var(--root);}
+.rk-pemisah{height:1px;background:var(--card-border);margin:12px 0 8px;}
+.rk-baris{display:flex;justify-content:space-between;font-size:14px;margin:5px 0;color:var(--ink);}
+.rk-baris span:last-child{color:var(--root-deep);}
+.rk-catatan{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.4;}
+
 /* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
 #cetakWrap{display:none;}
 .cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
@@ -226,6 +246,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
     <button id="btnMenu" class="btn-menu" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <h1 id="judulApp">Akar Keluarga</h1>
   </header>
+  <button id="btnRingkasan" class="btn-ringkasan" aria-label="Ringkasan generasi"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h6a4 4 0 014 4v11a3 3 0 00-3-3H2z"/><path d="M22 5h-6a4 4 0 00-4 4v11a3 3 0 013-3h7z"/></svg></button>
   <div id="pinAkar" class="pin-akar"></div>
 
   <main id="viewport" class="viewport">
@@ -325,6 +346,13 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
     </div>
     <div class="drawer-bawah"><button id="btnMulaiBaru">Mulai baru (kosongkan akar ini)</button></div>
   </aside>
+
+  <div id="ringkasanOverlay" class="kartu-overlay hidden">
+    <div class="ringkasan">
+      <div class="ringkasan-kepala"><h3>Ringkasan</h3><p id="rkAkar"></p></div>
+      <div id="rkIsi" class="ringkasan-isi"></div>
+    </div>
+  </div>
 
   <div id="kartuOverlay" class="kartu-overlay hidden">
     <div class="kartu">
@@ -1086,7 +1114,7 @@ function segarkanPin(){
 }
 function gantiAkar(id){
   const a=store.akar.find(x=>x.id===id); if(!a) return;
-  tutupKartu();
+  tutupKartu(); tutupRingkasan();
   if(!$('modalOverlay').classList.contains('hidden')) tutupModal();
   if(id!==store.aktifId){
     store.aktifId=id; data=a.data; simpanData();
@@ -1152,6 +1180,42 @@ $('amHapus').addEventListener('click',async()=>{
 });
 perbaruiJudul(); segarkanDaftarAkar(); segarkanPin();
 
+// ===== Ringkasan generasi =====
+function ringkasanTerbuka(){ return !$('ringkasanOverlay').classList.contains('hidden'); }
+function tutupRingkasan(){ $('ringkasanOverlay').classList.add('hidden'); }
+function bukaRingkasan(){
+  const a=akarAktif();
+  const posisi=hitungLayout();
+  const ids=Object.keys(posisi);
+  const genMin=Math.min(...ids.map(id=>posisi[id].gen));
+  const perGen={};
+  ids.forEach(id=>{ const g=posisi[id].gen-genMin+1; (perGen[g]=perGen[g]||[]).push(data.people[id]); });
+  const daftarGen=Object.keys(perGen).map(Number).sort((x,y)=>x-y);
+  const maks=Math.max(...daftarGen.map(g=>perGen[g].length));
+  const semua=ids.map(id=>data.people[id]);
+  const hidup=semua.filter(o=>o.status!=='meninggal').length;
+  const laki=semua.filter(o=>genderDari(o)!=='f').length;
+  const terlepas=Object.keys(data.people).length-ids.length;
+  let h='<div class="rk-judul">Per generasi</div>';
+  daftarGen.forEach(g=>{
+    const n=perGen[g].length;
+    h+=`<div class="rk-gen"><div class="rk-gen-atas"><span>Generasi ${g}${g===1?' (leluhur tertua)':''}</span><b>${n} orang</b></div><div class="rk-bar"><i style="width:${Math.round(n/maks*100)}%"></i></div></div>`;
+  });
+  h+='<div class="rk-pemisah"></div>';
+  h+=`<div class="rk-baris"><span>Total</span><span>${semua.length} orang</span></div>`;
+  h+=`<div class="rk-baris"><span>Hidup</span><span>${hidup}</span></div>`;
+  h+=`<div class="rk-baris"><span>Meninggal</span><span>${semua.length-hidup}</span></div>`;
+  h+=`<div class="rk-baris"><span>Laki-laki</span><span>${laki}</span></div>`;
+  h+=`<div class="rk-baris"><span>Perempuan</span><span>${semua.length-laki}</span></div>`;
+  h+=`<div class="rk-baris"><span>Jumlah generasi</span><span>${daftarGen.length}</span></div>`;
+  if(terlepas>0) h+=`<div class="rk-catatan">${terlepas} orang belum tersambung ke pohon ini, jadi tidak ikut dihitung.</div>`;
+  $('rkAkar').textContent=a.nama;
+  $('rkIsi').innerHTML=h; $('rkIsi').scrollTop=0;
+  $('ringkasanOverlay').classList.remove('hidden');
+}
+$('btnRingkasan').addEventListener('click',()=>{ tutupFab(); bukaRingkasan(); });
+$('ringkasanOverlay').addEventListener('click',e=>{ if(e.target===$('ringkasanOverlay')) tutupRingkasan(); });
+
 // ===== Kartu profil =====
 let kartuId=null;
 function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1213,6 +1277,7 @@ function tanganiBack(){
   if(cropTerbuka()){ tutupCrop(); return true; }
   if(namaTerbuka()){ tutupNamaDlg(null); return true; }
   if(!$('modalOverlay').classList.contains('hidden')){ tutupModal(); return true; }
+  if(ringkasanTerbuka()){ tutupRingkasan(); return true; }
   if(kartuTerbuka()){ tutupKartu(); return true; }
   if(drawerTerbuka()){ tutupDrawer(); return true; }
   return false;
