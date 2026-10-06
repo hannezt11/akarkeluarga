@@ -30,6 +30,12 @@ jobs:
       - name: Generate Android project
         run: npx cap add android
 
+      - name: Pasang jembatan cetak
+        run: |
+          D=android/app/src/main/java/com/hanz/akarkeluarga
+          mkdir -p "$D"
+          cp native/PrintPlugin.java native/MainActivity.java "$D/"
+
       - name: Sync web assets
         run: npx cap sync android
 

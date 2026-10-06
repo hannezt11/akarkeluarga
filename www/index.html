@@ -688,6 +688,12 @@ $('btnMulaiBaru').addEventListener('click',()=>{
 $('btnCetak').addEventListener('click',()=>{
   tutupFab();
   document.documentElement.style.setProperty('--pz',Math.min(1,680/Math.max(contentW,1)));
+  const cap=window.Capacitor;
+  if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.registerPlugin){
+    cap.registerPlugin('AkarPrint').print({name:'Akar Keluarga'})
+      .catch(err=>alert('Cetak gagal: '+((err&&err.message)||err)));
+    return;
+  }
   window.print();
 });
 
