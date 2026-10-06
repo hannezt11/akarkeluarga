@@ -690,19 +690,13 @@ $('btnCetak').addEventListener('click',async()=>{
   document.documentElement.style.setProperty('--pz',Math.min(1,680/Math.max(contentW,1)));
   const cap=window.Capacitor;
   const native=!!(cap&&cap.isNativePlatform&&cap.isNativePlatform());
-  const platform=(cap&&cap.getPlatform&&cap.getPlatform())||'-';
-  const bisaDaftar=!!(cap&&cap.registerPlugin);
-  alert('DIAGNOSIS 1/2\nnative='+native+'\nplatform='+platform+'\nregisterPlugin='+bisaDaftar);
-  if(native&&bisaDaftar){
-    try{
-      await cap.registerPlugin('AkarPrint').print({name:'Akar Keluarga'});
-      alert('DIAGNOSIS 2/2\nPanggilan ke jembatan cetak BERHASIL (resolve).');
-    }catch(err){
-      alert('DIAGNOSIS 2/2\nGAGAL: '+((err&&err.message)||err));
-    }
+  if(native){
+    const jembatan=cap.Plugins&&cap.Plugins.AkarPrint;
+    if(!jembatan){ alert('Cetak gagal: jembatan cetak tidak terdaftar di app ini.'); return; }
+    try{ await jembatan.print({name:'Akar Keluarga'}); }
+    catch(err){ alert('Cetak gagal: '+((err&&err.message)||err)); }
     return;
   }
-  alert('DIAGNOSIS 2/2\nJalur browser (window.print) dipakai.');
   window.print();
 });
 
