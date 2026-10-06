@@ -5,6 +5,7 @@
   "description": "Akar Keluarga - pohon keluarga",
   "dependencies": {
     "@capacitor/android": "^7.0.0",
+    "@capacitor/app": "^7.0.0",
     "@capacitor/core": "^7.0.0",
     "@capacitor/filesystem": "^7.0.0",
     "@capacitor/share": "^7.0.0"

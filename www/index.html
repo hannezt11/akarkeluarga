@@ -74,6 +74,62 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .modal-tambah-tombol{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .modal-tambah-tombol button{padding:9px;border-radius:8px;border:1px solid var(--card-border);background:var(--card);font-size:13px;color:var(--root-deep);}
 
+
+/* ===== Header, tombol menu, tombol pusat ===== */
+.topbar{display:flex;align-items:center;gap:12px;}
+.btn-menu{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.btn-pusat{position:absolute;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;width:48px;height:48px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.btn-pusat:active,.btn-menu:active{background:#eadfc6;}
+
+/* ===== Drawer ===== */
+.scrim{position:absolute;inset:0;background:rgba(36,30,20,0.45);z-index:30;}
+.scrim.hidden{display:none;}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--bg);z-index:31;transform:translateX(-102%);transition:transform .2s ease;display:flex;flex-direction:column;box-shadow:2px 0 14px rgba(0,0,0,0.25);padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));}
+.drawer.buka{transform:translateX(0);}
+.drawer-kepala{padding:calc(22px + env(safe-area-inset-top,0px)) 20px 16px;background:var(--root-deep);color:#f3ede0;}
+.drawer-kepala h2{margin:0;font-family:var(--font-title);font-weight:normal;font-size:20px;}
+.drawer-kepala p{margin:4px 0 0;font-size:12px;opacity:.75;}
+.drawer-isi{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.drawer-isi button,.drawer-bawah button{width:100%;text-align:left;padding:13px 14px;border-radius:10px;border:none;background:transparent;color:var(--root-deep);font-size:15px;}
+.drawer-isi button:active{background:#eadfc6;}
+.drawer-spacer{flex:1;}
+.drawer-bawah{padding:10px 12px 0;border-top:1px solid var(--card-border);margin:0 8px;}
+.drawer-bawah button{color:var(--meninggal);border:1px solid var(--card-border);background:var(--card);text-align:center;font-size:14px;}
+
+/* ===== Kartu profil ===== */
+.kartu-overlay{position:absolute;inset:0;background:rgba(24,20,13,0.62);z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;}
+.kartu-overlay.hidden{display:none;}
+.kartu{position:relative;width:min(100%,340px);height:min(78dvh,560px);background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.kartu-foto{flex:2 1 0;min-height:0;position:relative;background-size:cover;background-position:center 30%;background-color:#e4dabf;display:flex;align-items:center;justify-content:center;}
+.kartu-foto.kosong.m{background:linear-gradient(160deg,#cfdcc8,#a9c0a6);}
+.kartu-foto.kosong.f{background:linear-gradient(160deg,#ecd5c9,#d9aea0);}
+.kartu-foto.kosong .inisial{font-family:var(--font-title);font-size:84px;color:rgba(36,56,43,0.65);}
+.kartu-kode{position:absolute;left:12px;bottom:10px;font-size:11px;color:#fff;background:rgba(0,0,0,0.42);padding:3px 8px;border-radius:10px;}
+.kartu-edit{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,250,240,0.92);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 6px rgba(0,0,0,0.3);}
+.kartu-info{flex:1 1 0;min-height:0;overflow-y:auto;padding:12px 16px 14px;}
+.kartu-nama{font-family:var(--font-title);font-size:20px;line-height:1.2;color:var(--root-deep);}
+.kartu-sub{font-size:13px;color:var(--ink-soft);margin:3px 0 8px;display:flex;align-items:center;gap:6px;}
+.kartu-sub .titik{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.kartu-sub .titik.hidup{background:var(--hidup);}
+.kartu-sub .titik.meninggal{background:var(--meninggal);}
+.kartu-baris{font-size:13px;line-height:1.5;color:var(--ink);margin:2px 0;}
+.kartu-baris b{font-weight:normal;color:var(--ink-soft);}
+.tautan{color:#1f5fd1;text-decoration:none;}
+.tautan:active{text-decoration:underline;}
+
+/* ===== Dialog konfirmasi ===== */
+.dlg-overlay{position:absolute;inset:0;background:rgba(24,20,13,0.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:24px;}
+.dlg-overlay.hidden{display:none;}
+.dlg{width:100%;max-width:320px;background:var(--card);border-radius:16px;padding:20px 18px 14px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+.dlg h3{margin:0 0 8px;font-family:var(--font-title);font-weight:normal;font-size:18px;color:var(--meninggal);}
+.dlg p{margin:0 0 16px;font-size:14px;line-height:1.45;color:var(--ink);}
+.dlg-tombol{display:flex;gap:10px;}
+.dlg-tombol button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--card-border);background:var(--bg);font-size:14px;color:var(--root-deep);}
+.dlg-tombol button.bahaya{background:var(--meninggal);border-color:var(--meninggal);color:#fff;}
+
+@media print{
+  .btn-pusat,.btn-menu,.drawer,.scrim,.kartu-overlay,.dlg-overlay{display:none !important;}
+}
 @media print{
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .topbar,.fab-wrap,.modal-overlay{display:none !important;}
@@ -88,21 +144,17 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 <body>
 <div class="frame-luar"><div class="frame-ponsel">
 
-  <header class="topbar"><h1>Akar Keluarga</h1></header>
+  <header class="topbar">
+    <button id="btnMenu" class="btn-menu" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <h1>Akar Keluarga</h1>
+  </header>
 
   <main id="viewport" class="viewport">
     <div id="canvas" class="canvas"></div>
   </main>
 
-  <div class="fab-wrap">
-    <div id="fabMenu" class="fab-menu hidden">
-      <button id="btnBackup">Backup data</button>
-      <button id="btnRestore">Restore data</button>
-      <button id="btnMulaiBaru">Mulai baru (kosongkan)</button>
-      <button id="btnCetak">Cetak PDF</button>
-    </div>
-    <button id="fabUtama" class="fab">&#8942;</button>
-  </div>
+  <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+
   <input type="file" id="inputRestore" accept="application/json,.json">
 
   <div id="modalOverlay" class="modal-overlay hidden">
@@ -161,6 +213,35 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
           <button data-rel="orangtua">+ orang tua</button>
         </div>
       </div>
+    </div>
+  </div>
+
+
+  <div id="drawerScrim" class="scrim hidden"></div>
+  <aside id="drawer" class="drawer">
+    <div class="drawer-kepala"><h2>Akar Keluarga</h2><p>Pohon keluarga</p></div>
+    <div class="drawer-isi">
+      <button id="btnBackup">Backup data</button>
+      <button id="btnRestore">Restore data</button>
+      <button id="btnCetak">Cetak PDF</button>
+    </div>
+    <div class="drawer-spacer"></div>
+    <div class="drawer-bawah"><button id="btnMulaiBaru">Mulai baru (kosongkan)</button></div>
+  </aside>
+
+  <div id="kartuOverlay" class="kartu-overlay hidden">
+    <div class="kartu">
+      <div id="kartuFoto" class="kartu-foto"></div>
+      <button id="kartuEdit" class="kartu-edit" aria-label="Edit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+      <div id="kartuInfo" class="kartu-info"></div>
+    </div>
+  </div>
+
+  <div id="dlgOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 id="dlgJudul"></h3>
+      <p id="dlgTeks"></p>
+      <div class="dlg-tombol"><button id="dlgBatal">Batal</button><button id="dlgYa" class="bahaya">Ya</button></div>
     </div>
   </div>
 
@@ -466,7 +547,7 @@ function hitungLayout(){
 
 // ===== Render =====
 const canvas=$('canvas'), viewport=$('viewport');
-function inisial(nama){ return (nama||'?').trim().split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase(); }
+function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za-z\u00C0-\u024F]/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'; }
 
 let contentW=0, contentH=0;
 
@@ -625,7 +706,7 @@ function selesaiPointer(e){
 viewport.addEventListener('click',e=>{
   if(geserTerakhir || Date.now()<blokirKlikSampai) return;
   const n=e.target.closest ? e.target.closest('.node') : null;
-  if(n) bukaModal(n.dataset.id);
+  if(n) bukaKartu(n.dataset.id);
 });
 viewport.addEventListener('pointerup',selesaiPointer);
 viewport.addEventListener('pointercancel',selesaiPointer);
@@ -637,8 +718,7 @@ viewport.addEventListener('wheel',e=>{
 window.addEventListener('resize',()=>{ if(!$('modalOverlay').classList.contains('hidden')) return; pasKeLayar(); });
 
 // ===== Menu FAB =====
-function tutupFab(){ $('fabMenu').classList.add('hidden'); }
-$('fabUtama').addEventListener('click',e=>{ e.stopPropagation(); $('fabMenu').classList.toggle('hidden'); });
+function tutupFab(){ tutupDrawer(); }
 
 $('btnBackup').addEventListener('click',async()=>{
   tutupFab();
@@ -679,9 +759,10 @@ $('inputRestore').addEventListener('change',e=>{
   };
   r.readAsText(f);
 });
-$('btnMulaiBaru').addEventListener('click',()=>{
+$('btnMulaiBaru').addEventListener('click',async()=>{
   tutupFab();
-  if(!confirm('Semua data akan dihapus dan pohon dimulai dari satu orang kosong. Lanjutkan? (Sebaiknya Backup dulu.)')) return;
+  const ya=await konfirmasi('Kosongkan semua data?','Semua orang di pohon ini akan dihapus dan pohon dimulai lagi dari satu orang kosong. Tindakan ini tidak bisa dibatalkan. Sebaiknya Backup dulu.','Ya, kosongkan');
+  if(!ya) return;
   data={people:{diri:{id:'diri',nama:'',status:'hidup',gender:'m',jalur:'A',foto:'',idAyah:null,idIbu:null,idPasangan:[]}}};
   simpanData(); render(true); bukaModal('diri',true);
 });
@@ -699,6 +780,96 @@ $('btnCetak').addEventListener('click',async()=>{
   }
   window.print();
 });
+
+
+// ===== Drawer =====
+function bukaDrawer(){ $('drawer').classList.add('buka'); $('drawerScrim').classList.remove('hidden'); }
+function tutupDrawer(){ $('drawer').classList.remove('buka'); $('drawerScrim').classList.add('hidden'); }
+function drawerTerbuka(){ return $('drawer').classList.contains('buka'); }
+$('btnMenu').addEventListener('click',bukaDrawer);
+$('drawerScrim').addEventListener('click',tutupDrawer);
+$('btnPusat').addEventListener('click',pasKeLayar);
+
+// ===== Dialog konfirmasi =====
+let dlgResolve=null;
+function konfirmasi(judul,teks,labelYa){
+  return new Promise(res=>{
+    $('dlgJudul').textContent=judul; $('dlgTeks').textContent=teks; $('dlgYa').textContent=labelYa||'Ya';
+    dlgResolve=res; $('dlgOverlay').classList.remove('hidden');
+  });
+}
+function tutupDlg(hasil){
+  $('dlgOverlay').classList.add('hidden');
+  const r=dlgResolve; dlgResolve=null; if(r) r(hasil);
+}
+function dlgTerbuka(){ return !$('dlgOverlay').classList.contains('hidden'); }
+$('dlgBatal').addEventListener('click',()=>tutupDlg(false));
+$('dlgYa').addEventListener('click',()=>tutupDlg(true));
+$('dlgOverlay').addEventListener('click',e=>{ if(e.target===$('dlgOverlay')) tutupDlg(false); });
+
+// ===== Kartu profil =====
+let kartuId=null;
+function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function tautanOrang(id){ const o=data.people[id]; return o ? `<a href="#" class="tautan" data-id="${esc(id)}">${esc(o.nama||'Tanpa nama')}</a>` : ''; }
+function urutLahir(a,b){
+  const ya=(a.lahir&&a.lahir.tahun)||9999, yb=(b.lahir&&b.lahir.tahun)||9999;
+  return ya-yb || String(a.nama||'').localeCompare(String(b.nama||''));
+}
+function barisRelasi(label,ids){
+  const t=ids.map(tautanOrang).filter(Boolean);
+  return t.length ? `<div class="kartu-baris"><b>${label}:</b> ${t.join(', ')}</div>` : '';
+}
+function bukaKartu(id){
+  const o=data.people[id]; if(!o) return;
+  kartuId=id;
+  const foto=$('kartuFoto');
+  if(o.foto){
+    foto.className='kartu-foto'; foto.style.backgroundImage=`url("${o.foto}")`; foto.innerHTML='';
+  } else {
+    foto.className='kartu-foto kosong '+(genderDari(o)==='f'?'f':'m'); foto.style.backgroundImage='';
+    foto.innerHTML=`<span class="inisial">${esc(inisial(o.nama))}</span>`;
+  }
+  foto.insertAdjacentHTML('beforeend',`<span class="kartu-kode">${esc(o.id)}</span>`);
+  const meninggal=o.status==='meninggal';
+  const umur=hitungUmur(o);
+  const lahir=formatTglSingkat(o.lahir), wafat=formatTglSingkat(o.wafat);
+  const sub=[meninggal?'Meninggal':'Hidup'];
+  if(umur!==null) sub.push(meninggal?`wafat usia ${umur} tahun`:`${umur} tahun`);
+  let h=`<div class="kartu-nama">${esc(o.nama||'Tanpa nama')}</div>`;
+  h+=`<div class="kartu-sub"><span class="titik ${meninggal?'meninggal':'hidup'}"></span>${esc(sub.join(' \u00b7 '))}</div>`;
+  if(lahir) h+=`<div class="kartu-baris"><b>Lahir:</b> ${esc(lahir)}</div>`;
+  if(meninggal&&wafat) h+=`<div class="kartu-baris"><b>Wafat:</b> ${esc(wafat)}</div>`;
+  h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
+  h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
+  h+=barisRelasi('Pasangan',(o.idPasangan||[]).filter(x=>data.people[x]));
+  h+=barisRelasi('Anak',anakDari(id).sort(urutLahir).map(x=>x.id));
+  $('kartuInfo').innerHTML=h; $('kartuInfo').scrollTop=0;
+  $('kartuOverlay').classList.remove('hidden');
+}
+function tutupKartu(){ $('kartuOverlay').classList.add('hidden'); kartuId=null; }
+function kartuTerbuka(){ return !$('kartuOverlay').classList.contains('hidden'); }
+$('kartuOverlay').addEventListener('click',e=>{ if(e.target===$('kartuOverlay')) tutupKartu(); });
+$('kartuInfo').addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('.tautan');
+  if(t){ e.preventDefault(); bukaKartu(t.dataset.id); }
+});
+$('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if(id) bukaModal(id); });
+
+// ===== Tombol Back Android =====
+function tanganiBack(){
+  if(dlgTerbuka()){ tutupDlg(false); return true; }
+  if(!$('modalOverlay').classList.contains('hidden')){ tutupModal(); return true; }
+  if(kartuTerbuka()){ tutupKartu(); return true; }
+  if(drawerTerbuka()){ tutupDrawer(); return true; }
+  return false;
+}
+(function(){
+  const cap=window.Capacitor;
+  const AppPlg=cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.App;
+  if(AppPlg&&AppPlg.addListener){
+    AppPlg.addListener('backButton',()=>{ if(!tanganiBack()&&AppPlg.exitApp) AppPlg.exitApp(); });
+  }
+})();
 
 // ===== Modal anggota =====
 let idAktif=null, fotoTemp='';
