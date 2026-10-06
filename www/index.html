@@ -130,6 +130,47 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 @media print{
   .btn-pusat,.btn-menu,.drawer,.scrim,.kartu-overlay,.dlg-overlay{display:none !important;}
 }
+
+/* ===== Status pada kartu ===== */
+.kartu-status{position:absolute;left:12px;top:12px;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);}
+.kartu-status.hidup{background:#2fa555;}
+.kartu-status.meninggal{background:#d23a30;}
+
+/* ===== Form alamat ===== */
+.blok-alamat{border-top:1px solid var(--card-border);padding-top:10px;margin:4px 0 12px;}
+.judul-blok{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+.wilayah-info{font-size:13px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;}
+.btn-teks{border:none;background:none;color:#1f5fd1;font-size:13px;padding:4px 2px;}
+.wil-status{font-size:12px;color:var(--ink-soft);margin:0 0 8px;min-height:14px;}
+.modal-body input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0;vertical-align:middle;}
+.cek-utama{display:flex;align-items:center;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.hidden{display:none !important;}
+
+/* ===== Crop foto ===== */
+.crop-overlay{position:absolute;inset:0;z-index:25;background:#14110b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;}
+.crop-overlay.hidden{display:none;}
+.crop-judul{color:#f3ede0;font-size:15px;}
+.crop-frame{position:relative;width:min(86vw,340px);aspect-ratio:1/1;overflow:hidden;background:#000;touch-action:none;outline:2px solid rgba(255,255,255,0.9);}
+.crop-frame img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.crop-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px)),linear-gradient(to bottom,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px));}
+.crop-zoom{width:min(86vw,340px);}
+.crop-tombol{display:flex;gap:10px;width:min(86vw,340px);}
+.crop-tombol button{flex:1;padding:12px;border-radius:10px;border:1px solid #5b5240;background:#2a2418;color:#f3ede0;font-size:14px;}
+.crop-tombol button.utama{background:var(--root);border-color:var(--root);}
+
+/* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
+#cetakCanvas{display:none;}
+.cetak .node{width:124px;gap:6px;}
+.cetak .avatar-wrap{width:88px;height:88px;}
+.cetak .avatar{width:88px;height:88px;font-size:30px;border:1px solid #cdbf9d;}
+.cetak .status-dot{width:18px;height:18px;border-width:3px;}
+.cetak .node .nama{font-size:16px;line-height:1.25;max-height:3.75em;}
+.cetak .node .umur{font-size:13px;}
+@page{margin:0;}
+@media print{
+  #canvas,.viewport{display:none !important;}
+  #cetakCanvas{display:block !important;position:relative !important;transform:none !important;zoom:var(--pzc,1);margin:0 auto;}
+}
 @media print{
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .topbar,.fab-wrap,.modal-overlay{display:none !important;}
@@ -152,6 +193,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
   <main id="viewport" class="viewport">
     <div id="canvas" class="canvas"></div>
   </main>
+  <div id="cetakCanvas" class="canvas cetak"></div>
 
   <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
 
@@ -195,6 +237,19 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
             <input type="number" id="fWafatThn" placeholder="tahun" min="1" max="2100">
           </div>
         </label>
+        <div class="blok-alamat">
+          <div class="judul-blok">Alamat</div>
+          <div id="wilayahInfo" class="wilayah-info hidden"><span id="wilayahTeks"></span><button type="button" id="btnUbahWilayah" class="btn-teks">Ubah</button></div>
+          <div id="wilayahPilih" class="hidden">
+            <label>Provinsi <select id="fProv"></select></label>
+            <label>Kabupaten / Kota <select id="fKab"></select></label>
+            <div class="cek-utama"><input type="checkbox" id="fUtama"><span>Jadikan wilayah utama keluarga</span></div>
+          </div>
+          <label>Kecamatan <select id="fKec"></select></label>
+          <label>Desa / Kelurahan <select id="fDesa"></select></label>
+          <label>Jalan / dusun (boleh kosong) <input type="text" id="fJalan" placeholder="Contoh: Dusun Krajan"></label>
+          <div id="wilStatus" class="wil-status"></div>
+        </div>
         <label>Ayah <select id="fAyah"></select></label>
         <label>Ibu <select id="fIbu"></select></label>
         <div class="relasi-info">
@@ -237,6 +292,13 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
     </div>
   </div>
 
+  <div id="cropOverlay" class="crop-overlay hidden">
+    <div class="crop-judul">Atur foto: geser dan cubit untuk zoom</div>
+    <div id="cropFrame" class="crop-frame"><img id="cropImg" alt=""><div class="crop-grid"></div></div>
+    <input type="range" id="cropZoom" class="crop-zoom" min="1" max="5" step="0.01" value="1">
+    <div class="crop-tombol"><button id="cropBatal">Batal</button><button id="cropPakai" class="utama">Pakai foto</button></div>
+  </div>
+
   <div id="dlgOverlay" class="dlg-overlay hidden">
     <div class="dlg">
       <h3 id="dlgJudul"></h3>
@@ -274,9 +336,13 @@ function dataContoh(){
 let data=null;
 try{ data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); }catch(e){ data=null; }
 if(!data||!data.people||!Object.keys(data.people).length) data=dataContoh();
-let peringatanSimpan=false;
+let peringatanSimpan=false, peringatanKapasitas=false;
 function simpanData(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  try{
+    const teks=JSON.stringify(data);
+    localStorage.setItem(STORAGE_KEY, teks);
+    if(teks.length>3800000 && !peringatanKapasitas){ peringatanKapasitas=true; alert('Penyimpanan app hampir penuh ('+(teks.length/1048576).toFixed(1)+' MB dari sekitar 5 MB). Lakukan Backup data sekarang dan kurangi jumlah foto bila perlu.'); }
+  }
   catch(e){ if(!peringatanSimpan){ peringatanSimpan=true; alert('Data tidak bisa disimpan otomatis di perangkat ini (penyimpanan penuh/diblokir). Gunakan Backup data secara berkala.'); } }
 }
 function anakDari(id){ return Object.values(data.people).filter(p=>p.idAyah===id||p.idIbu===id); }
@@ -551,20 +617,23 @@ function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za
 
 let contentW=0, contentH=0;
 
-function garisV(x,y1,y2){
+// Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
+const M_LAYAR={NODE_H:110,CX:52,CY:29,T:2,cetak:false};
+const M_CETAK={NODE_H:176,CX:62,CY:44,T:3,cetak:true};
+function garisV(tg,x,y1,y2,T){
   const d=document.createElement('div'); d.className='line line-v';
-  d.style.cssText=`left:${x-1}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px`;
-  canvas.appendChild(d);
+  d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;
+  tg.appendChild(d);
 }
-function garisH(x1,y,x2){
+function garisH(tg,x1,y,x2,T){
   const d=document.createElement('div'); d.className='line line-h';
-  d.style.cssText=`left:${Math.min(x1,x2)-1}px;top:${y-1}px;width:${Math.abs(x2-x1)+2}px`;
-  canvas.appendChild(d);
+  d.style.cssText=`left:${Math.min(x1,x2)-T/2}px;top:${y-T/2}px;width:${Math.abs(x2-x1)+T}px;height:${T}px`;
+  tg.appendChild(d);
 }
 
-function render(pasKeLayarJuga){
+function gambarPohon(target,M){
   const posisi=hitungLayout();
-  canvas.innerHTML='';
+  target.innerHTML='';
 
   // 1) kelompokkan anak per keluarga (pasangan orang tua yang sama)
   const keluarga={};
@@ -579,8 +648,8 @@ function render(pasKeLayarJuga){
   Object.values(keluarga).forEach(f=>{
     const ortu=f.ids.map(id=>posisi[id]);
     f.rapat=ortu.length===2 && ortu[0].gen===ortu[1].gen && Math.abs(ortu[0].x-ortu[1].x)===NODE_W;
-    f.midX=f.rapat ? (ortu[0].x+ortu[1].x)/2+CX : ortu[0].x+CX;
-    const xs=f.anak.map(p=>p.x+CX).concat(f.midX);
+    f.midX=f.rapat ? (ortu[0].x+ortu[1].x)/2+M.CX : ortu[0].x+M.CX;
+    const xs=f.anak.map(p=>p.x+M.CX).concat(f.midX);
     f.kiri=Math.min(...xs); f.kanan=Math.max(...xs);
     f.gen=f.anak[0].gen;
     (perGenAnak[f.gen]=perGenAnak[f.gen]||[]).push(f);
@@ -601,7 +670,7 @@ function render(pasKeLayarJuga){
   // 3) tinggi tiap generasi: celah ke bawah melebar sesuai jumlah lajur yang dibutuhkan
   const daftarGen=[...new Set(Object.values(posisi).map(p=>p.gen))].sort((a,b)=>a-b);
   const yGen={}; let yy=0;
-  daftarGen.forEach((g,i)=>{ if(i>0) yy+=NODE_H+GAP_GEN+(jumlahLajur[g]||0)*LAJUR_H; yGen[g]=yy; });
+  daftarGen.forEach((g,i)=>{ if(i>0) yy+=M.NODE_H+GAP_GEN+(jumlahLajur[g]||0)*LAJUR_H; yGen[g]=yy; });
   Object.values(posisi).forEach(p=>{ p.y=yGen[p.gen]; });
 
   // 4) gambar garis: pasangan, lalu tiap keluarga (satu garis per keluarga)
@@ -609,25 +678,25 @@ function render(pasKeLayarJuga){
     const pos=posisi[o.id]; if(!pos) return;
     (o.idPasangan||[]).forEach(pid=>{
       const pos2=posisi[pid];
-      if(pos2 && pid>o.id) garisH(pos.x+CX,pos.y+29,pos2.x+CX);
+      if(pos2 && pid>o.id) garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T);
     });
   });
   Object.values(keluarga).forEach(f=>{
     const ortu=f.ids.map(id=>posisi[id]);
-    const yMulai=f.rapat ? ortu[0].y+29 : ortu[0].y+NODE_H;
+    const yMulai=f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H;
     const yBus=f.anak[0].y-12-f.lajur*LAJUR_H;
-    garisV(f.midX,yMulai,yBus);
-    if(f.kanan>f.kiri) garisH(f.kiri,yBus,f.kanan);
-    f.anak.forEach(p=>garisV(p.x+CX,yBus,p.y));
+    garisV(target,f.midX,yMulai,yBus,M.T);
+    if(f.kanan>f.kiri) garisH(target,f.kiri,yBus,f.kanan,M.T);
+    f.anak.forEach(p=>garisV(target,p.x+M.CX,yBus,p.y,M.T));
   });
 
   let maksX=0,maksY=0;
   Object.values(data.people).forEach(o=>{
     const pos=posisi[o.id]; if(!pos) return;
-    maksX=Math.max(maksX,pos.x+NODE_W); maksY=Math.max(maksY,pos.y+NODE_H);
+    maksX=Math.max(maksX,pos.x+NODE_W); maksY=Math.max(maksY,pos.y+M.NODE_H);
 
     const n=document.createElement('div');
-    n.className='node'+(o.id===rootAktif()?' aktif':'');
+    n.className='node'+((!M.cetak&&o.id===rootAktif())?' aktif':'');
     n.dataset.id=o.id;
     n.style.left=pos.x+'px'; n.style.top=pos.y+'px';
 
@@ -643,10 +712,13 @@ function render(pasKeLayarJuga){
     um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' †':'')) : formatTglSingkat(o.lahir);
 
     n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
-    canvas.appendChild(n);
+    target.appendChild(n);
   });
-
-  contentW=maksX; contentH=maksY;
+  return {w:maksX,h:maksY};
+}
+function render(pasKeLayarJuga){
+  const u=gambarPohon(canvas,M_LAYAR);
+  contentW=u.w; contentH=u.h;
   canvas.style.width=contentW+'px'; canvas.style.height=contentH+'px';
   if(pasKeLayarJuga) pasKeLayar(); else pasangTransform();
 }
@@ -754,7 +826,7 @@ $('inputRestore').addEventListener('change',e=>{
       if(!d||typeof d.people!=='object'||!Object.keys(d.people).length) throw new Error('format');
       Object.keys(d.people).forEach(k=>{ const p=d.people[k]; if(!p||typeof p!=='object') throw new Error('format'); p.id=p.id||k; p.idPasangan=p.idPasangan||[]; p.idAyah=p.idAyah||null; p.idIbu=p.idIbu||null; p.foto=p.foto||''; p.nama=p.nama||''; });
       if(!confirm('Data saat ini akan diganti dengan isi file backup. Lanjutkan?')) return;
-      data={people:d.people}; simpanData(); render(true);
+      data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') data.wilayah=d.wilayah; simpanData(); render(true);
     }catch(err){ alert('File backup tidak valid.'); }
   };
   r.readAsText(f);
@@ -763,18 +835,37 @@ $('btnMulaiBaru').addEventListener('click',async()=>{
   tutupFab();
   const ya=await konfirmasi('Kosongkan semua data?','Semua orang di pohon ini akan dihapus dan pohon dimulai lagi dari satu orang kosong. Tindakan ini tidak bisa dibatalkan. Sebaiknya Backup dulu.','Ya, kosongkan');
   if(!ya) return;
+  const wilLama=data.wilayah;
   data={people:{diri:{id:'diri',nama:'',status:'hidup',gender:'m',jalur:'A',foto:'',idAyah:null,idIbu:null,idPasangan:[]}}};
+  if(wilLama) data.wilayah=wilLama;
   simpanData(); render(true); bukaModal('diri',true);
 });
+const KERTAS=[['A4',210,297],['A3',297,420],['A2',420,594],['A1',594,841],['A0',841,1189]];
+function pilihKertas(w,h){
+  const mm=96/25.4;
+  const land=w>=h;
+  let pilih=null;
+  for(const [nama,a,b] of KERTAS){
+    const pw=(land?b:a)*mm, ph=(land?a:b)*mm;
+    const fit=Math.min(pw/w,ph/h);
+    pilih={paper:nama,landscape:land,fit};
+    if(fit>=1) break;
+  }
+  pilih.zoom=Math.min(pilih.fit*0.97,1.4);
+  return pilih;
+}
 $('btnCetak').addEventListener('click',async()=>{
   tutupFab();
-  document.documentElement.style.setProperty('--pz',Math.min(1,680/Math.max(contentW,1)));
+  const u=gambarPohon($('cetakCanvas'),M_CETAK);
+  $('cetakCanvas').style.width=u.w+'px'; $('cetakCanvas').style.height=u.h+'px';
+  const k=pilihKertas(Math.max(u.w,1),Math.max(u.h,1));
+  document.documentElement.style.setProperty('--pzc',k.zoom);
   const cap=window.Capacitor;
   const native=!!(cap&&cap.isNativePlatform&&cap.isNativePlatform());
   if(native){
     const jembatan=cap.Plugins&&cap.Plugins.AkarPrint;
     if(!jembatan){ alert('Cetak gagal: jembatan cetak tidak terdaftar di app ini.'); return; }
-    try{ await jembatan.print({name:'Akar Keluarga'}); }
+    try{ await jembatan.print({name:'Akar Keluarga',paper:k.paper,landscape:k.landscape}); }
     catch(err){ alert('Cetak gagal: '+((err&&err.message)||err)); }
     return;
   }
@@ -819,6 +910,10 @@ function barisRelasi(label,ids){
   const t=ids.map(tautanOrang).filter(Boolean);
   return t.length ? `<div class="kartu-baris"><b>${label}:</b> ${t.join(', ')}</div>` : '';
 }
+function teksAlamat(a){
+  if(!a) return '';
+  return [a.jalan,a.desa,a.kec?('Kec. '+a.kec):'',a.kab,a.prov].filter(Boolean).join(', ');
+}
 function bukaKartu(id){
   const o=data.people[id]; if(!o) return;
   kartuId=id;
@@ -829,16 +924,18 @@ function bukaKartu(id){
     foto.className='kartu-foto kosong '+(genderDari(o)==='f'?'f':'m'); foto.style.backgroundImage='';
     foto.innerHTML=`<span class="inisial">${esc(inisial(o.nama))}</span>`;
   }
-  foto.insertAdjacentHTML('beforeend',`<span class="kartu-kode">${esc(o.id)}</span>`);
   const meninggal=o.status==='meninggal';
+  foto.insertAdjacentHTML('beforeend',`<span class="kartu-status ${meninggal?'meninggal':'hidup'}"></span><span class="kartu-kode">${esc(o.id)}</span>`);
   const umur=hitungUmur(o);
   const lahir=formatTglSingkat(o.lahir), wafat=formatTglSingkat(o.wafat);
-  const sub=[meninggal?'Meninggal':'Hidup'];
-  if(umur!==null) sub.push(meninggal?`wafat usia ${umur} tahun`:`${umur} tahun`);
+  const sub=[];
+  if(umur!==null) sub.push(meninggal?`${umur} tahun (saat wafat)`:`${umur} tahun`);
   let h=`<div class="kartu-nama">${esc(o.nama||'Tanpa nama')}</div>`;
-  h+=`<div class="kartu-sub"><span class="titik ${meninggal?'meninggal':'hidup'}"></span>${esc(sub.join(' \u00b7 '))}</div>`;
+  h+=`<div class="kartu-sub">${esc(sub.join(' \u00b7 '))}</div>`;
   if(lahir) h+=`<div class="kartu-baris"><b>Lahir:</b> ${esc(lahir)}</div>`;
   if(meninggal&&wafat) h+=`<div class="kartu-baris"><b>Wafat:</b> ${esc(wafat)}</div>`;
+  const txtAlamat=teksAlamat(o.alamat);
+  if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}</div>`;
   h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
   h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
   h+=barisRelasi('Pasangan',(o.idPasangan||[]).filter(x=>data.people[x]));
@@ -858,6 +955,7 @@ $('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if
 // ===== Tombol Back Android =====
 function tanganiBack(){
   if(dlgTerbuka()){ tutupDlg(false); return true; }
+  if(cropTerbuka()){ tutupCrop(); return true; }
   if(!$('modalOverlay').classList.contains('hidden')){ tutupModal(); return true; }
   if(kartuTerbuka()){ tutupKartu(); return true; }
   if(drawerTerbuka()){ tutupDrawer(); return true; }
@@ -870,6 +968,109 @@ function tanganiBack(){
     AppPlg.addListener('backButton',()=>{ if(!tanganiBack()&&AppPlg.exitApp) AppPlg.exitApp(); });
   }
 })();
+
+// ===== Wilayah Indonesia (diambil online, disimpan di cache) =====
+const WIL_URL='https://www.emsifa.com/api-wilayah-indonesia/v2';
+const wilMem={};
+async function wilAmbil(path){
+  if(wilMem[path]) return wilMem[path];
+  const kunci='wil:'+path;
+  try{ const c=localStorage.getItem(kunci); if(c){ wilMem[path]=JSON.parse(c); return wilMem[path]; } }catch(e){}
+  const r=await fetch(`${WIL_URL}/${path}.json`);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const j=await r.json();
+  const arr=(Array.isArray(j.data)?j.data:[]).map(x=>({id:String(x.id),name:String(x.name)}));
+  if(!arr.length) throw new Error('kosong');
+  wilMem[path]=arr;
+  try{ localStorage.setItem(kunci,JSON.stringify(arr)); }catch(e){}
+  return arr;
+}
+let wilF={}, wilToken=0, wilUbah=false;
+function wilStatus(t){ $('wilStatus').textContent=t||''; }
+function isiSel(sel,arr,pilihId,label){
+  sel.innerHTML='';
+  const o0=document.createElement('option'); o0.value=''; o0.textContent=label; sel.appendChild(o0);
+  arr.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; sel.appendChild(o); });
+  sel.value=pilihId||'';
+  if(sel.value!==(pilihId||'')) sel.value='';
+}
+function isiSelTersimpan(sel,id,nama,label){ isiSel(sel,id?[{id,name:nama}]:[],id,label); }
+function teksPilihan(sel){ return sel.selectedIndex>0 ? sel.options[sel.selectedIndex].textContent : ''; }
+async function muatDaftar(sel,path,pilihId,label){
+  const tok=wilToken;
+  wilStatus('Memuat data wilayah...');
+  try{
+    const arr=(await wilAmbil(path)).slice().sort((a,b)=>a.name.localeCompare(b.name,'id'));
+    if(tok!==wilToken) return false;
+    isiSel(sel,arr,pilihId,label); wilStatus(''); return true;
+  }catch(e){
+    if(tok!==wilToken) return false;
+    wilStatus('Data wilayah tidak bisa dimuat (periksa internet). Alamat bisa ditulis lengkap di kolom Jalan / dusun.');
+    return false;
+  }
+}
+async function muatProv(){
+  const ok=await muatDaftar($('fProv'),'provinces',wilF.provId,'- pilih provinsi -');
+  if(ok&&wilF.provId) await muatKab();
+}
+async function muatKab(){ if(!wilF.provId) return; await muatDaftar($('fKab'),'regencies/'+wilF.provId,wilF.kabId,'- pilih kabupaten / kota -'); }
+async function muatKec(){
+  if(!wilF.kabId) return;
+  const ok=await muatDaftar($('fKec'),'districts/'+wilF.kabId,wilF.kecId,'- pilih kecamatan -');
+  if(ok&&wilF.kecId) await muatDesa();
+}
+async function muatDesa(){ if(!wilF.kecId) return; await muatDaftar($('fDesa'),'villages/'+wilF.kecId,wilF.desaId,'- pilih desa / kelurahan -'); }
+function aturBlokWilayah(){
+  const adaKab=!!wilF.kabId;
+  $('wilayahInfo').classList.toggle('hidden',!(adaKab&&!wilUbah));
+  $('wilayahPilih').classList.toggle('hidden',adaKab&&!wilUbah);
+  $('wilayahTeks').textContent=adaKab?('Wilayah: '+[wilF.kab,wilF.prov].filter(Boolean).join(', ')):'';
+}
+function siapkanAlamat(o){
+  wilToken++; wilUbah=false;
+  const a=o.alamat||{}, u=data.wilayah||{};
+  const dasar=a.kabId?a:u;
+  wilF={provId:dasar.provId||'',prov:dasar.prov||'',kabId:dasar.kabId||'',kab:dasar.kab||'',
+        kecId:a.kecId||'',kec:a.kec||'',desaId:a.desaId||'',desa:a.desa||''};
+  $('fJalan').value=a.jalan||'';
+  isiSelTersimpan($('fProv'),wilF.provId,wilF.prov,'- pilih provinsi -');
+  isiSelTersimpan($('fKab'),wilF.kabId,wilF.kab,'- pilih kabupaten / kota -');
+  isiSelTersimpan($('fKec'),wilF.kecId,wilF.kec,'- pilih kecamatan -');
+  isiSelTersimpan($('fDesa'),wilF.desaId,wilF.desa,'- pilih desa / kelurahan -');
+  $('fUtama').checked=!data.wilayah;
+  wilStatus('');
+  aturBlokWilayah();
+  if(wilF.kabId) muatKec(); else muatProv();
+}
+$('btnUbahWilayah').addEventListener('click',()=>{ wilUbah=true; aturBlokWilayah(); $('fUtama').checked=false; muatProv(); });
+$('fProv').addEventListener('change',()=>{
+  wilF.provId=$('fProv').value; wilF.prov=teksPilihan($('fProv'));
+  wilF.kabId=wilF.kab=wilF.kecId=wilF.kec=wilF.desaId=wilF.desa='';
+  isiSel($('fKab'),[],'','- pilih kabupaten / kota -'); isiSel($('fKec'),[],'','- pilih kecamatan -'); isiSel($('fDesa'),[],'','- pilih desa / kelurahan -');
+  muatKab();
+});
+$('fKab').addEventListener('change',()=>{
+  wilF.kabId=$('fKab').value; wilF.kab=teksPilihan($('fKab'));
+  wilF.kecId=wilF.kec=wilF.desaId=wilF.desa='';
+  isiSel($('fKec'),[],'','- pilih kecamatan -'); isiSel($('fDesa'),[],'','- pilih desa / kelurahan -');
+  muatKec();
+});
+$('fKec').addEventListener('change',()=>{
+  wilF.kecId=$('fKec').value; wilF.kec=teksPilihan($('fKec'));
+  wilF.desaId=wilF.desa='';
+  isiSel($('fDesa'),[],'','- pilih desa / kelurahan -');
+  muatDesa();
+});
+$('fDesa').addEventListener('change',()=>{ wilF.desaId=$('fDesa').value; wilF.desa=teksPilihan($('fDesa')); });
+function simpanAlamat(o){
+  const jalan=$('fJalan').value.trim();
+  if(wilF.kecId||wilF.desaId||jalan){
+    o.alamat={jalan,desaId:wilF.desaId,desa:wilF.desa,kecId:wilF.kecId,kec:wilF.kec,kabId:wilF.kabId,kab:wilF.kab,provId:wilF.provId,prov:wilF.prov};
+  } else delete o.alamat;
+  if(wilF.kabId && $('fUtama').checked && !$('wilayahPilih').classList.contains('hidden')){
+    data.wilayah={provId:wilF.provId,prov:wilF.prov,kabId:wilF.kabId,kab:wilF.kab};
+  }
+}
 
 // ===== Modal anggota =====
 let idAktif=null, fotoTemp='';
@@ -894,6 +1095,7 @@ function bukaModal(id,fokusNama){
   $('fLahirTgl').value=lh.tanggal||''; $('fLahirBln').value=lh.bulan||''; $('fLahirThn').value=lh.tahun||'';
   $('fWafatTgl').value=wf.tanggal||''; $('fWafatBln').value=wf.bulan||''; $('fWafatThn').value=wf.tahun||'';
   aturWafat();
+  siapkanAlamat(o);
   isiPilihanOrtu(o); aturTombolOrtu(o);
   const ps=(o.idPasangan||[]).map(namaDari).filter(Boolean);
   $('infoPasangan').textContent=ps.length?ps.join(', '):'-';
@@ -907,22 +1109,84 @@ $('fStatus').addEventListener('change',aturWafat);
 $('btnTutup').addEventListener('click',tutupModal);
 $('modalOverlay').addEventListener('click',e=>{ if(e.target===$('modalOverlay')) tutupModal(); });
 
-$('fFotoFile').addEventListener('change',e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{
-    const im=new Image();
-    im.onload=()=>{
-      const s=Math.min(im.width,im.height), L=160;
-      const c=document.createElement('canvas'); c.width=L; c.height=L;
-      c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,L,L);
-      fotoTemp=c.toDataURL('image/jpeg',0.8); segarkanFoto();
-    };
-    im.onerror=()=>alert('Foto tidak bisa dibaca.');
-    im.src=r.result;
+// ===== Crop foto =====
+const FOTO_PX=480;
+let cropIm=null, cropUrl='', cropS=1, cropMin=1, cropX=0, cropY=0, cropF=300;
+const cropPtr=new Map(); let cropJarak=0, cropSAwal=1;
+function cropTerbuka(){ return !$('cropOverlay').classList.contains('hidden'); }
+function cropTerapkan(){
+  const el=$('cropImg');
+  el.style.transform=`translate(${cropX}px,${cropY}px) scale(${cropS})`;
+  $('cropZoom').value=cropS/cropMin;
+}
+function cropBatasi(){
+  const iw=cropIm.naturalWidth, ih=cropIm.naturalHeight;
+  cropS=Math.min(cropMin*5,Math.max(cropMin,cropS));
+  cropX=Math.min(0,Math.max(cropF-iw*cropS,cropX));
+  cropY=Math.min(0,Math.max(cropF-ih*cropS,cropY));
+}
+function cropZoomDi(px,py,sBaru){
+  const r=Math.min(cropMin*5,Math.max(cropMin,sBaru))/cropS;
+  cropX=px-(px-cropX)*r; cropY=py-(py-cropY)*r; cropS*=r;
+  cropBatasi(); cropTerapkan();
+}
+function bukaCrop(file){
+  const url=URL.createObjectURL(file);
+  const im=new Image();
+  im.onload=()=>{
+    if(!im.naturalWidth){ URL.revokeObjectURL(url); alert('Foto tidak bisa dibaca.'); return; }
+    cropIm=im; cropUrl=url;
+    const el=$('cropImg'); el.src=url; el.style.width=im.naturalWidth+'px'; el.style.height=im.naturalHeight+'px';
+    $('cropOverlay').classList.remove('hidden');
+    cropF=$('cropFrame').clientWidth||300;
+    cropMin=cropF/Math.min(im.naturalWidth,im.naturalHeight);
+    cropS=cropMin;
+    cropX=(cropF-im.naturalWidth*cropS)/2; cropY=(cropF-im.naturalHeight*cropS)/2;
+    cropBatasi(); cropTerapkan();
   };
-  r.readAsDataURL(f);
+  im.onerror=()=>{ URL.revokeObjectURL(url); alert('Foto tidak bisa dibaca.'); };
+  im.src=url;
+}
+function tutupCrop(){
+  $('cropOverlay').classList.add('hidden');
+  if(cropUrl){ URL.revokeObjectURL(cropUrl); cropUrl=''; }
+  cropIm=null; cropPtr.clear(); $('cropImg').removeAttribute('src');
+  $('fFotoFile').value='';
+}
+$('fFotoFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f) bukaCrop(f); });
+$('cropBatal').addEventListener('click',tutupCrop);
+$('cropPakai').addEventListener('click',()=>{
+  if(!cropIm) return;
+  const c=document.createElement('canvas'); c.width=FOTO_PX; c.height=FOTO_PX;
+  const g=c.getContext('2d'); g.imageSmoothingQuality='high';
+  g.drawImage(cropIm,-cropX/cropS,-cropY/cropS,cropF/cropS,cropF/cropS,0,0,FOTO_PX,FOTO_PX);
+  fotoTemp=c.toDataURL('image/jpeg',0.8); segarkanFoto(); tutupCrop();
 });
+$('cropZoom').addEventListener('input',e=>{ if(cropIm) cropZoomDi(cropF/2,cropF/2,cropMin*parseFloat(e.target.value)); });
+(function(){
+  const fr=$('cropFrame');
+  function titik(e){ const r=fr.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; }
+  fr.addEventListener('pointerdown',e=>{
+    if(!cropIm) return;
+    fr.setPointerCapture&&fr.setPointerCapture(e.pointerId);
+    cropPtr.set(e.pointerId,titik(e));
+    if(cropPtr.size===2){ const [a,b]=[...cropPtr.values()]; cropJarak=Math.hypot(a.x-b.x,a.y-b.y)||1; cropSAwal=cropS; }
+  });
+  fr.addEventListener('pointermove',e=>{
+    if(!cropIm||!cropPtr.has(e.pointerId)) return;
+    const lama=cropPtr.get(e.pointerId), baru=titik(e);
+    cropPtr.set(e.pointerId,baru);
+    if(cropPtr.size===1){ cropX+=baru.x-lama.x; cropY+=baru.y-lama.y; cropBatasi(); cropTerapkan(); }
+    else if(cropPtr.size===2){
+      const [a,b]=[...cropPtr.values()];
+      const d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+      cropZoomDi((a.x+b.x)/2,(a.y+b.y)/2,cropSAwal*(d/cropJarak));
+    }
+  });
+  const lepas=e=>{ cropPtr.delete(e.pointerId); };
+  fr.addEventListener('pointerup',lepas); fr.addEventListener('pointercancel',lepas);
+  fr.addEventListener('wheel',e=>{ if(!cropIm) return; e.preventDefault(); const t=titik(e); cropZoomDi(t.x,t.y,cropS*(e.deltaY<0?1.1:1/1.1)); },{passive:false});
+})();
 
 function bacaTanggal(t,b,y){
   const tahun=bacaAngka(y); if(!tahun) return null;
@@ -938,6 +1202,7 @@ function terapkanForm(o){
   o.status=$('fStatus').value;
   const gBaru=$('fGender').value, gLama=genderDari(o);
   o.gender=gBaru; o.foto=fotoTemp;
+  simpanAlamat(o);
   const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn'));
   if(lh) o.lahir=lh; else delete o.lahir;
   const wf=o.status==='meninggal' ? bacaTanggal($('fWafatTgl'),$('fWafatBln'),$('fWafatThn')) : null;
