@@ -213,6 +213,16 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .rk-baris span:last-child{color:var(--root-deep);}
 .rk-catatan{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.4;}
 
+
+/* ===== Status pernikahan ===== */
+.line-h.cerai{background:repeating-linear-gradient(to right,var(--garis) 0,var(--garis) 6px,transparent 6px,transparent 10px);}
+.label-cerai{position:absolute;transform:translateX(-50%);font-size:9px;line-height:1;color:var(--ink-soft);white-space:nowrap;pointer-events:none;font-style:italic;}
+.cetak .label-cerai{font-size:13px;}
+.psg-baris{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0;font-size:14px;color:var(--ink);}
+.psg-baris span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.psg-baris select{width:auto;flex:none;min-width:110px;margin:0;}
+.ket-cerai{color:var(--ink-soft);}
+
 /* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
 #cetakWrap{display:none;}
 .cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
@@ -312,7 +322,8 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
         <label>Ayah <select id="fAyah"></select></label>
         <label>Ibu <select id="fIbu"></select></label>
         <div class="relasi-info">
-          <p>Pasangan: <span id="infoPasangan">-</span></p>
+          <div class="judul-blok">Pasangan</div>
+          <div id="daftarPasangan"></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -758,8 +769,8 @@ function garisV(tg,x,y1,y2,T){
   d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;
   tg.appendChild(d);
 }
-function garisH(tg,x1,y,x2,T){
-  const d=document.createElement('div'); d.className='line line-h';
+function garisH(tg,x1,y,x2,T,kelas){
+  const d=document.createElement('div'); d.className='line line-h'+(kelas?' '+kelas:'');
   d.style.cssText=`left:${Math.min(x1,x2)-T/2}px;top:${y-T/2}px;width:${Math.abs(x2-x1)+T}px;height:${T}px`;
   tg.appendChild(d);
 }
@@ -780,7 +791,8 @@ function gambarPohon(target,M){
   const perGenAnak={};
   Object.values(keluarga).forEach(f=>{
     const ortu=f.ids.map(id=>posisi[id]);
-    f.rapat=ortu.length===2 && ortu[0].gen===ortu[1].gen && Math.abs(ortu[0].x-ortu[1].x)===NODE_W;
+    const ayahO=data.people[f.ids[0]];
+    f.rapat=ortu.length===2 && ortu[0].gen===ortu[1].gen && (ayahO.idPasangan||[]).includes(f.ids[1]);
     f.midX=f.rapat ? (ortu[0].x+ortu[1].x)/2+M.CX : ortu[0].x+M.CX;
     const xs=f.anak.map(p=>p.x+M.CX).concat(f.midX);
     f.kiri=Math.min(...xs); f.kanan=Math.max(...xs);
@@ -811,7 +823,15 @@ function gambarPohon(target,M){
     const pos=posisi[o.id]; if(!pos) return;
     (o.idPasangan||[]).forEach(pid=>{
       const pos2=posisi[pid];
-      if(pos2 && pid>o.id) garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T);
+      if(pos2 && pid>o.id){
+        const cerai=((o.statusPasangan||{})[pid]==='cerai');
+        garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,cerai?'cerai':'');
+        if(cerai){
+          const lb=document.createElement('div'); lb.className='label-cerai'; lb.textContent='cerai';
+          lb.style.left=((pos.x+pos2.x)/2+M.CX)+'px'; lb.style.top=(pos.y+M.CY-M.T-(M.cetak?16:11))+'px';
+          target.appendChild(lb);
+        }
+      }
     });
   });
   Object.values(keluarga).forEach(f=>{
@@ -1232,6 +1252,26 @@ function teksAlamat(a){
   if(!a) return '';
   return [a.jalan,a.desa,a.kec?('Kec. '+a.kec):'',a.kab,a.prov].filter(Boolean).join(', ');
 }
+function barisPasangan(o){
+  const t=(o.idPasangan||[]).filter(x=>data.people[x]).map(x=>tautanOrang(x)+(((o.statusPasangan||{})[x]==='cerai')?' <span class="ket-cerai">(cerai)</span>':''));
+  return t.length?`<div class="kartu-baris"><b>Pasangan:</b> ${t.join(', ')}</div>`:'';
+}
+function barisAnak(o){
+  const semua=anakDari(o.id).sort(urutLahir);
+  if(!semua.length) return '';
+  const grup=[];
+  (o.idPasangan||[]).filter(x=>data.people[x]).forEach(pid=>{
+    const a=semua.filter(c=>(c.idAyah===o.id&&c.idIbu===pid)||(c.idIbu===o.id&&c.idAyah===pid));
+    if(a.length) grup.push({pid,anak:a});
+  });
+  const dipakai=new Set(grup.flatMap(g=>g.anak.map(c=>c.id)));
+  const sisa=semua.filter(c=>!dipakai.has(c.id));
+  if(grup.length<2&&!(grup.length&&sisa.length)) return barisRelasi('Anak',semua.map(c=>c.id));
+  let h='';
+  grup.forEach(g=>{ h+=barisRelasi('Anak dengan '+esc(namaDari(g.pid)||'pasangan'),g.anak.map(c=>c.id)); });
+  if(sisa.length) h+=barisRelasi('Anak lainnya',sisa.map(c=>c.id));
+  return h;
+}
 function bukaKartu(id){
   const o=data.people[id]; if(!o) return;
   kartuId=id;
@@ -1256,8 +1296,8 @@ function bukaKartu(id){
   if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}</div>`;
   h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
   h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
-  h+=barisRelasi('Pasangan',(o.idPasangan||[]).filter(x=>data.people[x]));
-  h+=barisRelasi('Anak',anakDari(id).sort(urutLahir).map(x=>x.id));
+  h+=barisPasangan(o);
+  h+=barisAnak(o);
   $('kartuInfo').innerHTML=h; $('kartuInfo').scrollTop=0;
   $('kartuOverlay').classList.remove('hidden');
 }
@@ -1418,8 +1458,7 @@ function bukaModal(id,fokusNama){
   aturWafat();
   siapkanAlamat(o);
   isiPilihanOrtu(o); aturTombolOrtu(o);
-  const ps=(o.idPasangan||[]).map(namaDari).filter(Boolean);
-  $('infoPasangan').textContent=ps.length?ps.join(', '):'-';
+  isiDaftarPasangan(o);
   blokirKlikSampai=Date.now()+600;
   $('modalOverlay').classList.remove('hidden');
   if(fokusNama) setTimeout(()=>$('fNama').focus(),60);
@@ -1524,6 +1563,7 @@ function terapkanForm(o){
   const gBaru=$('fGender').value, gLama=genderDari(o);
   o.gender=gBaru; o.foto=fotoTemp;
   simpanAlamat(o);
+  terapkanStatusPasangan(o);
   const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn'));
   if(lh) o.lahir=lh; else delete o.lahir;
   const wf=o.status==='meninggal' ? bacaTanggal($('fWafatTgl'),$('fWafatBln'),$('fWafatThn')) : null;
@@ -1552,6 +1592,7 @@ $('btnHapus').addEventListener('click',()=>{
     if(p.idAyah===id) p.idAyah=null;
     if(p.idIbu===id) p.idIbu=null;
     p.idPasangan=(p.idPasangan||[]).filter(x=>x!==id);
+    if(p.statusPasangan){ delete p.statusPasangan[id]; if(!Object.keys(p.statusPasangan).length) delete p.statusPasangan; }
   });
   simpanData(); tutupModal(); render(false);
 });
@@ -1572,6 +1613,7 @@ function gantiId(lama,baru){
     if(p.idAyah===lama) p.idAyah=baru;
     if(p.idIbu===lama) p.idIbu=baru;
     p.idPasangan=(p.idPasangan||[]).map(x=>x===lama?baru:x);
+    if(p.statusPasangan&&p.statusPasangan[lama]){ p.statusPasangan[baru]=p.statusPasangan[lama]; delete p.statusPasangan[lama]; }
   });
 }
 function turunanDari(id){
@@ -1579,19 +1621,60 @@ function turunanDari(id){
   (function r(x){ anakDari(x).forEach(a=>{ if(!s.has(a.id)){ s.add(a.id); r(a.id); } }); })(id);
   return s;
 }
+function isiDaftarPasangan(o){
+  const w=$('daftarPasangan'); w.innerHTML='';
+  const ps=(o.idPasangan||[]).filter(id=>data.people[id]);
+  if(!ps.length){ w.textContent='-'; return; }
+  ps.forEach(pid=>{
+    const row=document.createElement('div'); row.className='psg-baris';
+    const nm=document.createElement('span'); nm.textContent=namaDari(pid)||'Tanpa nama';
+    const sel=document.createElement('select'); sel.dataset.id=pid;
+    sel.innerHTML='<option value="menikah">Menikah</option><option value="cerai">Cerai</option>';
+    sel.value=((o.statusPasangan||{})[pid]==='cerai')?'cerai':'menikah';
+    row.appendChild(nm); row.appendChild(sel); w.appendChild(row);
+  });
+}
+function terapkanStatusPasangan(o){
+  document.querySelectorAll('#daftarPasangan select').forEach(sel=>{
+    const pid=sel.dataset.id, q=data.people[pid]; if(!q) return;
+    o.statusPasangan=o.statusPasangan||{}; q.statusPasangan=q.statusPasangan||{};
+    if(sel.value==='cerai'){ o.statusPasangan[pid]='cerai'; q.statusPasangan[o.id]='cerai'; }
+    else { delete o.statusPasangan[pid]; delete q.statusPasangan[o.id]; }
+    if(!Object.keys(o.statusPasangan).length) delete o.statusPasangan;
+    if(!Object.keys(q.statusPasangan).length) delete q.statusPasangan;
+  });
+}
+let opsiOrtuAktif=[];
+function bangunOpsiOrtu(el,opsi,pilih,idLain){
+  el.innerHTML='';
+  const kosong=document.createElement('option'); kosong.value=''; kosong.textContent='— belum ada —'; el.appendChild(kosong);
+  const buat=p=>{ const op=document.createElement('option'); op.value=p.id; op.textContent=(p.nama||'Tanpa nama')+' ('+p.id+')'; return op; };
+  const lain=idLain&&data.people[idLain];
+  const psgLain=lain?(lain.idPasangan||[]).filter(id=>opsi.some(p=>p.id===id)):[];
+  if(psgLain.length){
+    const g1=document.createElement('optgroup'); g1.label='Pasangan '+(lain.nama||'Tanpa nama');
+    psgLain.forEach(id=>g1.appendChild(buat(data.people[id])));
+    el.appendChild(g1);
+    const g2=document.createElement('optgroup'); g2.label='Semua orang';
+    opsi.filter(p=>!psgLain.includes(p.id)).forEach(p=>g2.appendChild(buat(p)));
+    el.appendChild(g2);
+  } else opsi.forEach(p=>el.appendChild(buat(p)));
+  el.value=pilih||'';
+}
+function segarkanOpsiOrtu(){
+  const ay=$('fAyah').value, ib=$('fIbu').value;
+  bangunOpsiOrtu($('fAyah'),opsiOrtuAktif,ay,ib);
+  bangunOpsiOrtu($('fIbu'),opsiOrtuAktif,ib,ay);
+}
+$('fAyah').addEventListener('change',segarkanOpsiOrtu);
+$('fIbu').addEventListener('change',segarkanOpsiOrtu);
 function isiPilihanOrtu(o){
   const terlarang=turunanDari(o.id); terlarang.add(o.id);
-  const opsi=Object.values(data.people).filter(p=>!terlarang.has(p.id));
-  ['fAyah','fIbu'].forEach(k=>{
-    const el=$(k); el.innerHTML='';
-    const kosong=document.createElement('option'); kosong.value=''; kosong.textContent='— belum ada —'; el.appendChild(kosong);
-    opsi.forEach(p=>{
-      const op=document.createElement('option'); op.value=p.id;
-      op.textContent=(p.nama||'Tanpa nama')+' ('+p.id+')'; el.appendChild(op);
-    });
-  });
-  $('fAyah').value=(o.idAyah&&data.people[o.idAyah])?o.idAyah:'';
-  $('fIbu').value=(o.idIbu&&data.people[o.idIbu])?o.idIbu:'';
+  opsiOrtuAktif=Object.values(data.people).filter(p=>!terlarang.has(p.id));
+  const ay=(o.idAyah&&data.people[o.idAyah])?o.idAyah:'';
+  const ib=(o.idIbu&&data.people[o.idIbu])?o.idIbu:'';
+  bangunOpsiOrtu($('fAyah'),opsiOrtuAktif,ay,ib);
+  bangunOpsiOrtu($('fIbu'),opsiOrtuAktif,ib,ay);
 }
 function aturTombolOrtu(o){
   const b=document.querySelector('[data-rel="orangtua"]');
