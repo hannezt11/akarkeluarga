@@ -233,6 +233,16 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 #previewFoto{display:flex;align-items:center;gap:8px;}
 .btn-kecil.netral{color:var(--root-deep);}
 
+
+/* ===== Gembok, bagikan, impor ===== */
+.gembok-judul{flex:none;color:var(--ink-soft);}
+.gembok-judul.hidden{display:none;}
+.ikon-gembok{width:13px;height:13px;vertical-align:-1px;margin-right:5px;color:var(--ink-soft);}
+.pilih-bagikan{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:14px;color:var(--ink);cursor:pointer;}
+.pilih-bagikan span{display:block;}
+.pilih-bagikan small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.35;}
+.dlg input[type=radio]{display:inline-block;width:auto;margin:3px 0 0;padding:0;flex:none;}
+
 /* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
 #cetakWrap{display:none;}
 .cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
@@ -265,6 +275,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
   <header class="topbar">
     <button id="btnMenu" class="btn-menu" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <h1 id="judulApp">Akar Keluarga</h1>
+    <svg id="gembokJudul" class="gembok-judul hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
   </header>
   <button id="btnRingkasan" class="btn-ringkasan" aria-label="Ringkasan generasi"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h6a4 4 0 014 4v11a3 3 0 00-3-3H2z"/><path d="M22 5h-6a4 4 0 00-4 4v11a3 3 0 013-3h7z"/></svg></button>
   <div id="pinAkar" class="pin-akar"></div>
@@ -365,11 +376,14 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
     <div class="drawer-scroll">
       <div id="daftarAkar" class="daftar-akar"></div>
       <button id="btnAkarBaru" class="btn-akar-baru">+ Tambah akar baru</button>
+      <button id="btnImpor" class="btn-akar-baru">Impor akar dari file</button>
+      <input type="file" id="inputImpor" style="display:none">
       <div class="drawer-pemisah"></div>
       <div class="drawer-isi">
         <button id="btnBackup">Backup data</button>
         <button id="btnRestore">Restore data</button>
         <button id="btnCetak">Cetak PDF</button>
+        <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
       </div>
     </div>
     <div class="drawer-bawah"><button id="btnMulaiBaru">Mulai baru (kosongkan akar ini)</button></div>
@@ -400,10 +414,21 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
   <div id="akarMenuOverlay" class="sheet-overlay hidden">
     <div class="sheet">
       <div id="akarMenuJudul" class="sheet-judul"></div>
+      <button id="amBagikan">Bagikan akar ini</button>
       <button id="amNama">Ganti nama (juga judul cetak)</button>
       <div id="amWarna" class="sheet-warna"></div>
       <button id="amPin"></button>
       <button id="amHapus" class="bahaya">Hapus akar ini</button>
+    </div>
+  </div>
+
+  <div id="bagikanOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 class="netral">Bagikan akar</h3>
+      <p id="bagikanNama"></p>
+      <label class="pilih-bagikan"><input type="radio" name="modeBagikan" value="dasar" checked><span><b>Dasar</b> (disarankan)<small>Orang yang masih hidup hanya nama, hubungan, status, dan tahun lahir. Foto dan alamat mereka tidak ikut. Yang sudah meninggal dikirim lengkap.</small></span></label>
+      <label class="pilih-bagikan"><input type="radio" name="modeBagikan" value="lengkap"><span><b>Lengkap</b><small>Semua data, termasuk foto dan alamat orang yang masih hidup.</small></span></label>
+      <div class="dlg-tombol"><button id="bagikanBatal">Batal</button><button id="bagikanYa" class="utama">Bagikan</button></div>
     </div>
   </div>
 
@@ -962,29 +987,31 @@ window.addEventListener('resize',()=>{ if(!$('modalOverlay').classList.contains(
 // ===== Menu FAB =====
 function tutupFab(){ tutupDrawer(); }
 
-$('btnBackup').addEventListener('click',async()=>{
-  tutupFab();
-  const isi=JSON.stringify({format:'akar-keluarga',versi:2,aktifId:store.aktifId,akar:store.akar},null,1);
-  const t=new Date(); const p=n=>String(n).padStart(2,'0');
-  const namaFile=`akar-keluarga-${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}.json`;
+async function kirimBerkas(isi,namaFile,judulBagikan,dialogTitle,mime){
   const cap=window.Capacitor;
   const plg=cap&&cap.Plugins;
   if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&plg&&plg.Filesystem&&plg.Share){
     try{
       const r=await plg.Filesystem.writeFile({path:namaFile,data:isi,directory:'CACHE',encoding:'utf8'});
-      await plg.Share.share({title:'Backup Akar Keluarga',dialogTitle:'Simpan backup ke...',files:[r.uri]});
+      await plg.Share.share({title:judulBagikan,dialogTitle:dialogTitle,files:[r.uri]});
     }catch(err){
       const m=String((err&&err.message)||err||'');
-      if(!/cancel|dismiss/i.test(m)) alert('Backup gagal: '+m);
+      if(!/cancel|dismiss/i.test(m)) alert('Gagal membagikan: '+m);
     }
     return;
   }
-  const blob=new Blob([isi],{type:'application/json'});
+  const blob=new Blob([isi],{type:mime||'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url; a.download=namaFile;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function stempelTanggal(){ const t=new Date(); const p=n=>String(n).padStart(2,'0'); return `${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}`; }
+$('btnBackup').addEventListener('click',async()=>{
+  tutupFab();
+  const isi=JSON.stringify({format:'akar-keluarga',versi:2,aktifId:store.aktifId,pengguna:store.pengguna||null,akar:store.akar},null,1);
+  await kirimBerkas(isi,`akar-keluarga-${stempelTanggal()}.json`,'Backup Akar Keluarga','Simpan backup ke...','application/json');
 });
 $('btnRestore').addEventListener('click',()=>{ tutupFab(); $('inputRestore').value=''; $('inputRestore').click(); });
 function normalisasiPeople(people){
@@ -1004,14 +1031,17 @@ $('inputRestore').addEventListener('change',e=>{
           if(!a||!a.data||typeof a.data.people!=='object'||!Object.keys(a.data.people).length) throw new Error('format');
           normalisasiPeople(a.data.people);
           const dataAkar={people:a.data.people}; if(a.data.wilayah&&typeof a.data.wilayah==='object') dataAkar.wilayah=a.data.wilayah;
-          return {id:String(a.id||idAkarBaru()),nama:String(a.nama||('Akar '+(i+1))),warna:a.warna||WARNA_AKAR[i%WARNA_AKAR.length],pin:!!a.pin,data:dataAkar,dibuat:a.dibuat||Date.now()};
+          return {id:String(a.id||idAkarBaru()),nama:String(a.nama||('Akar '+(i+1))),warna:a.warna||WARNA_AKAR[i%WARNA_AKAR.length],pin:!!a.pin,data:dataAkar,dibuat:a.dibuat||Date.now(),pemilikId:a.pemilikId||'',pemilikNama:a.pemilikNama||'',terkunci:!!a.terkunci,asalId:a.asalId||'',mode:a.mode||''};
         });
         if(!confirm('Semua akar saat ini ('+store.akar.length+') akan diganti dengan isi file backup ('+daftar.length+' akar). Lanjutkan?')) return;
-        store={versi:2,aktifId:daftar.some(a=>a.id===d.aktifId)?d.aktifId:daftar[0].id,akar:daftar};
+        const lamaPengguna=store.pengguna;
+        store={versi:2,aktifId:daftar.some(a=>a.id===d.aktifId)?d.aktifId:daftar[0].id,akar:daftar,pengguna:(d.pengguna&&d.pengguna.id&&d.pengguna.nama)?{id:String(d.pengguna.id),nama:String(d.pengguna.nama)}:lamaPengguna};
+        if(store.pengguna) store.akar.forEach(a=>{ if(!a.pemilikId&&!a.terkunci){ a.pemilikId=store.pengguna.id; a.pemilikNama=store.pengguna.nama; } });
         data=akarAktif().data;
       } else {
         if(!d||typeof d.people!=='object'||!Object.keys(d.people).length) throw new Error('format');
         normalisasiPeople(d.people);
+        if(akarAktif().terkunci){ alert('Akar ini terkunci (hasil impor) dan tidak bisa diganti lewat Restore.'); return; }
         if(!confirm('Data akar "'+akarAktif().nama+'" akan diganti dengan isi file backup. Lanjutkan?')) return;
         const a=akarAktif();
         a.data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') a.data.wilayah=d.wilayah;
@@ -1026,6 +1056,7 @@ $('inputRestore').addEventListener('change',e=>{
 $('btnMulaiBaru').addEventListener('click',async()=>{
   tutupFab();
   const a=akarAktif();
+  if(a.terkunci){ alert('Akar ini terkunci (hasil impor). Untuk membuangnya, hapus akar lewat menu titik tiga di daftar akar.'); return; }
   const ya=await konfirmasi('Kosongkan akar "'+a.nama+'"?','Semua orang di akar ini akan dihapus dan akar dimulai lagi dari satu orang kosong. Akar lain tidak terpengaruh. Tindakan ini tidak bisa dibatalkan. Sebaiknya Backup dulu.','Ya, kosongkan');
   if(!ya) return;
   const wilLama=a.data.wilayah;
@@ -1104,11 +1135,13 @@ $('dlgYa').addEventListener('click',()=>tutupDlg(true));
 $('dlgOverlay').addEventListener('click',e=>{ if(e.target===$('dlgOverlay')) tutupDlg(false); });
 
 // ===== Dialog nama (ganti nama / akar baru) =====
-let namaResolve=null;
-function mintaNama(judul,teks,awal,placeholder){
+let namaResolve=null, namaWajib=false;
+function mintaNama(judul,teks,awal,placeholder,wajib){
   return new Promise(res=>{
+    namaWajib=!!wajib;
     $('namaJudul').textContent=judul; $('namaTeks').textContent=teks;
     $('fNamaKeluarga').value=awal||''; $('fNamaKeluarga').placeholder=placeholder||'';
+    $('namaBatal').style.display=namaWajib?'none':'';
     namaResolve=res; $('namaOverlay').classList.remove('hidden');
     setTimeout(()=>$('fNamaKeluarga').focus(),80);
   });
@@ -1118,19 +1151,21 @@ function tutupNamaDlg(hasil){
   $('namaOverlay').classList.add('hidden');
   const r=namaResolve; namaResolve=null; if(r) r(hasil===undefined?null:hasil);
 }
-$('namaSimpan').addEventListener('click',()=>tutupNamaDlg($('fNamaKeluarga').value.trim()));
+function kirimNama(){ const v=$('fNamaKeluarga').value.trim(); if(namaWajib&&!v){ $('fNamaKeluarga').focus(); return; } tutupNamaDlg(v); }
+$('namaSimpan').addEventListener('click',kirimNama);
 $('namaBatal').addEventListener('click',()=>tutupNamaDlg(null));
-$('fNamaKeluarga').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); tutupNamaDlg($('fNamaKeluarga').value.trim()); } });
-$('namaOverlay').addEventListener('click',e=>{ if(e.target===$('namaOverlay')) tutupNamaDlg(null); });
+$('fNamaKeluarga').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); kirimNama(); } });
+$('namaOverlay').addEventListener('click',e=>{ if(e.target===$('namaOverlay')&&!namaWajib) tutupNamaDlg(null); });
 
 // ===== Daftar akar, pin, dan menu akar =====
 function jumlahOrang(a){ return Object.keys(a.data.people||{}).length; }
-function perbaruiJudul(){ $('judulApp').textContent=akarAktif().nama||'Akar Keluarga'; }
+const IKON_GEMBOK='<svg class="ikon-gembok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>';
+function perbaruiJudul(){ $('judulApp').textContent=akarAktif().nama||'Akar Keluarga'; $('gembokJudul').classList.toggle('hidden',!akarAktif().terkunci); }
 function segarkanDaftarAkar(){
   const w=$('daftarAkar'); w.innerHTML='';
   store.akar.forEach(a=>{
     const row=document.createElement('div'); row.className='akar-baris'+(a.id===store.aktifId?' aktif':''); row.dataset.id=a.id;
-    row.innerHTML=`<span class="akar-titik" style="background:${esc(a.warna)}"></span><div class="akar-teks"><div class="akar-nama">${esc(a.nama)}</div><div class="akar-sub">${jumlahOrang(a)} orang${a.pin?' \u00b7 di layar':''}</div></div><button class="akar-menu" data-id="${esc(a.id)}" aria-label="Menu akar">\u22ee</button>`;
+    row.innerHTML=`<span class="akar-titik" style="background:${esc(a.warna)}"></span><div class="akar-teks"><div class="akar-nama">${a.terkunci?IKON_GEMBOK:''}${esc(a.nama)}</div><div class="akar-sub">${jumlahOrang(a)} orang${a.terkunci?' \u00b7 dari '+esc(a.pemilikNama||'pengirim'):''}${a.pin?' \u00b7 di layar':''}</div></div><button class="akar-menu" data-id="${esc(a.id)}" aria-label="Menu akar">\u22ee</button>`;
     w.appendChild(row);
   });
 }
@@ -1172,6 +1207,7 @@ $('btnAkarBaru').addEventListener('click',async()=>{
   const pakai=new Set(store.akar.map(a=>a.warna));
   const warna=WARNA_AKAR.find(w=>!pakai.has(w))||WARNA_AKAR[store.akar.length%WARNA_AKAR.length];
   const baru=buatAkar(idAkarBaru(),nama,warna,{people:{diri:{id:'diri',nama:'',status:'hidup',gender:'m',jalur:'A',foto:'',idAyah:null,idIbu:null,idPasangan:[]}}},store.akar.filter(a=>a.pin).length<MAKS_PIN);
+  if(store.pengguna){ baru.pemilikId=store.pengguna.id; baru.pemilikNama=store.pengguna.nama; }
   store.akar.push(baru);
   gantiAkar(baru.id); simpanData();
   bukaModal('diri',true);
@@ -1182,6 +1218,7 @@ function tutupSheet(){ $('akarMenuOverlay').classList.add('hidden'); akarMenuId=
 function isiSheet(){
   const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
   $('akarMenuJudul').textContent=a.nama;
+  $('amBagikan').style.display=a.terkunci?'none':'';
   $('amPin').textContent=a.pin?'Lepas dari layar (pojok kanan atas)':'Pin ke layar (pojok kanan atas)';
   const w=$('amWarna'); w.innerHTML='';
   WARNA_AKAR.forEach(c=>{ const b=document.createElement('button'); b.style.background=c; b.dataset.warna=c; b.setAttribute('aria-label','Warna '+c); if(c===a.warna) b.className='pilih'; w.appendChild(b); });
@@ -1253,6 +1290,101 @@ function bukaRingkasan(){
 $('btnRingkasan').addEventListener('click',()=>{ tutupFab(); bukaRingkasan(); });
 $('ringkasanOverlay').addEventListener('click',e=>{ if(e.target===$('ringkasanOverlay')) tutupRingkasan(); });
 
+// ===== Pengguna, bagikan akar, impor akar =====
+function idPenggunaBaru(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function perbaruiPenggunaTeks(){ $('penggunaTeks').textContent=(store.pengguna&&store.pengguna.nama)||'belum diisi'; }
+async function pastikanPengguna(){
+  if(store.pengguna&&store.pengguna.nama){ perbaruiPenggunaTeks(); return; }
+  const nama=await mintaNama('Siapa nama Anda?','Nama ini terlihat oleh keluarga yang menerima akar yang Anda bagikan. Gunakan nama asli.','','Nama lengkap',true);
+  store.pengguna={id:(store.pengguna&&store.pengguna.id)||idPenggunaBaru(),nama};
+  store.akar.forEach(a=>{ if(!a.pemilikId&&!a.terkunci){ a.pemilikId=store.pengguna.id; a.pemilikNama=nama; } });
+  simpanData(); perbaruiPenggunaTeks(); segarkanDaftarAkar();
+}
+$('btnPengguna').addEventListener('click',async()=>{
+  tutupFab();
+  const n=await mintaNama('Nama saya','Nama ini terlihat oleh penerima akar yang Anda bagikan.',(store.pengguna&&store.pengguna.nama)||'','Nama lengkap');
+  if(!n) return;
+  store.pengguna=store.pengguna||{id:idPenggunaBaru(),nama:n};
+  store.pengguna.nama=n;
+  store.akar.forEach(a=>{ if(a.pemilikId===store.pengguna.id&&!a.terkunci) a.pemilikNama=n; });
+  simpanData(); perbaruiPenggunaTeks();
+});
+
+let bagikanId=null;
+function bagikanTerbuka(){ return !$('bagikanOverlay').classList.contains('hidden'); }
+function tutupBagikan(){ $('bagikanOverlay').classList.add('hidden'); bagikanId=null; }
+$('amBagikan').addEventListener('click',()=>{
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  bagikanId=a.id; tutupSheet();
+  $('bagikanNama').textContent='Akar: '+a.nama;
+  document.querySelector('input[name="modeBagikan"][value="dasar"]').checked=true;
+  $('bagikanOverlay').classList.remove('hidden');
+});
+$('bagikanBatal').addEventListener('click',tutupBagikan);
+$('bagikanOverlay').addEventListener('click',e=>{ if(e.target===$('bagikanOverlay')) tutupBagikan(); });
+function bangunBerkasAkar(akar,mode){
+  const people={};
+  Object.values(akar.data.people).forEach(o=>{
+    const c=JSON.parse(JSON.stringify(o));
+    if(mode==='dasar'&&c.status!=='meninggal'){
+      c.foto=''; delete c.alamat;
+      if(c.lahir){ if(c.lahir.tahun) c.lahir={tahun:c.lahir.tahun}; else delete c.lahir; }
+    }
+    people[c.id]=c;
+  });
+  const d={people}; if(mode==='lengkap'&&akar.data.wilayah) d.wilayah=akar.data.wilayah;
+  return {format:'akar-keluarga-akar',versi:2,pengirim:{id:store.pengguna.id,nama:store.pengguna.nama},akar:{id:akar.id,nama:akar.nama,warna:akar.warna,mode,diubah:Date.now(),data:d}};
+}
+$('bagikanYa').addEventListener('click',async()=>{
+  const a=store.akar.find(x=>x.id===bagikanId); if(!a) return;
+  const mode=document.querySelector('input[name="modeBagikan"]:checked').value;
+  tutupBagikan();
+  const isi=JSON.stringify(bangunBerkasAkar(a,mode));
+  const bersih=a.nama.replace(/[^A-Za-z0-9\u00C0-\u024F]+/g,'-').replace(/^-+|-+$/g,'')||'akar';
+  await kirimBerkas(isi,`Akar-${bersih}-${stempelTanggal()}.akar`,'Akar Keluarga: '+a.nama,'Bagikan akar ke...','application/octet-stream');
+});
+
+$('btnImpor').addEventListener('click',()=>{ tutupFab(); $('inputImpor').value=''; $('inputImpor').click(); });
+$('inputImpor').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>imporBerkas(String(r.result)); r.readAsText(f);
+});
+async function imporBerkas(teks){
+  let d;
+  try{ d=JSON.parse(teks); }catch(e){ alert('File tidak dikenali. Pastikan ini file akar yang dibagikan dari app Akar Keluarga.'); return; }
+  if(d&&(Array.isArray(d.akar)||d.people)){ alert('Ini file Backup, bukan file akar yang dibagikan. Gunakan "Restore data" untuk file ini.'); return; }
+  try{
+    if(!d||d.format!=='akar-keluarga-akar'||!d.pengirim||!d.pengirim.id||!d.akar||!d.akar.data||typeof d.akar.data.people!=='object'||!Object.keys(d.akar.data.people).length) throw new Error('format');
+    normalisasiPeople(d.akar.data.people);
+  }catch(e){ alert('File akar tidak valid.'); return; }
+  const dataAkar={people:d.akar.data.people}; if(d.akar.data.wilayah&&typeof d.akar.data.wilayah==='object') dataAkar.wilayah=d.akar.data.wilayah;
+  const pengirim=String(d.pengirim.nama||'pengirim');
+  const milikSendiri=!!(store.pengguna&&d.pengirim.id===store.pengguna.id);
+  if(milikSendiri){
+    const ya=await konfirmasi('Akar milik Anda sendiri','File ini berasal dari akar yang dibuat di perangkat Anda. Impor sebagai salinan terpisah yang hanya bisa dilihat?','Ya, impor salinan');
+    if(!ya) return;
+  } else {
+    const ada=store.akar.find(a=>a.terkunci&&a.asalId===String(d.akar.id)&&a.pemilikId===String(d.pengirim.id));
+    if(ada){
+      const ya=await konfirmasi('Perbarui "'+ada.nama+'"?','Versi baru dari '+pengirim+' akan menggantikan salinan ini. Salinan ini hanya bisa dilihat, jadi tidak ada ubahan lokal yang hilang.','Ya, perbarui');
+      if(!ya) return;
+      ada.data=dataAkar; ada.mode=String(d.akar.mode||''); ada.pemilikNama=pengirim;
+      gantiAkar(ada.id); simpanData(); tutupDrawer();
+      alert('Akar "'+ada.nama+'" diperbarui.');
+      return;
+    }
+  }
+  const pakai=new Set(store.akar.map(a=>a.warna));
+  const warna=WARNA_AKAR.find(w=>!pakai.has(w))||WARNA_AKAR[store.akar.length%WARNA_AKAR.length];
+  const nama=pengirim+' \u00b7 '+String(d.akar.nama||'Akar');
+  const baru=buatAkar(idAkarBaru(),nama,warna,dataAkar,store.akar.filter(a=>a.pin).length<MAKS_PIN);
+  baru.terkunci=true; baru.pemilikId=String(d.pengirim.id); baru.pemilikNama=pengirim; baru.asalId=String(d.akar.id); baru.mode=String(d.akar.mode||'');
+  store.akar.push(baru);
+  gantiAkar(baru.id); simpanData(); tutupDrawer();
+  alert('Akar "'+nama+'" ditambahkan. Akar ini hanya bisa dilihat.');
+}
+perbaruiPenggunaTeks();
+
 // ===== Kartu profil =====
 let kartuId=null;
 function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1316,6 +1448,7 @@ function bukaKartu(id){
   h+=barisPasangan(o);
   h+=barisAnak(o);
   $('kartuInfo').innerHTML=h; $('kartuInfo').scrollTop=0;
+  $('kartuEdit').style.display=akarAktif().terkunci?'none':'flex';
   $('kartuOverlay').classList.remove('hidden');
 }
 function tutupKartu(){ $('kartuOverlay').classList.add('hidden'); kartuId=null; }
@@ -1332,7 +1465,8 @@ function tanganiBack(){
   if(dlgTerbuka()){ tutupDlg(false); return true; }
   if(sheetTerbuka()){ tutupSheet(); return true; }
   if(cropTerbuka()){ tutupCrop(); return true; }
-  if(namaTerbuka()){ tutupNamaDlg(null); return true; }
+  if(bagikanTerbuka()){ tutupBagikan(); return true; }
+  if(namaTerbuka()){ if(!namaWajib) tutupNamaDlg(null); return true; }
   if(!$('modalOverlay').classList.contains('hidden')){ tutupModal(); return true; }
   if(ringkasanTerbuka()){ tutupRingkasan(); return true; }
   if(kartuTerbuka()){ tutupKartu(); return true; }
@@ -1462,6 +1596,7 @@ function segarkanFoto(){
   pv.appendChild(t); pv.appendChild(b);
 }
 function bukaModal(id,fokusNama){
+  if(akarAktif().terkunci) return;
   const o=data.people[id]; if(!o) return;
   idAktif=id; fotoTemp=o.foto||'';
   $('modalTitle').textContent=o.nama||'Anggota';
@@ -1742,6 +1877,7 @@ document.querySelectorAll('.modal-tambah-tombol button').forEach(btn=>{
 });
 
 render(true);
+pastikanPengguna();
 })().catch(err=>{
   document.body.insertAdjacentHTML('beforeend','<pre style="position:fixed;inset:0;margin:0;background:#fff;color:#a00;padding:16px;z-index:999;white-space:pre-wrap;font-size:13px">Gagal memulai app:\n'+String(err&&err.stack||err)+'</pre>');
 });
