@@ -586,6 +586,17 @@ function formatTglSingkat(t){
   return `${t.tahun}`;
 }
 
+// Urutan saudara memakai TANGGAL LAHIR (bukan umur): umur orang meninggal berhenti di saat wafat,
+// jadi tidak bisa dipakai untuk membandingkan. Lahir kosong = paling kanan.
+function kunciLahir(o){ const l=o&&o.lahir; if(!l||!l.tahun) return null; return l.tahun*10000+(l.bulan||1)*100+(l.tanggal||1); }
+function bandingLahir(a,b){
+  const ka=kunciLahir(a), kb=kunciLahir(b);
+  if(ka===null&&kb===null) return 0;
+  if(ka===null) return 1;
+  if(kb===null) return -1;
+  return ka-kb;
+}
+
 function hitungLayout(){
   // 1) Generasi (G) tiap orang lewat BFS dari orang utama.
   const gen={}; const antrian=[[rootAktif(),0]];
@@ -628,13 +639,7 @@ function hitungLayout(){
   // Anak-anak sebuah unit, terurut dari TERTUA (kiri); umur tak diketahui paling kanan.
   function anakUnitTerurut(unit){
     const rawKids=anakDariUnit(unit);
-    rawKids.sort((a,b)=>{
-      const ua=hitungUmur(data.people[a]), ub=hitungUmur(data.people[b]);
-      if(ua===null && ub===null) return 0;
-      if(ua===null) return 1;
-      if(ub===null) return -1;
-      return ub-ua;
-    });
+    rawKids.sort((a,b)=>bandingLahir(data.people[a],data.people[b]));
     const hasil=[]; const sudahUnit=new Set();
     rawKids.forEach(id=>{
       const u=idKeUnit[id];
@@ -695,7 +700,22 @@ function hitungLayout(){
       const r=masuk?rentangUnit(masuk):null;
       // "masuk" = anak yang sudah ditempatkan lewat keluarga pasangannya; saudara-saudaranya
       // ditempel menempel di sisi luar pasangan itu, dan diingat sebagai blok `_blok`.
-      const pos0 = (masuk && r && idxSisip==null)
+      const libre = !!(masuk && r && idxSisip!=null && indexAnggota(masuk,unit)===0 &&
+        masuk.ids.every(id=>{ const q=unitOrtu(id); return !q||q===unit; }));
+      let pos0;
+      if(libre){
+        const kidMasuk=data.people[masuk.ids[0]];
+        const tepiKiri=daftar.filter(a=>rank(a)===0), tepiKanan=daftar.filter(a=>rank(a)===2);
+        const tengah=daftar.filter(a=>rank(a)===1);
+        const tua=tengah.filter(a=>bandingLahir(data.people[a.ids[indexAnggota(a,unit)]],kidMasuk)<0);
+        const muda=tengah.filter(a=>tua.indexOf(a)<0);
+        let ps=r[0];
+        tepiKiri.concat(tua).forEach(a=>{ const nx=tempatkanUnit(a,ps); ps=Math.max(ps,nx); });
+        const r2=rentangUnit(masuk); ps=r2?r2[1]+1:ps;
+        muda.concat(tepiKanan).forEach(a=>{ const nx=tempatkanUnit(a,ps); ps=Math.max(ps,nx); });
+        unit._urutAnak=tepiKiri.concat(tua,[masuk],muda,tepiKanan);
+      } else {
+      pos0 = (masuk && r && idxSisip==null)
         ? (indexAnggota(masuk,unit)===0 ? r[0] : r[1]+1)
         : awal;
       let pos=pos0; const lenSebelum=urutanDaun.length;
@@ -704,6 +724,7 @@ function hitungLayout(){
       if(masuk && cnt>0) unit._blok=[urutanDaun[pos0],urutanDaun[pos0+cnt-1]];
       // urutan kiri-kanan anak (dipakai untuk menyusun urutan unit di tiap generasi)
       unit._urutAnak = masuk ? (indexAnggota(masuk,unit)===0 ? daftar.concat([masuk]) : [masuk].concat(daftar)) : daftar.slice();
+      }
     }
     // Pasang keluarga asal tiap anggota: anggota KIRI di sisi kiri blok, anggota KANAN di sisi kanan.
     unit.ids.forEach((id,i)=>{
