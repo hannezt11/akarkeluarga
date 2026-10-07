@@ -52,7 +52,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 
 .modal-overlay{position:absolute;inset:0;background:rgba(36,30,20,0.4);display:flex;align-items:flex-end;z-index:20;}
 .modal-overlay.hidden{display:none;}
-.modal{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:18px 18px 22px;max-height:82vh;overflow-y:auto;}
+.modal{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:18px 18px calc(22px + var(--bawah-aman));max-height:82vh;overflow-y:auto;}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .modal-header h2{font-family:var(--font-title);font-weight:normal;font-size:18px;margin:0;}
 .btn-icon{width:34px;height:34px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);font-size:15px;}
@@ -84,7 +84,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 /* ===== Drawer ===== */
 .scrim{position:absolute;inset:0;background:rgba(36,30,20,0.45);z-index:30;}
 .scrim.hidden{display:none;}
-.drawer{position:absolute;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--bg);z-index:31;transform:translateX(-102%);transition:transform .2s ease;display:flex;flex-direction:column;box-shadow:2px 0 14px rgba(0,0,0,0.25);padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--bg);z-index:31;transform:translateX(-102%);transition:transform .2s ease;display:flex;flex-direction:column;box-shadow:2px 0 14px rgba(0,0,0,0.25);padding-bottom:calc(14px + var(--bawah-aman));}
 .drawer.buka{transform:translateX(0);}
 .drawer-kepala{padding:calc(22px + env(safe-area-inset-top,0px)) 20px 16px;background:var(--root-deep);color:#f3ede0;}
 .drawer-kepala h2{margin:0;font-family:var(--font-title);font-weight:normal;font-size:20px;}
@@ -184,7 +184,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .pin-akar .pin.aktif{box-shadow:0 0 0 3px var(--gold),0 2px 6px rgba(0,0,0,.3);}
 .sheet-overlay{position:absolute;inset:0;background:rgba(24,20,13,.55);z-index:45;display:flex;align-items:flex-end;}
 .sheet-overlay.hidden{display:none;}
-.sheet{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:14px 14px calc(16px + env(safe-area-inset-bottom,0px));}
+.sheet{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:14px 14px calc(16px + var(--bawah-aman));}
 .sheet-judul{font-family:var(--font-title);font-size:17px;color:var(--root-deep);padding:2px 8px 10px;}
 .sheet button{display:block;width:100%;text-align:left;padding:13px 10px;border:none;background:transparent;font-size:15px;color:var(--root-deep);border-radius:10px;}
 .sheet button:active{background:#eadfc6;}
@@ -222,6 +222,16 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .psg-baris span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .psg-baris select{width:auto;flex:none;min-width:110px;margin:0;}
 .ket-cerai{color:var(--ink-soft);}
+
+
+/* ===== Form edit: dua kolom, jarak aman dari bar sistem ===== */
+:root{--bawah-aman:max(env(safe-area-inset-bottom,0px),44px);}
+.baris-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.baris-2>label,.baris-2>.fld{min-width:0;}
+.modal-body .fld{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.foto-ctl{margin-top:5px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+#previewFoto{display:flex;align-items:center;gap:8px;}
+.btn-kecil.netral{color:var(--root-deep);}
 
 /* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
 #cetakWrap{display:none;}
@@ -275,23 +285,30 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
         <button id="btnTutup" class="btn-icon">&times;</button>
       </div>
       <div class="modal-body">
-        <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
-        <label>Status
-          <select id="fStatus">
-            <option value="hidup">Hidup</option>
-            <option value="meninggal">Meninggal</option>
-          </select>
-        </label>
-        <label>Jenis kelamin
-          <select id="fGender">
-            <option value="m">Laki-laki</option>
-            <option value="f">Perempuan</option>
-          </select>
-        </label>
-        <label>Foto (ambil dari galeri ponsel, boleh kosong)
-          <input type="file" id="fFotoFile" accept="image/*">
-          <div id="previewFoto" style="margin-top:8px;display:flex;align-items:center;gap:10px;"></div>
-        </label>
+        <div class="baris-2">
+          <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
+          <label>Status
+            <select id="fStatus">
+              <option value="hidup">Hidup</option>
+              <option value="meninggal">Meninggal</option>
+            </select>
+          </label>
+        </div>
+        <div class="baris-2">
+          <label>Jenis kelamin
+            <select id="fGender">
+              <option value="m">Laki-laki</option>
+              <option value="f">Perempuan</option>
+            </select>
+          </label>
+          <div class="fld">Foto
+            <div class="foto-ctl">
+              <div id="previewFoto"></div>
+              <button type="button" id="btnPilihFoto" class="btn-kecil netral">Pilih foto</button>
+            </div>
+            <input type="file" id="fFotoFile" accept="image/*" style="display:none">
+          </div>
+        </div>
         <label>Lahir (boleh diisi sebagian, minimal tahun)
           <div class="baris-tgl">
             <input type="number" id="fLahirTgl" placeholder="tgl" min="1" max="31">
@@ -1514,6 +1531,7 @@ function tutupCrop(){
   $('fFotoFile').value='';
 }
 $('fFotoFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f) bukaCrop(f); });
+$('btnPilihFoto').addEventListener('click',()=>$('fFotoFile').click());
 $('cropBatal').addEventListener('click',tutupCrop);
 $('cropPakai').addEventListener('click',()=>{
   if(!cropIm) return;
