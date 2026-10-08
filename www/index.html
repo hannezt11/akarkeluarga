@@ -238,7 +238,18 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 /* ===== Form edit: dua kolom, jarak aman dari bar sistem ===== */
 :root{--bawah-aman:max(env(safe-area-inset-bottom,0px),44px);}
 .baris-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.baris-2>label,.baris-2>.fld{min-width:0;}
+.baris-2>label,.baris-2>.fld,.baris-2>.saklar{min-width:0;}
+.modal-body label{margin-bottom:8px;}
+.modal-body .fld{margin-bottom:8px;}
+.modal-body input,.modal-body select{margin-top:3px;padding:7px 8px;font-size:13px;}
+.modal-body .baris-2{gap:8px;}
+.blok-alamat{padding-top:6px;margin:2px 0 8px;}
+.judul-blok{margin-bottom:4px;}
+.saklar-baris{margin-bottom:8px;}
+.saklar{display:flex;border:1px solid var(--card-border);border-radius:999px;overflow:hidden;background:var(--card);}
+.saklar button{flex:1;border:0;background:transparent;padding:8px 4px;font-size:13px;color:var(--ink-soft);}
+.saklar button.on{background:var(--root);color:#fff;font-weight:600;}
+#skStatus button.on[data-v="meninggal"]{background:#9a3b3b;}
 .modal-body .fld{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
 .foto-ctl{margin-top:5px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
 #previewFoto{display:flex;align-items:center;gap:8px;}
@@ -253,6 +264,13 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .pilih-bagikan span{display:block;}
 .pilih-bagikan small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.35;}
 .cetak-daftar{max-height:45vh;overflow-y:auto;margin-bottom:12px;}
+.handle-garis{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--root);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);z-index:6;touch-action:none;cursor:ns-resize;color:#fff;font-size:15px;line-height:24px;text-align:center;}
+.handle-garis::after{content:"\\21D5";}
+.bar-garis{position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.3;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.18);}
+.bar-garis.hidden{display:none;}
+.bar-garis span{flex:1;}
+.bar-garis button{padding:8px 10px;border-radius:8px;border:1px solid var(--card-border);background:var(--bg);font-size:13px;color:var(--root-deep);}
+.bar-garis button.utama{background:var(--root);border-color:var(--root);color:#fff;}
 .pilih-cetak{display:flex;gap:10px;align-items:center;padding:9px 2px;font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--card-border);}
 .pilih-cetak input{width:auto;margin:0;padding:0;flex:none;display:inline-block;}
 .pilih-cetak small{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px;}
@@ -294,6 +312,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
   </header>
   <button id="btnRingkasan" class="btn-ringkasan" aria-label="Ringkasan generasi"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h6a4 4 0 014 4v11a3 3 0 00-3-3H2z"/><path d="M22 5h-6a4 4 0 00-4 4v11a3 3 0 013-3h7z"/></svg></button>
   <div id="pinAkar" class="pin-akar"></div>
+  <div id="barGaris" class="bar-garis hidden"><span>Edit garis: seret bulatan naik/turun untuk menggeser garis keluarga.</span><button id="garisReset">Atur ulang</button><button id="garisSelesai" class="utama">Selesai</button></div>
 
   <main id="viewport" class="viewport">
     <div id="canvas" class="canvas"></div>
@@ -311,22 +330,14 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
         <button id="btnTutup" class="btn-icon">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="baris-2">
-          <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
-          <label>Status
-            <select id="fStatus">
-              <option value="hidup">Hidup</option>
-              <option value="meninggal">Meninggal</option>
-            </select>
-          </label>
+        <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
+        <div class="baris-2 saklar-baris">
+          <div class="saklar" id="skStatus"><button type="button" data-v="hidup">Hidup</button><button type="button" data-v="meninggal">Wafat</button></div>
+          <div class="saklar" id="skGender"><button type="button" data-v="m">Pria</button><button type="button" data-v="f">Wanita</button></div>
         </div>
+        <select id="fStatus" style="display:none"><option value="hidup">Hidup</option><option value="meninggal">Meninggal</option></select>
+        <select id="fGender" style="display:none"><option value="m">Laki-laki</option><option value="f">Perempuan</option></select>
         <div class="baris-2">
-          <label>Jenis kelamin
-            <select id="fGender">
-              <option value="m">Laki-laki</option>
-              <option value="f">Perempuan</option>
-            </select>
-          </label>
           <div class="fld">Foto
             <div class="foto-ctl">
               <div id="previewFoto"></div>
@@ -334,40 +345,46 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
             </div>
             <input type="file" id="fFotoFile" accept="image/*" style="display:none">
           </div>
+          <label id="wrapAnakKe">Anak ke-
+            <input type="number" id="fAnakKe" min="1" max="99" placeholder="boleh kosong">
+          </label>
         </div>
-        <label>Lahir (boleh diisi sebagian, minimal tahun)
+        <label>Lahir
           <div class="baris-tgl">
             <input type="number" id="fLahirTgl" placeholder="tgl" min="1" max="31">
             <input type="number" id="fLahirBln" placeholder="bln" min="1" max="12">
             <input type="number" id="fLahirThn" placeholder="tahun" min="1" max="2100">
           </div>
         </label>
-        <label id="wrapWafat">Meninggal (boleh diisi sebagian, minimal tahun)
+        <label id="wrapWafat">Wafat
           <div class="baris-tgl">
             <input type="number" id="fWafatTgl" placeholder="tgl" min="1" max="31">
             <input type="number" id="fWafatBln" placeholder="bln" min="1" max="12">
             <input type="number" id="fWafatThn" placeholder="tahun" min="1" max="2100">
           </div>
         </label>
+        <div class="baris-2">
+          <label>Ayah <select id="fAyah"></select></label>
+          <label>Ibu <select id="fIbu"></select></label>
+        </div>
         <div class="blok-alamat">
           <div class="judul-blok">Alamat</div>
           <div id="wilayahInfo" class="wilayah-info hidden"><span id="wilayahTeks"></span><button type="button" id="btnUbahWilayah" class="btn-teks">Ubah</button></div>
           <div id="wilayahPilih" class="hidden">
-            <label>Provinsi <select id="fProv"></select></label>
-            <label>Kabupaten / Kota <select id="fKab"></select></label>
+            <div class="baris-2">
+              <label>Provinsi <select id="fProv"></select></label>
+              <label>Kab / Kota <select id="fKab"></select></label>
+            </div>
             <div class="cek-utama"><input type="checkbox" id="fUtama"><span>Jadikan wilayah utama keluarga</span></div>
           </div>
-          <label>Kecamatan <select id="fKec"></select></label>
-          <label>Desa / Kelurahan <select id="fDesa"></select></label>
-          <label>Jalan / dusun (boleh kosong) <input type="text" id="fJalan" placeholder="Contoh: Dusun Krajan"></label>
+          <div class="baris-2">
+            <label>Kecamatan <select id="fKec"></select></label>
+            <label>Desa / Kelurahan <select id="fDesa"></select></label>
+          </div>
+          <label>Jalan / dusun <input type="text" id="fJalan" placeholder="Contoh: Dusun Krajan"></label>
           <div id="wilStatus" class="wil-status"></div>
         </div>
-        <label>Ayah <select id="fAyah"></select></label>
-        <label>Ibu <select id="fIbu"></select></label>
-        <label id="wrapAnakKe">Anak ke- (urutan lahir dari ayah &amp; ibu ini, boleh kosong)
-          <input type="number" id="fAnakKe" min="1" max="99" placeholder="Contoh: 1">
-        </label>
-        <label id="wrapSama">Sama dengan orang di akar lain (lanjutan, biasanya tidak perlu) <select id="fSama"></select></label>
+        <label id="wrapSama">Sama dengan orang di akar lain (jarang perlu) <select id="fSama"></select></label>
         <div class="relasi-info">
           <div class="judul-blok">Pasangan</div>
           <div id="daftarPasangan"></div>
@@ -402,6 +419,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
         <button id="btnBackup">Backup data</button>
         <button id="btnRestore">Restore data</button>
         <button id="btnCetak">Cetak PDF</button>
+        <button id="btnEditGaris">Edit garis<small>Geser garis penghubung anak</small></button>
         <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
         <button id="btnPeran">Peran saya di tiap akar</button>
       </div>
@@ -571,7 +589,7 @@ function bilasSimpan(){ if(tundaSimpan){ clearTimeout(tundaSimpan); tulisStore()
 window.addEventListener('pagehide',bilasSimpan);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') bilasSimpan(); });
 function anakDari(id){ return Object.values(data.people).filter(p=>p.idAyah===id||p.idIbu===id); }
-let urutKetat=false, rootPaksa=null;
+let urutKetat=false, rootPaksa=null, modeGaris=false;
 function rootAktif(){ if(rootPaksa&&data.people[rootPaksa]) return rootPaksa; return data.people[ROOT_ID] ? ROOT_ID : Object.keys(data.people)[0]; }
 function bacaAngka(el){ const n=parseInt(el.value,10); return isNaN(n)?null:n; }
 
@@ -890,6 +908,47 @@ function jumlahTautanGabung(){
   });
   return n;
 }
+// Orang yang sama di akar berbeda (lewat "Peran saya" atau "Sama dengan") memakai foto TERBARU.
+// Dibandingkan waktu foto diganti (fotoAt); foto lama tanpa catatan dianggap paling tua,
+// dan bila sama-sama tanpa catatan, foto akar yang sedang dibuka yang dipakai.
+function fotoTerbaruPeta(){
+  const semua=store.akar; if(semua.length<2) return {};
+  const aktif=akarAktif();
+  const akars=[aktif].concat(semua.filter(a=>a!==aktif));
+  const induk={}, isi={}, kunci=(aid,pid)=>aid+'|'+pid;
+  const cari=k=>{ while(induk[k]!==k){ induk[k]=induk[induk[k]]; k=induk[k]; } return k; };
+  akars.forEach(a=>Object.keys(a.data.people).forEach(pid=>{ const k=kunci(a.id,pid); induk[k]=k; isi[k]=new Set([a.id]); }));
+  const satukan=(k1,k2)=>{
+    if(induk[k1]===undefined||induk[k2]===undefined) return;
+    const r1=cari(k1), r2=cari(k2); if(r1===r2) return;
+    let bentrok=false; isi[r1].forEach(x=>{ if(isi[r2].has(x)) bentrok=true; });
+    if(bentrok) return;
+    induk[r2]=r1; isi[r2].forEach(x=>isi[r1].add(x));
+  };
+  PERAN.forEach(([rk])=>{
+    let pertama=null;
+    akars.forEach(a=>{
+      const pid=a.peran&&a.peran[rk]; if(!pid||!a.data.people[pid]) return;
+      const k=kunci(a.id,pid); if(pertama===null) pertama=k; else satukan(pertama,k);
+    });
+  });
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const sm=p.sama; if(!sm) return;
+    satukan(kunci(a.id,p.id),kunci(sm.a,sm.i));
+  }));
+  const terbaik={};
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    if(!p.foto) return;
+    const r=cari(kunci(a.id,p.id)), at=p.fotoAt||0;
+    if(!terbaik[r]||at>terbaik[r].at) terbaik[r]={foto:p.foto,at};
+  }));
+  const peta={};
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const t=terbaik[cari(kunci(a.id,p.id))]; if(t) peta[kunci(a.id,p.id)]=t.foto;
+  }));
+  return peta;
+}
+function fotoTampilOrang(o){ const pm=fotoTerbaruPeta(); return pm[akarAktif().id+'|'+o.id]||o.foto||''; }
 function bangunGabungan(){
   const ids=idGabunganAktif(); if(!ids.length) return null;
   const urut=[store.aktifId].concat(ids.filter(id=>id!==store.aktifId));
@@ -919,6 +978,7 @@ function bangunGabungan(){
     satukan(kunci(a.id,p.id),kunci(sm.a,sm.i));
   }));
   const mid={}, asal={}, dari={}, people={};
+  const petaFoto=fotoTerbaruPeta();
   const idGab=(aid,pid)=>mid[cari(kunci(aid,pid))];
   akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
     const r=cari(kunci(a.id,p.id));
@@ -935,6 +995,7 @@ function bangunGabungan(){
   }));
   akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
     const m=idGab(a.id,p.id), c=people[m];
+    const ft=petaFoto[a.id+'|'+p.id]; if(ft) c.foto=ft;
     const peta=x=>(x&&a.data.people[x]) ? idGab(a.id,x) : null;
     if(!c.idAyah) c.idAyah=peta(p.idAyah);
     if(!c.idIbu) c.idIbu=peta(p.idIbu);
@@ -1147,6 +1208,33 @@ function susunBlok(g){
   Object.keys(akhir).forEach(id=>{ posisi[id]={x:akhir[id].x-minX,y:0,gen:akhir[id].gen}; blok[id]=akhir[id].blok; });
   return {posisi,blok,rak,root:rootAkar,label:blokLabel.map(b=>({x:b.x-minX,id:b.id}))};
 }
+// Garis datar tiap keluarga menempati "lajur" di celah antar generasi. Urutan lajur menentukan garis mana
+// memotong atau MENIMPA garis lain. Untuk <=7 lajur semua urutan dicoba; dipakai yang biayanya terkecil
+// (menimpa = 10, bersentuhan di ujung = 3, memotong = 1).
+function urutkanLajur(fams,n,M){
+  if(n<2||n>7) return;
+  fams.forEach(f=>{ f.xAnak=f.anak.map(q=>q.x+M.CX); });
+  const dekat=(a,b)=>Math.abs(a-b)<1.5, dalam=(x,a,b)=>x>a+1.5&&x<b-1.5;
+  const biaya=(A,B)=>{
+    let c=0;
+    if(A.xAnak.some(x=>dekat(x,B.midX))) c+=10;
+    else if(dalam(B.midX,A.kiri,A.kanan)) c+=1;
+    else if(dekat(B.midX,A.kiri)||dekat(B.midX,A.kanan)) c+=3;
+    A.xAnak.forEach(x=>{ if(dalam(x,B.kiri,B.kanan)) c+=1; else if(dekat(x,B.kiri)||dekat(x,B.kanan)) c+=3; });
+    return c;
+  };
+  const c=[]; for(let i=0;i<n;i++){ c.push(new Array(n).fill(0)); }
+  fams.forEach(A=>fams.forEach(B=>{ if(A.lajur!==B.lajur) c[A.lajur][B.lajur]+=biaya(A,B); }));
+  const hitung=perm=>{ let t=0; for(let i=0;i<n;i++) for(let j=0;j<n;j++) if(i!==j&&perm[i]>perm[j]) t+=c[i][j]; return t; };
+  let terbaik=[...Array(n).keys()], biayaTerbaik=hitung(terbaik);
+  if(biayaTerbaik===0) return;
+  const perm=new Array(n), dipakai=new Array(n).fill(false);
+  (function cobaSemua(i){
+    if(i===n){ const b=hitung(perm); if(b<biayaTerbaik){ biayaTerbaik=b; terbaik=perm.slice(); } return; }
+    for(let v=0;v<n;v++){ if(dipakai[v]) continue; dipakai[v]=true; perm[i]=v; cobaSemua(i+1); dipakai[v]=false; }
+  })(0);
+  fams.forEach(f=>{ f.lajur=terbaik[f.lajur]; });
+}
 function gambarPohonBlok(target,M,L,g){
   const orang=g.data.people, posisi=L.posisi;
   const riilId=id=>g.riil.has(id);
@@ -1184,6 +1272,7 @@ function gambarPohonBlok(target,M,L,g){
     const fams=perKel[k]; fams.sort((a,b)=>a.kiri-b.kiri||a.kanan-b.kanan);
     const lajur=[];
     fams.forEach(f=>{ let i=lajur.findIndex(r=>f.kiri>r+8); if(i<0){ i=lajur.length; lajur.push(-Infinity); } lajur[i]=f.kanan; f.lajur=i; });
+    urutkanLajur(fams,lajur.length,M);
     const gk=fams[0].gen; jumlahLajur[gk]=Math.max(jumlahLajur[gk]||0,lajur.length);
   });
   const daftarGen=[...new Set(Object.values(posisi).map(q=>q.gen))].sort((a,b)=>a-b);
@@ -1197,6 +1286,28 @@ function gambarPohonBlok(target,M,L,g){
       if(x1===x2) garisV(target,x1,y1,y2,M.T,kelas); else garisH(target,x1,y1,x2,M.T,kelas);
     }
   };
+  const pasKey=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+  const uPas={};
+  {
+    const jauh=[];
+    Object.values(orang).forEach(o=>{
+      const pos=posisi[o.id]; if(!pos) return;
+      (o.idPasangan||[]).forEach(pid=>{
+        const pos2=posisi[pid]; if(!pos2||!(pid>o.id)) return;
+        if(blokDari(o.id)!==blokDari(pid)||pos.gen!==pos2.gen) return;
+        const x1=Math.min(pos.x,pos2.x), x2=Math.max(pos.x,pos2.x);
+        const diantara=Object.keys(posisi).some(r=>r!==o.id&&r!==pid&&posisi[r].gen===pos.gen&&blokDari(r)===blokDari(o.id)&&posisi[r].x>x1+1&&posisi[r].x<x2-1);
+        if(diantara) jauh.push({k:pasKey(o.id,pid),gen:pos.gen,y:pos.y,x1,x2});
+      });
+    });
+    const tingkat={};
+    jauh.sort((a,b)=>(a.x2-a.x1)-(b.x2-b.x1)).forEach(j=>{
+      const lain=tingkat[j.gen]=tingkat[j.gen]||[];
+      let lv=0; lain.forEach(q=>{ if(j.x1<=q.x2+8&&j.x2>=q.x1-8) lv=Math.max(lv,q.lv+1); });
+      lain.push({x1:j.x1,x2:j.x2,lv});
+      uPas[j.k]=j.y+M.NODE_H+8+Math.min(lv,4)*7;
+    });
+  }
   // 3) garis pasangan
   Object.values(orang).forEach(o=>{
     const pos=posisi[o.id]; if(!pos) return;
@@ -1204,7 +1315,7 @@ function gambarPohonBlok(target,M,L,g){
       const pos2=posisi[pid]; if(!pos2||!(pid>o.id)) return;
       const cerai=((o.statusPasangan||{})[pid]==='cerai');
       const kls=kelasDari(o.id,pid);
-      if(blokDari(o.id)===blokDari(pid) && pos.gen===pos2.gen){
+      if(blokDari(o.id)===blokDari(pid) && pos.gen===pos2.gen && uPas[pasKey(o.id,pid)]===undefined){
         garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,[cerai?'cerai':'',kls].filter(Boolean).join(' '));
         if(cerai){
           const lb=document.createElement('div'); lb.className='label-cerai'+(kls?' pudar':''); lb.textContent='cerai';
@@ -1212,7 +1323,7 @@ function gambarPohonBlok(target,M,L,g){
           target.appendChild(lb);
         }
       } else {
-        const yb=Math.max(pos.y,pos2.y)+M.NODE_H+8;
+        const yb=(uPas[pasKey(o.id,pid)]!==undefined)?uPas[pasKey(o.id,pid)]:Math.max(pos.y,pos2.y)+M.NODE_H+8;
         siku([[pos.x+M.CX,pos.y+M.NODE_H],[pos.x+M.CX,yb],[pos2.x+M.CX,yb],[pos2.x+M.CX,pos2.y+M.NODE_H]],kls||'');
       }
     });
@@ -1220,12 +1331,19 @@ function gambarPohonBlok(target,M,L,g){
   // 4) garis keluarga di dalam blok
   Object.values(keluarga).forEach(f=>{
     const ortu=f.ids.map(id=>posisi[id]);
-    const yMulai=f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H;
-    const yBus=f.anak[0].y-12-f.lajur*LAJUR_H;
+    const yU=f.rapat?uPas[pasKey(f.ids[0],f.ids[1])]:undefined;
+    const yMulai=(yU!==undefined)?yU:(f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H);
+    const kunciGaris=f.ids.join('|');
+    const dMaks=f.anak[0].y-(Math.max(yMulai,...ortu.map(q=>q.y+M.NODE_H))+6);
+    const dOto=12+f.lajur*LAJUR_H, dSimpan=(data&&data.garis)?data.garis[kunciGaris]:undefined;
+    let dGaris=(typeof dSimpan==='number')?dSimpan:dOto;
+    if(dMaks>=8) dGaris=Math.min(Math.max(dGaris,8),dMaks); else dGaris=dOto;
+    const yBus=f.anak[0].y-dGaris;
+    const rec={items:[],T:M.T,d:dGaris,yAnak:f.anak[0].y};
     const ortuRiil=f.ids.some(riilId);
     const anakRiil=f.idAnak.map(id=>ortuRiil&&riilId(id));
-    const gv=(x,y1,y2,k)=>{ garisV(target,x,y1,y2,M.T,k); rekam('v',x,y1,y2,f.blok); };
-    const gh=(x1,y,x2,k)=>{ garisH(target,x1,y,x2,M.T,k); rekam('h',y,x1,x2,f.blok); };
+    const gv=(x,y1,y2,k)=>{ const el=garisV(target,x,y1,y2,M.T,k); rec.items.push(y1===yBus?{el,role:'k',y2}:{el,role:'p',y1}); rekam('v',x,y1,y2,f.blok); };
+    const gh=(x1,y,x2,k)=>{ const el=garisH(target,x1,y,x2,M.T,k); rec.items.push({el,role:'b'}); rekam('h',y,x1,x2,f.blok); };
     if(ortuRiil&&anakRiil.every(Boolean)){
       gv(f.midX,yMulai,yBus);
       if(f.kanan>f.kiri) gh(f.kiri,yBus,f.kanan);
@@ -1241,6 +1359,29 @@ function gambarPohonBlok(target,M,L,g){
         if(kb>ka) gh(ka,yBus,kb);
         f.anak.forEach((q,i)=>{ if(anakRiil[i]) gv(q.x+M.CX,yBus,q.y); });
       }
+    }
+    if(modeGaris&&!M.cetak&&ortuRiil&&anakRiil.some(Boolean)&&dMaks>8){
+      const hx=(f.kanan>f.kiri)?(f.kiri+f.kanan)/2:f.midX;
+      const h=document.createElement('div'); h.className='handle-garis';
+      h.style.left=(hx-14)+'px'; h.style.top=(yBus-14)+'px';
+      h.addEventListener('pointerdown',e=>{
+        e.preventDefault(); e.stopPropagation();
+        const y0=e.clientY, d0=rec.d;
+        const gerak=ev=>{
+          const dn=Math.round(Math.min(dMaks,Math.max(8,d0-(ev.clientY-y0)/sk)));
+          rec.d=dn; const yb=rec.yAnak-dn; pasangGarisKeluarga(rec,yb); h.style.top=(yb-14)+'px';
+        };
+        const selesai=()=>{
+          window.removeEventListener('pointermove',gerak);
+          window.removeEventListener('pointerup',selesai);
+          window.removeEventListener('pointercancel',selesai);
+          data.garis=data.garis||{}; data.garis[kunciGaris]=rec.d; simpanData();
+        };
+        window.addEventListener('pointermove',gerak);
+        window.addEventListener('pointerup',selesai);
+        window.addEventListener('pointercancel',selesai);
+      });
+      target.appendChild(h);
     }
   });
   // 5) garis antar blok (boleh bersilang, selalu di bawah garis lain)
@@ -1289,8 +1430,12 @@ function gambarPohonBlok(target,M,L,g){
   });
   return {w:maksX,h:maksY};
 }
-function bangunTunggal(){
-  const people=data.people;
+function bangunTunggal(akar){
+  const ak=akar||akarAktif(), pm=fotoTerbaruPeta(), people={};
+  Object.keys(data.people).forEach(id=>{
+    const o=data.people[id], ft=pm[ak.id+'|'+id];
+    people[id]=(ft&&ft!==o.foto) ? Object.assign({},o,{foto:ft}) : o;
+  });
   return {data:{people},riil:new Set(Object.keys(people)),dari:{}};
 }
 function gambarDenganLatar(target,M){
@@ -1325,12 +1470,18 @@ const M_CETAK={NODE_H:176,CX:62,CY:44,T:3,cetak:true};
 function garisV(tg,x,y1,y2,T,kelas){
   const d=document.createElement('div'); d.className='line line-v'+(kelas?' '+kelas:'');
   d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;
-  tg.appendChild(d);
+  tg.appendChild(d); return d;
 }
 function garisH(tg,x1,y,x2,T,kelas){
   const d=document.createElement('div'); d.className='line line-h'+(kelas?' '+kelas:'');
   d.style.cssText=`left:${Math.min(x1,x2)-T/2}px;top:${y-T/2}px;width:${Math.abs(x2-x1)+T}px;height:${T}px`;
-  tg.appendChild(d);
+  tg.appendChild(d); return d;
+}
+function pasangGarisKeluarga(rec,yBus){
+  rec.items.forEach(it=>{
+    if(it.role==='b'){ it.el.style.top=(yBus-rec.T/2)+'px'; }
+    else { const a=(it.role==='p')?it.y1:yBus, b=(it.role==='p')?yBus:it.y2; it.el.style.top=Math.min(a,b)+'px'; it.el.style.height=Math.abs(b-a)+'px'; }
+  });
 }
 
 function gambarPohon(target,M){
@@ -1565,7 +1716,7 @@ $('inputRestore').addEventListener('change',e=>{
         const daftar=d.akar.map((a,i)=>{
           if(!a||!a.data||typeof a.data.people!=='object'||!Object.keys(a.data.people).length) throw new Error('format');
           normalisasiPeople(a.data.people);
-          const dataAkar={people:a.data.people}; if(a.data.wilayah&&typeof a.data.wilayah==='object') dataAkar.wilayah=a.data.wilayah;
+          const dataAkar={people:a.data.people}; if(a.data.wilayah&&typeof a.data.wilayah==='object') dataAkar.wilayah=a.data.wilayah; if(a.data.garis&&typeof a.data.garis==='object') dataAkar.garis=a.data.garis;
           return {id:String(a.id||idAkarBaru()),nama:String(a.nama||('Akar '+(i+1))),warna:a.warna||WARNA_AKAR[i%WARNA_AKAR.length],pin:!!a.pin,data:dataAkar,dibuat:a.dibuat||Date.now(),pemilikId:a.pemilikId||'',pemilikNama:a.pemilikNama||'',terkunci:!!a.terkunci,asalId:a.asalId||'',mode:a.mode||'',peran:(a.peran&&typeof a.peran==='object')?a.peran:{}};
         });
         if(!confirm('Semua akar saat ini ('+store.akar.length+') akan diganti dengan isi file backup ('+daftar.length+' akar). Lanjutkan?')) return;
@@ -1579,7 +1730,7 @@ $('inputRestore').addEventListener('change',e=>{
         if(akarAktif().terkunci){ alert('Akar ini terkunci (hasil impor) dan tidak bisa diganti lewat Restore.'); return; }
         if(!confirm('Data akar "'+akarAktif().nama+'" akan diganti dengan isi file backup. Lanjutkan?')) return;
         const a=akarAktif();
-        a.data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') a.data.wilayah=d.wilayah;
+        a.data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') a.data.wilayah=d.wilayah; if(d.garis&&typeof d.garis==='object') a.data.garis=d.garis;
         if(typeof d.namaKeluarga==='string'&&d.namaKeluarga.trim()) a.nama=d.namaKeluarga.trim();
         data=a.data;
       }
@@ -1614,6 +1765,14 @@ function pilihKertas(w,h){
   pilih.zoom=Math.min(pilih.fit*0.97,1.4);
   return pilih;
 }
+function masukModeGaris(){
+  if(akarAktif().terkunci){ alert('Akar ini terkunci (hasil impor), garisnya tidak bisa diedit.'); return; }
+  tutupFab(); modeGaris=true; $('barGaris').classList.remove('hidden'); render(false);
+}
+function keluarModeGaris(){ modeGaris=false; $('barGaris').classList.add('hidden'); simpanData(); render(false); }
+$('btnEditGaris').addEventListener('click',masukModeGaris);
+$('garisSelesai').addEventListener('click',keluarModeGaris);
+$('garisReset').addEventListener('click',()=>{ if(data.garis){ delete data.garis; simpanData(); } render(false); });
 function cetakTerbuka(){ return !$('cetakOverlay').classList.contains('hidden'); }
 function tutupCetakDlg(){ $('cetakOverlay').classList.add('hidden'); }
 $('btnCetak').addEventListener('click',()=>{
@@ -1640,7 +1799,7 @@ async function cetakAkar(akar){
   // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
   let u; const dataAsli=data; data=akar.data;
   try{
-    const g=bangunTunggal(); let L=null;
+    const g=bangunTunggal(akar); let L=null;
     try{ L=susunBlok(g); }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
     u = L ? gambarPohonBlok($('cetakCanvas'),M_CETAK,L,g) : gambarPohon($('cetakCanvas'),M_CETAK);
   } finally { data=dataAsli; }
@@ -1949,7 +2108,7 @@ function bangunBerkasAkar(akar,mode){
     }
     people[c.id]=c;
   });
-  const d={people}; if(mode==='lengkap'&&akar.data.wilayah) d.wilayah=akar.data.wilayah;
+  const d={people}; if(mode==='lengkap'&&akar.data.wilayah) d.wilayah=akar.data.wilayah; if(akar.data.garis) d.garis=akar.data.garis;
   return {format:'akar-keluarga-akar',versi:2,pengirim:{id:store.pengguna.id,nama:store.pengguna.nama},akar:{id:akar.id,nama:akar.nama,warna:akar.warna,mode,diubah:Date.now(),data:d}};
 }
 $('bagikanYa').addEventListener('click',async()=>{
@@ -1975,7 +2134,7 @@ async function imporBerkas(teks){
     normalisasiPeople(d.akar.data.people);
     Object.values(d.akar.data.people).forEach(q=>{ if(q&&typeof q==='object') delete q.sama; });
   }catch(e){ alert('File akar tidak valid.'); return; }
-  const dataAkar={people:d.akar.data.people}; if(d.akar.data.wilayah&&typeof d.akar.data.wilayah==='object') dataAkar.wilayah=d.akar.data.wilayah;
+  const dataAkar={people:d.akar.data.people}; if(d.akar.data.wilayah&&typeof d.akar.data.wilayah==='object') dataAkar.wilayah=d.akar.data.wilayah; if(d.akar.data.garis&&typeof d.akar.data.garis==='object') dataAkar.garis=d.akar.data.garis;
   const pengirim=String(d.pengirim.nama||'pengirim');
   const milikSendiri=!!(store.pengguna&&d.pengirim.id===store.pengguna.id);
   if(milikSendiri){
@@ -2043,9 +2202,9 @@ function barisAnak(o){
 function bukaKartu(id){
   const o=data.people[id]; if(!o) return;
   kartuId=id;
-  const foto=$('kartuFoto');
-  if(o.foto){
-    foto.className='kartu-foto'; foto.style.backgroundImage=`url("${o.foto}")`; foto.innerHTML='';
+  const foto=$('kartuFoto'), fotoO=fotoTampilOrang(o);
+  if(fotoO){
+    foto.className='kartu-foto'; foto.style.backgroundImage=`url("${fotoO}")`; foto.innerHTML='';
   } else {
     foto.className='kartu-foto kosong '+(genderDari(o)==='f'?'f':'m'); foto.style.backgroundImage='';
     foto.innerHTML=`<span class="inisial">${esc(inisial(o.nama))}</span>`;
@@ -2081,6 +2240,7 @@ $('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if
 
 // ===== Tombol Back Android =====
 function tanganiBack(){
+  if(modeGaris){ keluarModeGaris(); return true; }
   if(cetakTerbuka()){ tutupCetakDlg(); return true; }
   if(peranTerbuka()){ tutupPeran(); return true; }
   if(dlgTerbuka()){ tutupDlg(false); return true; }
@@ -2223,7 +2383,7 @@ function bukaModal(id,fokusNama){
   $('modalTitle').textContent=o.nama||'Anggota';
   $('fNama').value=o.nama||'';
   $('fStatus').value=o.status==='meninggal'?'meninggal':'hidup';
-  $('fGender').value=genderDari(o);
+  $('fGender').value=genderDari(o); segarSaklar();
   $('fAnakKe').value=(o.anakKe>0)?o.anakKe:'';
   $('fFotoFile').value=''; segarkanFoto();
   const lh=o.lahir||{}, wf=o.wafat||{};
@@ -2238,7 +2398,17 @@ function bukaModal(id,fokusNama){
   if(fokusNama) setTimeout(()=>$('fNama').focus(),60);
 }
 function tutupModal(){ $('modalOverlay').classList.add('hidden'); idAktif=null; }
-function aturWafat(){ $('wrapWafat').style.display=$('fStatus').value==='meninggal'?'block':'none'; }
+function segarSaklar(){
+  [['skStatus','fStatus'],['skGender','fGender']].forEach(([sk,sel])=>{
+    document.querySelectorAll('#'+sk+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===$(sel).value));
+  });
+}
+[['skStatus','fStatus'],['skGender','fGender']].forEach(([sk,sel])=>{
+  document.querySelectorAll('#'+sk+' button').forEach(b=>b.addEventListener('click',()=>{
+    $(sel).value=b.dataset.v; $(sel).dispatchEvent(new Event('change')); segarSaklar();
+  }));
+});
+function aturWafat(){ segarSaklar(); $('wrapWafat').style.display=$('fStatus').value==='meninggal'?'block':'none'; }
 $('fStatus').addEventListener('change',aturWafat);
 $('btnTutup').addEventListener('click',tutupModal);
 $('modalOverlay').addEventListener('click',e=>{ if(e.target===$('modalOverlay')) tutupModal(); });
@@ -2370,7 +2540,10 @@ function terapkanForm(o){
   o.nama=$('fNama').value.trim();
   o.status=$('fStatus').value;
   const gBaru=$('fGender').value, gLama=genderDari(o);
-  o.gender=gBaru; o.foto=fotoTemp;
+  o.gender=gBaru;
+  if(fotoTemp&&fotoTemp!==o.foto) o.fotoAt=Date.now();
+  if(!fotoTemp) delete o.fotoAt;
+  o.foto=fotoTemp;
   simpanAlamat(o);
   terapkanStatusPasangan(o);
   const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn'));
