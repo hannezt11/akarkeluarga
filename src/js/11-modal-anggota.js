@@ -23,6 +23,7 @@ function bukaModal(id,fokusNama){
   $('fLahirTgl').value=lh.tanggal||''; $('fLahirBln').value=lh.bulan||''; $('fLahirThn').value=lh.tahun||'';
   $('fWafatTgl').value=wf.tanggal||''; $('fWafatBln').value=wf.bulan||''; $('fWafatThn').value=wf.tahun||'';
   aturWafat();
+  $('fHp').value=o.hp||''; $('fEmail').value=o.email||'';
   siapkanAlamat(o);
   isiPilihanOrtu(o); aturTombolOrtu(o);
   isiDaftarPasangan(o); isiSama(o);

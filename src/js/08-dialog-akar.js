@@ -186,7 +186,7 @@ $('amNama').addEventListener('click',async()=>{
 });
 $('amHapus').addEventListener('click',async()=>{
   const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
-  if(store.akar.length<2){ alert('Akar terakhir tidak bisa dihapus. Gunakan "Mulai baru" untuk mengosongkannya.'); return; }
+  if(store.akar.length<2){ alert('Akar terakhir tidak bisa dihapus.'); return; }
   tutupSheet();
   const ya=await konfirmasi('Hapus akar "'+a.nama+'"?','Semua orang di akar ini ikut terhapus dan tidak bisa dikembalikan. Sebaiknya Backup dulu.','Ya, hapus');
   if(!ya) return;

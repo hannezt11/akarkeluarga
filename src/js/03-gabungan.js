@@ -105,7 +105,7 @@ function bangunGabungan(){
       mid[r]=m; people[m]=c; asal[m]=new Set(); dari[m]=a.id;
     } else {
       const c=people[mid[r]];
-      ['nama','foto','lahir','wafat','alamat','anakKe'].forEach(f=>{ if(!c[f]&&p[f]) c[f]=p[f]; });
+      ['nama','foto','lahir','wafat','alamat','anakKe','hp','email'].forEach(f=>{ if(!c[f]&&p[f]) c[f]=p[f]; });
     }
     asal[mid[r]].add(a.id);
   }));

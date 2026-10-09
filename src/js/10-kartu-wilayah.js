@@ -15,6 +15,20 @@ function teksAlamat(a){
   if(!a) return '';
   return [a.jalan,a.desa,a.kec?('Kec. '+a.kec):'',a.kab,a.prov].filter(Boolean).join(', ');
 }
+function nomorWa(hp){
+  let d=String(hp).replace(/[^\d]/g,'');
+  if(/^0/.test(d)) d='62'+d.slice(1);
+  return d;
+}
+function barisKontak(o){
+  let h='';
+  if(o.hp){
+    const tel=String(o.hp).replace(/[^\d+]/g,''), wa=nomorWa(o.hp);
+    h+=`<div class="kartu-baris"><b>Ponsel:</b> <a class="kontak" href="tel:${esc(tel)}">${esc(o.hp)}</a>`+(wa.length>=8?` <a class="kontak chip-wa" href="https://wa.me/${esc(wa)}">WhatsApp</a>`:'')+`</div>`;
+  }
+  if(o.email) h+=`<div class="kartu-baris"><b>Email:</b> <a class="kontak" href="mailto:${esc(o.email)}">${esc(o.email)}</a></div>`;
+  return h;
+}
 function barisPasangan(o){
   const t=(o.idPasangan||[]).filter(x=>data.people[x]).map(x=>tautanOrang(x)+(((o.statusPasangan||{})[x]==='cerai')?' <span class="ket-cerai">(cerai)</span>':''));
   return t.length?`<div class="kartu-baris"><b>Pasangan:</b> ${t.join(', ')}</div>`:'';
@@ -57,6 +71,7 @@ function bukaKartu(id){
   if(meninggal&&wafat) h+=`<div class="kartu-baris"><b>Wafat:</b> ${esc(wafat)}</div>`;
   const txtAlamat=teksAlamat(o.alamat);
   if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}</div>`;
+  h+=barisKontak(o);
   h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
   h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
   h+=barisPasangan(o);

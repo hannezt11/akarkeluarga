@@ -70,6 +70,7 @@ function bangunBerkasAkar(akar,mode){
   const people={};
   Object.values(akar.data.people).forEach(o=>{
     const c=JSON.parse(JSON.stringify(o)); delete c.sama;
+    if(mode==='dasar'){ delete c.hp; delete c.email; }
     if(mode==='dasar'&&c.status!=='meninggal'){
       c.foto=''; delete c.alamat;
       if(c.lahir){ if(c.lahir.tahun) c.lahir={tahun:c.lahir.tahun}; else delete c.lahir; }

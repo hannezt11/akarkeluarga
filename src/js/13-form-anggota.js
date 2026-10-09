@@ -49,6 +49,7 @@ function terapkanForm(o){
   if(fotoTemp&&fotoTemp!==o.foto) o.fotoAt=Date.now();
   if(!fotoTemp) delete o.fotoAt;
   o.foto=fotoTemp;
+  { const hp=$('fHp').value.trim(), em=$('fEmail').value.trim(); if(hp) o.hp=hp; else delete o.hp; if(em) o.email=em; else delete o.email; }
   simpanAlamat(o);
   terapkanStatusPasangan(o);
   const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn'));
@@ -75,7 +76,7 @@ $('btnSimpan').addEventListener('click',()=>{
 });
 $('btnHapus').addEventListener('click',()=>{
   const id=idAktif; const o=data.people[id]; if(!o) return;
-  if(id===rootAktif()){ alert('Orang utama (titik awal pohon) tidak bisa dihapus. Gunakan "Mulai baru" untuk mengosongkan semuanya.'); return; }
+  if(id===rootAktif()){ alert('Orang utama (titik awal pohon) tidak bisa dihapus.'); return; }
   if(!confirm(`Hapus "${o.nama||'Tanpa nama'}"? Cabang yang hanya tersambung lewat orang ini juga tidak akan tampil lagi.`)) return;
   delete data.people[id];
   Object.values(data.people).forEach(p=>{

@@ -67,18 +67,6 @@ $('inputRestore').addEventListener('change',e=>{
   };
   r.readAsText(f);
 });
-$('btnMulaiBaru').addEventListener('click',async()=>{
-  tutupFab();
-  const a=akarAktif();
-  if(a.terkunci){ alert('Akar ini terkunci (hasil impor). Untuk membuangnya, hapus akar lewat menu titik tiga di daftar akar.'); return; }
-  const ya=await konfirmasi('Kosongkan akar "'+a.nama+'"?','Semua orang di akar ini akan dihapus dan akar dimulai lagi dari satu orang kosong. Akar lain tidak terpengaruh. Tindakan ini tidak bisa dibatalkan. Sebaiknya Backup dulu.','Ya, kosongkan');
-  if(!ya) return;
-  const wilLama=a.data.wilayah;
-  a.data={people:{diri:{id:'diri',nama:'',status:'hidup',gender:'m',jalur:'A',foto:'',idAyah:null,idIbu:null,idPasangan:[]}}};
-  if(wilLama) a.data.wilayah=wilLama;
-  data=a.data;
-  simpanData(); segarkanDaftarAkar(); render(true); bukaModal('diri',true);
-});
 const KERTAS=[['A4',210,297],['A3',297,420],['A2',420,594],['A1',594,841],['A0',841,1189]];
 function pilihKertas(w,h){
   const mm=96/25.4;
