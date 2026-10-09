@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Akar Keluarga</title>
+<style>
+:root{
+  --bg:#f3ede0; --ink:#2f2a20; --ink-soft:#6b6252;
+  --root:#3c5b45; --root-deep:#24382b;
+  --card:#fffaf0; --card-border:#ddd2b8; --gold:#a97d34;
+  --hidup:#4f7a5a; --meninggal:#a3453b; --garis:#a8946b;
+  --font-title:Georgia,'Iowan Old Style','Times New Roman',serif;
+  --font-body:-apple-system,Roboto,'Segoe UI',sans-serif;
+  --pz:1;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:var(--font-body);overflow:hidden;overscroll-behavior:none;}
+
+/* Bingkai seukuran ponsel: di layar lebar konten dikunci selebar ponsel dan ditengahkan. */
+.frame-luar{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#1b1712;}
+.frame-ponsel{position:relative;width:100%;max-width:430px;height:100%;max-height:100dvh;background:var(--bg);overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,0.4);}
+
+.topbar{position:absolute;top:0;left:0;right:0;z-index:10;padding:14px 18px;background:linear-gradient(to bottom,var(--bg) 75%,transparent);padding-top:calc(14px + env(safe-area-inset-top,0px));pointer-events:none;}
+.topbar h1{font-family:var(--font-title);font-size:19px;font-weight:normal;color:var(--root-deep);margin:0;}
+.viewport{position:absolute;inset:0;touch-action:none;}
+.canvas{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;}
+
+.node{position:absolute;width:104px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+.avatar-wrap{position:relative;width:58px;height:58px;}
+.avatar{width:58px;height:58px;border-radius:50%;background:#e4dabf;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--root-deep);border:1px solid var(--card-border);}
+.node.aktif .avatar{box-shadow:0 0 0 2px var(--gold);}
+.status-dot{position:absolute;top:0;right:0;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg);}
+.status-dot.hidup{background:var(--hidup);}
+.status-dot.meninggal{background:var(--meninggal);}
+.node .nama{font-size:12px;line-height:1.25;text-align:center;color:var(--ink);max-height:2.5em;overflow:hidden;}
+.node .nama.kosong{color:var(--ink-soft);font-style:italic;}
+.node .umur{font-size:10px;color:var(--ink-soft);line-height:1.2;min-height:12px;}
+
+.line{position:absolute;background:var(--garis);}
+.line-v{width:2px;}
+.line-h{height:2px;}
+.node.pudar{opacity:.3;filter:grayscale(1);}
+.line.pudar{opacity:.2;}
+.label-cerai.pudar{opacity:.3;}
+.label-blok{position:absolute;font-size:12px;color:#7a6e58;opacity:.8;white-space:nowrap;pointer-events:none;}
+.peran-sheet{max-height:88%;overflow-y:auto;}
+.peran-info{font-size:13px;color:#6b5f49;margin:0 8px 8px;line-height:1.4;}
+.peran-akar{margin:8px 4px;padding:10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card);}
+.peran-nama{font-family:var(--font-title);font-size:16px;color:var(--root-deep);margin-bottom:6px;}
+.peran-baris{display:block;font-size:12px;color:#6b5f49;margin-top:6px;}
+.peran-sel{display:block;width:100%;padding:9px;border:1px solid var(--card-border);border-radius:8px;background:#fff;font-size:14px;color:var(--ink);margin-top:3px;}
+.sheet button.peran-tutup{text-align:center;background:var(--root);color:#fff;margin-top:8px;}
+
+/* Tombol aksi kiri bawah - absolute terhadap .frame-ponsel, tidak ikut pan/zoom. */
+.fab-wrap{position:absolute;left:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;}
+.fab{width:48px;height:48px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);font-size:20px;box-shadow:0 2px 6px rgba(0,0,0,0.12);}
+.fab-menu{position:absolute;bottom:56px;left:0;display:flex;flex-direction:column;gap:8px;min-width:170px;}
+.fab-menu.hidden{display:none;}
+.fab-menu button{padding:10px 14px;border-radius:10px;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);font-size:13px;text-align:left;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+
+#inputRestore{display:none;}
+
+.modal-overlay{position:absolute;inset:0;background:rgba(36,30,20,0.4);display:flex;align-items:flex-end;z-index:20;}
+.modal-overlay.hidden{display:none;}
+.modal{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:18px 18px calc(22px + var(--bawah-aman));max-height:82vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.modal-header h2{font-family:var(--font-title);font-weight:normal;font-size:18px;margin:0;}
+.btn-icon{width:34px;height:34px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);font-size:15px;}
+.modal-body label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.modal-body input,.modal-body select{display:block;width:100%;margin-top:5px;padding:9px 10px;border:1px solid var(--card-border);border-radius:8px;background:var(--card);font-size:14px;color:var(--ink);}
+.modal-body .baris-tgl{display:flex;gap:6px;margin-top:5px;}
+.modal-body .baris-tgl input{width:auto;flex:1;min-width:0;margin-top:0;}
+#wrapWafat{display:none;}
+.foto-thumb{width:48px;height:48px;border-radius:50%;background-size:cover;background-position:center;border:1px solid var(--card-border);}
+.btn-kecil{padding:6px 10px;border-radius:8px;border:1px solid var(--card-border);background:var(--card);font-size:12px;color:var(--meninggal);}
+.relasi-info{font-size:12px;color:var(--ink-soft);border-top:1px solid var(--card-border);padding-top:10px;}
+.relasi-info p{margin:4px 0;}
+.modal-actions{display:flex;gap:10px;margin-top:6px;}
+.btn-utama,.btn-bahaya{flex:1;padding:11px;border-radius:8px;border:none;font-size:14px;}
+.btn-utama{background:var(--root);color:#fff;}
+.btn-bahaya{background:transparent;color:var(--meninggal);border:1px solid var(--card-border);}
+.modal-tambah{margin-top:16px;border-top:1px solid var(--card-border);padding-top:12px;}
+.modal-tambah-judul{font-size:12px;color:var(--ink-soft);margin:0 0 8px;}
+.modal-tambah-tombol{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.modal-tambah-tombol button{padding:9px;border-radius:8px;border:1px solid var(--card-border);background:var(--card);font-size:13px;color:var(--root-deep);}
+
+
+/* ===== Header, tombol menu, tombol pusat ===== */
+.topbar{display:flex;align-items:center;gap:12px;}
+.btn-menu{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.btn-pusat{position:absolute;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;width:48px;height:48px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.btn-pusat:active,.btn-menu:active{background:#eadfc6;}
+
+/* ===== Drawer ===== */
+.scrim{position:absolute;inset:0;background:rgba(36,30,20,0.45);z-index:30;}
+.scrim.hidden{display:none;}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--bg);z-index:31;transform:translateX(-102%);transition:transform .2s ease;display:flex;flex-direction:column;box-shadow:2px 0 14px rgba(0,0,0,0.25);padding-bottom:calc(14px + var(--bawah-aman));}
+.drawer.buka{transform:translateX(0);}
+.drawer-kepala{padding:calc(22px + env(safe-area-inset-top,0px)) 20px 16px;background:var(--root-deep);color:#f3ede0;}
+.drawer-kepala h2{margin:0;font-family:var(--font-title);font-weight:normal;font-size:20px;}
+.drawer-kepala p{margin:4px 0 0;font-size:12px;opacity:.75;}
+.drawer-isi{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.drawer-isi button,.drawer-bawah button{width:100%;text-align:left;padding:13px 14px;border-radius:10px;border:none;background:transparent;color:var(--root-deep);font-size:15px;}
+.drawer-isi button:active{background:#eadfc6;}
+.drawer-spacer{flex:1;}
+.drawer-bawah{padding:10px 12px 0;border-top:1px solid var(--card-border);margin:0 8px;}
+.drawer-bawah button{color:var(--meninggal);border:1px solid var(--card-border);background:var(--card);text-align:center;font-size:14px;}
+
+/* ===== Kartu profil ===== */
+.kartu-overlay{position:absolute;inset:0;background:rgba(24,20,13,0.62);z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;}
+.kartu-overlay.hidden{display:none;}
+.kartu{position:relative;width:min(100%,340px);height:min(78dvh,560px);background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.kartu-foto{flex:2 1 0;min-height:0;position:relative;background-size:cover;background-position:center 30%;background-color:#e4dabf;display:flex;align-items:center;justify-content:center;}
+.kartu-foto.kosong.m{background:linear-gradient(160deg,#cfdcc8,#a9c0a6);}
+.kartu-foto.kosong.f{background:linear-gradient(160deg,#ecd5c9,#d9aea0);}
+.kartu-foto.kosong .inisial{font-family:var(--font-title);font-size:84px;color:rgba(36,56,43,0.65);}
+.kartu-kode{position:absolute;left:12px;bottom:10px;font-size:11px;color:#fff;background:rgba(0,0,0,0.42);padding:3px 8px;border-radius:10px;}
+.kartu-edit{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,250,240,0.92);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 6px rgba(0,0,0,0.3);}
+.kartu-info{flex:1 1 0;min-height:0;overflow-y:auto;padding:12px 16px 14px;}
+.kartu-nama{font-family:var(--font-title);font-size:20px;line-height:1.2;color:var(--root-deep);}
+.kartu-sub{font-size:13px;color:var(--ink-soft);margin:3px 0 8px;display:flex;align-items:center;gap:6px;}
+.kartu-sub .titik{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.kartu-sub .titik.hidup{background:var(--hidup);}
+.kartu-sub .titik.meninggal{background:var(--meninggal);}
+.kartu-baris{font-size:13px;line-height:1.5;color:var(--ink);margin:2px 0;}
+.kartu-baris b{font-weight:normal;color:var(--ink-soft);}
+.tautan{color:#1f5fd1;text-decoration:none;}
+.tautan:active{text-decoration:underline;}
+
+/* ===== Dialog konfirmasi ===== */
+.dlg-overlay{position:absolute;inset:0;background:rgba(24,20,13,0.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:24px;}
+.dlg-overlay.hidden{display:none;}
+.dlg{width:100%;max-width:320px;background:var(--card);border-radius:16px;padding:20px 18px 14px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+.dlg h3{margin:0 0 8px;font-family:var(--font-title);font-weight:normal;font-size:18px;color:var(--meninggal);}
+.dlg p{margin:0 0 16px;font-size:14px;line-height:1.45;color:var(--ink);}
+.dlg input{display:block;width:100%;padding:10px;border:1px solid var(--card-border);border-radius:8px;background:#fff;font-size:15px;margin-bottom:14px;color:var(--ink);}
+.dlg h3.netral{color:var(--root-deep);}
+.dlg-tombol button.utama{background:var(--root);border-color:var(--root);color:#fff;}
+.drawer-isi button small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.dlg-tombol{display:flex;gap:10px;}
+.dlg-tombol button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--card-border);background:var(--bg);font-size:14px;color:var(--root-deep);}
+.dlg-tombol button.bahaya{background:var(--meninggal);border-color:var(--meninggal);color:#fff;}
+
+@media print{
+  .btn-pusat,.btn-menu,.btn-ringkasan,.drawer,.scrim,.kartu-overlay,.dlg-overlay,.pin-akar,.sheet-overlay{display:none !important;}
+}
+
+/* ===== Status pada kartu ===== */
+.kartu-status{position:absolute;left:12px;top:12px;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);}
+.kartu-status.hidup{background:#2fa555;}
+.kartu-status.meninggal{background:#d23a30;}
+
+/* ===== Form alamat ===== */
+.blok-alamat{border-top:1px solid var(--card-border);padding-top:10px;margin:4px 0 12px;}
+.judul-blok{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+.wilayah-info{font-size:13px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;}
+.btn-teks{border:none;background:none;color:#1f5fd1;font-size:13px;padding:4px 2px;}
+.wil-status{font-size:12px;color:var(--ink-soft);margin:0 0 8px;min-height:14px;}
+.modal-body input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0;vertical-align:middle;}
+.cek-utama{display:flex;align-items:center;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.hidden{display:none !important;}
+
+/* ===== Crop foto ===== */
+.crop-overlay{position:absolute;inset:0;z-index:25;background:#14110b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;}
+.crop-overlay.hidden{display:none;}
+.crop-judul{color:#f3ede0;font-size:15px;}
+.crop-frame{position:relative;width:min(86vw,340px);aspect-ratio:1/1;overflow:hidden;background:#000;touch-action:none;outline:2px solid rgba(255,255,255,0.9);}
+.crop-frame img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.crop-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px)),linear-gradient(to bottom,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px));}
+.crop-zoom{width:min(86vw,340px);}
+.crop-tombol{display:flex;gap:10px;width:min(86vw,340px);}
+.crop-tombol button{flex:1;padding:12px;border-radius:10px;border:1px solid #5b5240;background:#2a2418;color:#f3ede0;font-size:14px;}
+.crop-tombol button.utama{background:var(--root);border-color:var(--root);}
+
+
+/* ===== Daftar akar (drawer), pin kanan atas, sheet menu ===== */
+.topbar h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 130px);}
+.drawer-scroll{flex:1;overflow-y:auto;}
+.drawer-judul{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);padding:14px 20px 6px;}
+.daftar-akar{padding:0 10px;display:flex;flex-direction:column;gap:4px;}
+.akar-baris{display:flex;align-items:center;gap:12px;padding:10px 8px 10px 12px;border-radius:12px;cursor:pointer;}
+.akar-baris:active{background:#eadfc6;}
+.akar-baris.aktif{background:#e9e0c8;}
+.akar-titik{width:16px;height:16px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);}
+.akar-teks{flex:1;min-width:0;}
+.akar-nama{font-size:15px;color:var(--root-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.akar-sub{font-size:12px;color:var(--ink-soft);}
+.akar-menu{flex:none;width:36px;height:36px;border:none;background:transparent;color:var(--ink-soft);font-size:20px;border-radius:50%;}
+.akar-menu:active{background:#d9ceb0;}
+.btn-akar-baru{margin:8px 10px 4px;width:calc(100% - 20px);padding:12px;border-radius:12px;border:1px dashed var(--card-border);background:transparent;color:var(--root);font-size:14px;text-align:center;}
+.drawer-pemisah{height:1px;background:var(--card-border);margin:10px 18px;}
+.pin-akar{position:absolute;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.pin-akar .pin{pointer-events:auto;width:42px;height:42px;border-radius:50%;border:2px solid #fff;color:#fff;font-family:var(--font-title);font-size:17px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.pin-akar .pin.aktif{box-shadow:0 0 0 3px var(--gold),0 2px 6px rgba(0,0,0,.3);}
+.sheet-overlay{position:absolute;inset:0;background:rgba(24,20,13,.55);z-index:45;display:flex;align-items:flex-end;}
+.sheet-overlay.hidden{display:none;}
+.sheet{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:14px 14px calc(16px + var(--bawah-aman));}
+.sheet-judul{font-family:var(--font-title);font-size:17px;color:var(--root-deep);padding:2px 8px 10px;}
+.sheet button{display:block;width:100%;text-align:left;padding:13px 10px;border:none;background:transparent;font-size:15px;color:var(--root-deep);border-radius:10px;}
+.sheet button:active{background:#eadfc6;}
+.sheet button.bahaya{color:var(--meninggal);}
+.sheet-warna{display:flex;gap:10px;flex-wrap:wrap;padding:10px;}
+.sheet-warna button{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);}
+.sheet-warna button.pilih{box-shadow:0 0 0 3px var(--gold);}
+
+
+/* ===== Ringkasan generasi ===== */
+.btn-ringkasan{position:absolute;left:18px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.btn-ringkasan:active{background:#eadfc6;}
+.ringkasan{width:min(100%,340px);max-height:78dvh;background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.ringkasan-kepala{padding:16px 18px 12px;background:var(--root-deep);color:#f3ede0;}
+.ringkasan-kepala h3{margin:0;font-family:var(--font-title);font-weight:normal;font-size:19px;}
+.ringkasan-kepala p{margin:3px 0 0;font-size:12px;opacity:.78;}
+.ringkasan-isi{padding:12px 18px 16px;overflow-y:auto;}
+.rk-judul{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 6px;}
+.rk-gen{margin:7px 0;}
+.rk-gen-atas{display:flex;justify-content:space-between;font-size:14px;color:var(--ink);}
+.rk-gen-atas b{font-weight:normal;color:var(--root-deep);}
+.rk-bar{height:6px;border-radius:3px;background:#e9e0c8;margin-top:4px;overflow:hidden;}
+.rk-bar i{display:block;height:100%;border-radius:3px;background:var(--root);}
+.rk-pemisah{height:1px;background:var(--card-border);margin:12px 0 8px;}
+.rk-baris{display:flex;justify-content:space-between;font-size:14px;margin:5px 0;color:var(--ink);}
+.rk-baris span:last-child{color:var(--root-deep);}
+.rk-catatan{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.4;}
+
+
+/* ===== Status pernikahan ===== */
+.line-h.cerai{background:repeating-linear-gradient(to right,var(--garis) 0,var(--garis) 6px,transparent 6px,transparent 10px);}
+.label-cerai{position:absolute;transform:translateX(-50%);font-size:9px;line-height:1;color:var(--ink-soft);white-space:nowrap;pointer-events:none;font-style:italic;}
+.cetak .label-cerai{font-size:13px;}
+.psg-baris{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0;font-size:14px;color:var(--ink);}
+.psg-baris span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.psg-baris select{width:auto;flex:none;min-width:110px;margin:0;}
+.ket-cerai{color:var(--ink-soft);}
+
+
+/* ===== Form edit: dua kolom, jarak aman dari bar sistem ===== */
+:root{--bawah-aman:max(env(safe-area-inset-bottom,0px),44px);}
+.baris-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.baris-2>label,.baris-2>.fld,.baris-2>.saklar{min-width:0;}
+.modal-body label{margin-bottom:8px;}
+.modal-body .fld{margin-bottom:8px;}
+.modal-body input,.modal-body select{margin-top:3px;padding:7px 8px;font-size:13px;}
+.modal-body .baris-2{gap:8px;}
+.blok-alamat{padding-top:6px;margin:2px 0 8px;}
+.judul-blok{margin-bottom:4px;}
+.saklar-baris{margin-bottom:8px;}
+.saklar{display:flex;border:1px solid var(--card-border);border-radius:999px;overflow:hidden;background:var(--card);}
+.saklar button{flex:1;border:0;background:transparent;padding:8px 4px;font-size:13px;color:var(--ink-soft);}
+.saklar button.on{background:var(--root);color:#fff;font-weight:600;}
+#skStatus button.on[data-v="meninggal"]{background:#9a3b3b;}
+.modal-body .fld{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.foto-ctl{margin-top:5px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+#previewFoto{display:flex;align-items:center;gap:8px;}
+.btn-kecil.netral{color:var(--root-deep);}
+
+
+/* ===== Gembok, bagikan, impor ===== */
+.gembok-judul{flex:none;color:var(--ink-soft);}
+.gembok-judul.hidden{display:none;}
+.ikon-gembok{width:13px;height:13px;vertical-align:-1px;margin-right:5px;color:var(--ink-soft);}
+.pilih-bagikan{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:14px;color:var(--ink);cursor:pointer;}
+.pilih-bagikan span{display:block;}
+.pilih-bagikan small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.35;}
+.cetak-daftar{max-height:45vh;overflow-y:auto;margin-bottom:12px;}
+.handle-garis{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--root);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);z-index:6;touch-action:none;cursor:ns-resize;color:#fff;font-size:15px;line-height:24px;text-align:center;}
+.handle-garis::after{content:"\\21D5";}
+.bar-garis{position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.3;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.18);}
+.bar-garis.hidden{display:none;}
+.bar-garis span{flex:1;}
+.bar-garis button{padding:8px 10px;border-radius:8px;border:1px solid var(--card-border);background:var(--bg);font-size:13px;color:var(--root-deep);}
+.bar-garis button.utama{background:var(--root);border-color:var(--root);color:#fff;}
+.pilih-cetak{display:flex;gap:10px;align-items:center;padding:9px 2px;font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--card-border);}
+.pilih-cetak input{width:auto;margin:0;padding:0;flex:none;display:inline-block;}
+.pilih-cetak small{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px;}
+.dlg input[type=radio]{display:inline-block;width:auto;margin:3px 0 0;padding:0;flex:none;}
+
+/* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
+#cetakWrap{display:none;}
+.cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
+.cetak .node{width:124px;gap:6px;}
+.cetak .avatar-wrap{width:88px;height:88px;}
+.cetak .avatar{width:88px;height:88px;font-size:30px;border:1px solid #cdbf9d;}
+.cetak .status-dot{width:18px;height:18px;border-width:3px;}
+.cetak .node .nama{font-size:16px;line-height:1.25;max-height:3.75em;}
+.cetak .node .umur{font-size:13px;}
+@page{margin:0;}
+@media print{
+  #canvas,.viewport{display:none !important;}
+  #cetakWrap{display:block !important;zoom:var(--pzc,1);margin:0 auto;box-sizing:border-box;background:#fff;}
+  #cetakCanvas{display:block !important;position:relative !important;transform:none !important;zoom:1 !important;margin:0 auto;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .topbar,.fab-wrap,.modal-overlay{display:none !important;}
+  html,body{overflow:visible;height:auto;background:#fff;}
+  .frame-luar{position:static;background:#fff;display:block;}
+  .frame-ponsel{max-width:none;height:auto;max-height:none;overflow:visible;box-shadow:none;background:#fff;}
+  .viewport{position:static;}
+  .canvas{position:relative !important;transform:none !important;zoom:var(--pz);}
+}
+</style>
+</head>
+<body>
+<div class="frame-luar"><div class="frame-ponsel">
+
+  <header class="topbar">
+    <button id="btnMenu" class="btn-menu" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <h1 id="judulApp">Akar Keluarga</h1>
+    <svg id="gembokJudul" class="gembok-judul hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+  </header>
+  <button id="btnRingkasan" class="btn-ringkasan" aria-label="Ringkasan generasi"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h6a4 4 0 014 4v11a3 3 0 00-3-3H2z"/><path d="M22 5h-6a4 4 0 00-4 4v11a3 3 0 013-3h7z"/></svg></button>
+  <div id="pinAkar" class="pin-akar"></div>
+  <div id="barGaris" class="bar-garis hidden"><span>Edit garis: seret bulatan naik/turun untuk menggeser garis keluarga.</span><button id="garisReset">Atur ulang</button><button id="garisSelesai" class="utama">Selesai</button></div>
+
+  <main id="viewport" class="viewport">
+    <div id="canvas" class="canvas"></div>
+  </main>
+  <div id="cetakWrap"><div id="cetakJudul" class="cetak-judul"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
+
+  <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+
+  <input type="file" id="inputRestore" accept="application/json,.json">
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Anggota</h2>
+        <button id="btnTutup" class="btn-icon">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
+        <div class="baris-2 saklar-baris">
+          <div class="saklar" id="skStatus"><button type="button" data-v="hidup">Hidup</button><button type="button" data-v="meninggal">Wafat</button></div>
+          <div class="saklar" id="skGender"><button type="button" data-v="m">Pria</button><button type="button" data-v="f">Wanita</button></div>
+        </div>
+        <select id="fStatus" style="display:none"><option value="hidup">Hidup</option><option value="meninggal">Meninggal</option></select>
+        <select id="fGender" style="display:none"><option value="m">Laki-laki</option><option value="f">Perempuan</option></select>
+        <div class="baris-2">
+          <div class="fld">Foto
+            <div class="foto-ctl">
+              <div id="previewFoto"></div>
+              <button type="button" id="btnPilihFoto" class="btn-kecil netral">Pilih foto</button>
+            </div>
+            <input type="file" id="fFotoFile" accept="image/*" style="display:none">
+          </div>
+          <label id="wrapAnakKe">Anak ke-
+            <input type="number" id="fAnakKe" min="1" max="99" placeholder="boleh kosong">
+          </label>
+        </div>
+        <label>Lahir
+          <div class="baris-tgl">
+            <input type="number" id="fLahirTgl" placeholder="tgl" min="1" max="31">
+            <input type="number" id="fLahirBln" placeholder="bln" min="1" max="12">
+            <input type="number" id="fLahirThn" placeholder="tahun" min="1" max="2100">
+          </div>
+        </label>
+        <label id="wrapWafat">Wafat
+          <div class="baris-tgl">
+            <input type="number" id="fWafatTgl" placeholder="tgl" min="1" max="31">
+            <input type="number" id="fWafatBln" placeholder="bln" min="1" max="12">
+            <input type="number" id="fWafatThn" placeholder="tahun" min="1" max="2100">
+          </div>
+        </label>
+        <div class="baris-2">
+          <label>Ayah <select id="fAyah"></select></label>
+          <label>Ibu <select id="fIbu"></select></label>
+        </div>
+        <div class="blok-alamat">
+          <div class="judul-blok">Alamat</div>
+          <div id="wilayahInfo" class="wilayah-info hidden"><span id="wilayahTeks"></span><button type="button" id="btnUbahWilayah" class="btn-teks">Ubah</button></div>
+          <div id="wilayahPilih" class="hidden">
+            <div class="baris-2">
+              <label>Provinsi <select id="fProv"></select></label>
+              <label>Kab / Kota <select id="fKab"></select></label>
+            </div>
+            <div class="cek-utama"><input type="checkbox" id="fUtama"><span>Jadikan wilayah utama keluarga</span></div>
+          </div>
+          <div class="baris-2">
+            <label>Kecamatan <select id="fKec"></select></label>
+            <label>Desa / Kelurahan <select id="fDesa"></select></label>
+          </div>
+          <label>Jalan / dusun <input type="text" id="fJalan" placeholder="Contoh: Dusun Krajan"></label>
+          <div id="wilStatus" class="wil-status"></div>
+        </div>
+        <label id="wrapSama">Sama dengan orang di akar lain (jarang perlu) <select id="fSama"></select></label>
+        <div class="relasi-info">
+          <div class="judul-blok">Pasangan</div>
+          <div id="daftarPasangan"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btnHapus" class="btn-bahaya">Hapus</button>
+        <button id="btnSimpan" class="btn-utama">Simpan</button>
+      </div>
+      <div class="modal-tambah">
+        <p class="modal-tambah-judul">Tambah dari orang ini</p>
+        <div class="modal-tambah-tombol">
+          <button data-rel="anak">+ anak</button>
+          <button data-rel="pasangan">+ pasangan</button>
+          <button data-rel="orangtua">+ orang tua</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="drawerScrim" class="scrim hidden"></div>
+  <aside id="drawer" class="drawer">
+    <div class="drawer-kepala"><h2>Akar Keluarga</h2><p>Daftar akar</p></div>
+    <div class="drawer-scroll">
+      <div id="daftarAkar" class="daftar-akar"></div>
+      <button id="btnAkarBaru" class="btn-akar-baru">+ Tambah akar baru</button>
+      <button id="btnImpor" class="btn-akar-baru">Impor akar dari file</button>
+      <input type="file" id="inputImpor" style="display:none">
+      <div class="drawer-pemisah"></div>
+      <div class="drawer-isi">
+        <button id="btnBackup">Backup data</button>
+        <button id="btnRestore">Restore data</button>
+        <button id="btnCetak">Cetak PDF</button>
+        <button id="btnEditGaris">Edit garis<small>Geser garis penghubung anak</small></button>
+        <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
+        <button id="btnPeran">Peran saya di tiap akar</button>
+      </div>
+    </div>
+    <div class="drawer-bawah"><button id="btnMulaiBaru">Mulai baru (kosongkan akar ini)</button></div>
+  </aside>
+
+  <div id="ringkasanOverlay" class="kartu-overlay hidden">
+    <div class="ringkasan">
+      <div class="ringkasan-kepala"><h3>Ringkasan</h3><p id="rkAkar"></p></div>
+      <div id="rkIsi" class="ringkasan-isi"></div>
+    </div>
+  </div>
+
+  <div id="kartuOverlay" class="kartu-overlay hidden">
+    <div class="kartu">
+      <div id="kartuFoto" class="kartu-foto"></div>
+      <button id="kartuEdit" class="kartu-edit" aria-label="Edit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+      <div id="kartuInfo" class="kartu-info"></div>
+    </div>
+  </div>
+
+  <div id="cropOverlay" class="crop-overlay hidden">
+    <div class="crop-judul">Atur foto: geser dan cubit untuk zoom</div>
+    <div id="cropFrame" class="crop-frame"><img id="cropImg" alt=""><div class="crop-grid"></div></div>
+    <input type="range" id="cropZoom" class="crop-zoom" min="1" max="5" step="0.01" value="1">
+    <div class="crop-tombol"><button id="cropBatal">Batal</button><button id="cropPakai" class="utama">Pakai foto</button></div>
+  </div>
+
+  <div id="akarMenuOverlay" class="sheet-overlay hidden">
+    <div class="sheet">
+      <div id="akarMenuJudul" class="sheet-judul"></div>
+      <button id="amBagikan">Bagikan akar ini</button>
+      <button id="amNama">Ganti nama (juga judul cetak)</button>
+      <div id="amWarna" class="sheet-warna"></div>
+      <button id="amPin"></button>
+      <button id="amGabung"></button>
+      <button id="amHapus" class="bahaya">Hapus akar ini</button>
+    </div>
+  </div>
+
+  <div id="peranOverlay" class="sheet-overlay hidden">
+    <div id="peranSheet" class="sheet peran-sheet">
+      <div class="sheet-judul">Peran saya di tiap akar</div>
+      <p class="peran-info">Pilih siapa Anda di setiap akar. Orang dengan peran yang sama di akar berbeda otomatis dianggap satu orang, jadi akar-akar itu tersambung. Cukup isi yang ada di akar tersebut.</p>
+      <div id="peranIsi"></div>
+      <button id="peranTutup" class="peran-tutup">Selesai</button>
+    </div>
+  </div>
+
+  <div id="cetakOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 class="netral">Cetak PDF</h3>
+      <p>Pilih akar yang akan dicetak. Hasil cetak hanya berisi akar itu saja, tanpa tampilan pudar dari akar lain.</p>
+      <div id="cetakDaftar" class="cetak-daftar"></div>
+      <div class="dlg-tombol"><button id="cetakBatal">Batal</button><button id="cetakYa" class="utama">Cetak</button></div>
+    </div>
+  </div>
+
+  <div id="bagikanOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 class="netral">Bagikan akar</h3>
+      <p id="bagikanNama"></p>
+      <label class="pilih-bagikan"><input type="radio" name="modeBagikan" value="dasar" checked><span><b>Dasar</b> (disarankan)<small>Orang yang masih hidup hanya nama, hubungan, status, dan tahun lahir. Foto dan alamat mereka tidak ikut. Yang sudah meninggal dikirim lengkap.</small></span></label>
+      <label class="pilih-bagikan"><input type="radio" name="modeBagikan" value="lengkap"><span><b>Lengkap</b><small>Semua data, termasuk foto dan alamat orang yang masih hidup.</small></span></label>
+      <div class="dlg-tombol"><button id="bagikanBatal">Batal</button><button id="bagikanYa" class="utama">Bagikan</button></div>
+    </div>
+  </div>
+
+  <div id="namaOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 id="namaJudul" class="netral">Nama akar</h3>
+      <p id="namaTeks"></p>
+      <input type="text" id="fNamaKeluarga" maxlength="60" placeholder="Contoh: Keluarga Besar Hanz">
+      <div class="dlg-tombol"><button id="namaBatal">Batal</button><button id="namaSimpan" class="utama">Simpan</button></div>
+    </div>
+  </div>
+
+  <div id="dlgOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 id="dlgJudul"></h3>
+      <p id="dlgTeks"></p>
+      <div class="dlg-tombol"><button id="dlgBatal">Batal</button><button id="dlgYa" class="bahaya">Ya</button></div>
+    </div>
+  </div>
+
+</div></div>
+<script>
+(async function(){
+const STORAGE_KEY='akarKeluargaData';
+const ROOT_ID='diri';
+const NODE_W=132, GEN_H=170, NODE_H=110;
+const GAP_CABANG=56;  // jarak ekstra antar cabang keluarga (seperti akar yang menyebar)
+const GAP_GEN=44;     // celah dasar antar generasi
+const LAJUR_H=10;     // tinggi tiap lajur garis; celah generasi melebar sesuai jumlah lajur
+const CX=52; // titik tengah horizontal avatar di dalam kartu .node (lebar 104px)
+const $=id=>document.getElementById(id);
+
+function dataContoh(){
+  const P=(id,nama,status,gender,jalur,ayah,ibu,psg)=>({id,nama,status,gender,jalur,foto:'',idAyah:ayah,idIbu:ibu,idPasangan:psg});
+  const d={};
+  [
+    P('Am','Kakek (Ayah)','meninggal','m','A',null,null,['Af']),
+    P('Af','Nenek (Ayah)','meninggal','f','A',null,null,['Am']),
+    P('Bm','Kakek (Ibu)','meninggal','m','B',null,null,['Bf']),
+    P('Bf','Nenek (Ibu)','meninggal','f','B',null,null,['Bm']),
+    P('A.1m','Ayah','hidup','m','A.1','Am','Af',['B.1f']),
+    P('B.1f','Ibu','hidup','f','B.1','Bm','Bf',['A.1m']),
+    P('diri','Anda','hidup','m','A.1.1','A.1m','B.1f',[]),
+  ].forEach(p=>d[p.id]=p);
+  return {people:d};
+}
+
+// ===== Penyimpanan: IndexedDB (cadangan: localStorage) =====
+const IDB_NAMA='akarKeluarga', IDB_STORE='kv', IDB_KUNCI='store', LS_STORE='akarKeluargaStore';
+const WARNA_AKAR=['#3c5b45','#2f6f8f','#9a5a3c','#7a4f8f','#a97d34','#b0494f','#4a6f9e','#5f7f3d'];
+const MAKS_PIN=5;
+function idbBuka(){
+  return new Promise((res,rej)=>{
+    if(!window.indexedDB){ rej(new Error('IndexedDB tidak tersedia')); return; }
+    const rq=indexedDB.open(IDB_NAMA,1);
+    rq.onupgradeneeded=()=>rq.result.createObjectStore(IDB_STORE);
+    rq.onsuccess=()=>res(rq.result);
+    rq.onerror=()=>rej(rq.error);
+  });
+}
+function idbBaca(db){ return new Promise((res,rej)=>{ const t=db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(IDB_KUNCI); t.onsuccess=()=>res(t.result||null); t.onerror=()=>rej(t.error); }); }
+function idbTulis(db,nilai){ return new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).put(nilai,IDB_KUNCI); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); tx.onabort=()=>rej(tx.error); }); }
+function buatAkar(id,nama,warna,dataAkar,pin){ return {id,nama,warna,pin:!!pin,data:dataAkar,dibuat:Date.now()}; }
+function idAkarBaru(){ return 'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function storeValid(st){ return st&&Array.isArray(st.akar)&&st.akar.length&&st.akar.every(a=>a&&a.data&&a.data.people&&typeof a.data.people==='object'&&Object.keys(a.data.people).length); }
+
+let idb=null, store=null, data=null;
+try{ idb=await idbBuka(); store=await idbBaca(idb); }catch(e){ idb=null; store=null; }
+if(!storeValid(store)){
+  store=null;
+  if(!idb){ try{ const t=JSON.parse(localStorage.getItem(LS_STORE)||'null'); if(storeValid(t)) store=t; }catch(e){} }
+}
+if(!store){
+  // migrasi dari penyimpanan lama (satu pohon di localStorage); data lama dibiarkan sebagai cadangan
+  let lama=null;
+  try{ lama=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null'); }catch(e){ lama=null; }
+  if(!lama||!lama.people||!Object.keys(lama.people).length) lama=dataContoh();
+  const nama=(typeof lama.namaKeluarga==='string'&&lama.namaKeluarga.trim())||'Keluarga Saya';
+  const dataAkar={people:lama.people}; if(lama.wilayah&&typeof lama.wilayah==='object') dataAkar.wilayah=lama.wilayah;
+  store={versi:2,aktifId:'a1',akar:[buatAkar('a1',nama,WARNA_AKAR[0],dataAkar,true)]};
+  if(idb){ try{ await idbTulis(idb,store); }catch(e){} }
+}
+if(!store.akar.some(a=>a.id===store.aktifId)) store.aktifId=store.akar[0].id;
+function akarAktif(){ return store.akar.find(a=>a.id===store.aktifId)||store.akar[0]; }
+data=akarAktif().data;
+
+let peringatanSimpan=false, peringatanKapasitas=false, tundaSimpan=null;
+async function tulisStore(){
+  tundaSimpan=null;
+  try{
+    if(idb){ await idbTulis(idb,store); }
+    else{
+      const teks=JSON.stringify(store);
+      localStorage.setItem(LS_STORE,teks);
+      if(teks.length>3800000 && !peringatanKapasitas){ peringatanKapasitas=true; alert('Penyimpanan app hampir penuh ('+(teks.length/1048576).toFixed(1)+' MB dari sekitar 5 MB). Lakukan Backup data sekarang dan kurangi jumlah foto bila perlu.'); }
+    }
+  }catch(e){ if(!peringatanSimpan){ peringatanSimpan=true; alert('Data tidak bisa disimpan otomatis di perangkat ini (penyimpanan penuh/diblokir). Gunakan Backup data secara berkala.'); } }
+}
+function simpanData(){ clearTimeout(tundaSimpan); tundaSimpan=setTimeout(tulisStore,250); }
+function bilasSimpan(){ if(tundaSimpan){ clearTimeout(tundaSimpan); tulisStore(); } }
+window.addEventListener('pagehide',bilasSimpan);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') bilasSimpan(); });
+function anakDari(id){ return Object.values(data.people).filter(p=>p.idAyah===id||p.idIbu===id); }
+let urutKetat=false, rootPaksa=null, modeGaris=false;
+function rootAktif(){ if(rootPaksa&&data.people[rootPaksa]) return rootPaksa; return data.people[ROOT_ID] ? ROOT_ID : Object.keys(data.people)[0]; }
+function bacaAngka(el){ const n=parseInt(el.value,10); return isNaN(n)?null:n; }
+
+// ===== Skema ID: <jalur><jenisKelamin>, mis. "Am"/"Af" (suami/istri leluhur "A"),
+// "A.3m" (anak ke-3 dari A, laki-laki), "A.3.1f" (anak pertama dari A.3, perempuan).
+// Jalur mengikuti ayah; kalau ayah tak tercatat, pakai ibu. Jalur disimpan di field `jalur`
+// (data lama tanpa field itu memakai id tanpa huruf terakhir). Nomor anak ditetapkan sekali.
+function pathDasar(id){ return id.slice(0,-1); }
+function jalurDari(o){ return o.jalur!==undefined ? o.jalur : pathDasar(o.id); }
+function genderDari(o){ return o.gender || (/[mf]$/.test(o.id) ? o.id.slice(-1) : 'm'); }
+function idUnik(dasar){ let id=dasar,k=2; while(data.people[id]) id=dasar+'~'+(k++); return id; }
+
+function hurufKeluargaBerikutnya(){
+  const dipakai=new Set();
+  Object.values(data.people).forEach(p=>{ const j=jalurDari(p); if(!j.includes('.')) dipakai.add(j); });
+  function keHuruf(n){ let s=''; n++; while(n>0){ n--; s=String.fromCharCode(65+(n%26))+s; n=Math.floor(n/26); } return s; }
+  let i=0,h; do{ h=keHuruf(i); i++; } while(dipakai.has(h));
+  return h;
+}
+function nomorAnakBerikutnya(pathOrtu){
+  const awalan=pathOrtu+'.'; let maks=0;
+  Object.values(data.people).forEach(p=>{
+    const j=jalurDari(p);
+    if(j.startsWith(awalan)){
+      const sisa=j.slice(awalan.length);
+      if(/^\d+$/.test(sisa)) maks=Math.max(maks, parseInt(sisa,10));
+    }
+  });
+  return maks+1;
+}
+// Umur: hidup dihitung sampai hari ini; meninggal "berhenti" di umur saat wafat (butuh minimal
+// tahun wafat). Tanggal/bulan kosong dianggap 1, jadi umur bisa berupa perkiraan.
+function hitungUmur(o){
+  const lh=o&&o.lahir; if(!lh||!lh.tahun) return null;
+  const lTahun=lh.tahun, lBulan=lh.bulan||1, lTanggal=lh.tanggal||1;
+  let aTahun,aBulan,aTanggal;
+  if(o.status==='meninggal'){
+    const wf=o.wafat; if(!wf||!wf.tahun) return null;
+    aTahun=wf.tahun; aBulan=wf.bulan||1; aTanggal=wf.tanggal||1;
+  } else {
+    const skrg=new Date();
+    aTahun=skrg.getFullYear(); aBulan=skrg.getMonth()+1; aTanggal=skrg.getDate();
+  }
+  let umur=aTahun-lTahun;
+  if(aBulan<lBulan || (aBulan===lBulan && aTanggal<lTanggal)) umur--;
+  return umur>=0 ? umur : null;
+}
+function formatTglSingkat(t){
+  if(!t||!t.tahun) return '';
+  if(t.tanggal&&t.bulan) return `${t.tanggal}/${t.bulan}/${t.tahun}`;
+  if(t.bulan) return `${t.bulan}/${t.tahun}`;
+  return `${t.tahun}`;
+}
+
+// Urutan saudara memakai TANGGAL LAHIR (bukan umur): umur orang meninggal berhenti di saat wafat,
+// jadi tidak bisa dipakai untuk membandingkan. Lahir kosong = paling kanan.
+function kunciLahir(o){ const l=o&&o.lahir; if(!l||!l.tahun) return null; return l.tahun*10000+(l.bulan||1)*100+(l.tanggal||1); }
+function bandingLahir(a,b){
+  // Nomor "Anak ke-" (bila diisi) menang atas tanggal lahir; yang bernomor di kiri, yang tak bernomor sesudahnya.
+  const na=(a&&a.anakKe>0)?a.anakKe:null, nb=(b&&b.anakKe>0)?b.anakKe:null;
+  if(na!==null&&nb!==null){ if(na!==nb) return na-nb; }
+  else if(na!==null) return -1;
+  else if(nb!==null) return 1;
+  const ka=kunciLahir(a), kb=kunciLahir(b);
+  if(ka===null&&kb===null) return 0;
+  if(ka===null) return 1;
+  if(kb===null) return -1;
+  return ka-kb;
+}
+
+function hitungLayout(){
+  // 1) Generasi (G) tiap orang lewat BFS dari orang utama.
+  const gen={}; const antrian=[[rootAktif(),0]];
+  while(antrian.length){
+    const [id,g]=antrian.shift();
+    if(gen[id]!==undefined) continue;
+    const o=data.people[id]; if(!o) continue;
+    gen[id]=g;
+    if(o.idAyah) antrian.push([o.idAyah,g-1]);
+    if(o.idIbu) antrian.push([o.idIbu,g-1]);
+    anakDari(id).forEach(a=>antrian.push([a.id,g+1]));
+    (o.idPasangan||[]).forEach(pid=>antrian.push([pid,g]));
+  }
+  const semuaId=Object.keys(gen);
+  const genMin=Math.min(...Object.values(gen));
+
+  // 2) Kelompokkan jadi "unit": sendiri, atau berpasangan.
+  const idKeUnit={};
+  {
+    const sudah=new Set();
+    semuaId.forEach(id=>{
+      if(sudah.has(id)) return;
+      const o=data.people[id];
+      const pasanganId=(o.idPasangan||[]).find(pid=>semuaId.includes(pid)&&!sudah.has(pid));
+      let unit;
+      if(pasanganId){
+        const ids=[id,pasanganId];
+        if(genderDari(data.people[id])==='f' && genderDari(data.people[pasanganId])==='m') ids.reverse();
+        unit={ids};
+      } else unit={ids:[id]};
+      unit.ids.forEach(uid=>{ idKeUnit[uid]=unit; sudah.add(uid); });
+    });
+  }
+
+  function anakDariUnit(unit){
+    const set=new Set();
+    unit.ids.forEach(id=>anakDari(id).forEach(a=>{ if(gen[a.id]!==undefined) set.add(a.id); }));
+    return [...set];
+  }
+  // Anak-anak sebuah unit, terurut dari TERTUA (kiri); umur tak diketahui paling kanan.
+  function anakUnitTerurut(unit){
+    const rawKids=anakDariUnit(unit);
+    rawKids.sort((a,b)=>bandingLahir(data.people[a],data.people[b]));
+    const hasil=[]; const sudahUnit=new Set();
+    rawKids.forEach(id=>{
+      const u=idKeUnit[id];
+      if(!u||sudahUnit.has(u)) return;
+      sudahUnit.add(u); hasil.push(u);
+    });
+    return hasil;
+  }
+
+  // 3) Urutan kiri-kanan unit "daun" lewat penelusuran dari orang utama.
+  //    Aturan agar garis tidak saling menimpa: pada pasangan, keluarga asal anggota KIRI (suami)
+  //    diletakkan di sisi kiri dan keluarga asal anggota KANAN (istri) di sisi kanan - jadi
+  //    kedua sisi menyebar berlawanan seperti akar, tidak bersilangan. Saudara-saudara tiap
+  //    orang ditaruh di sisi luar keluarganya masing-masing.
+  const urutanDaun=[];
+  function unitOrtu(id){
+    const o=data.people[id];
+    const pid=(o.idAyah&&gen[o.idAyah]!==undefined)?o.idAyah:((o.idIbu&&gen[o.idIbu]!==undefined)?o.idIbu:null);
+    return pid?idKeUnit[pid]:null;
+  }
+  function daunDari(unit,lihat){
+    lihat=lihat||new Set(); if(lihat.has(unit)) return []; lihat.add(unit);
+    let hasil=[];
+    anakUnitTerurut(unit).forEach(k=>{ if(k._ditempatkan) hasil=hasil.concat(daunDari(k,lihat)); });
+    return hasil.length ? hasil : unit.ids.filter(id=>urutanDaun.includes(id));
+  }
+  function rentangUnit(unit){
+    const idx=daunDari(unit).map(id=>urutanDaun.indexOf(id)).filter(i=>i>=0);
+    return idx.length ? [Math.min(...idx),Math.max(...idx)] : null;
+  }
+  function indexAnggota(unit,pu){ // anggota unit yang merupakan anak dari pu (0 = kiri, 1 = kanan)
+    const i=unit.ids.findIndex(id=>{ const o=data.people[id]; return pu.ids.includes(o.idAyah)||pu.ids.includes(o.idIbu); });
+    return i<0?0:i;
+  }
+  function asalBelum(unit,pu){ // ada anggota lain yang keluarga asalnya belum dipasang?
+    return unit.ids.some(id=>{ const q=unitOrtu(id); return q && q!==pu && !q._ditempatkan; });
+  }
+  // "ujung" tiap blok daun: bila di sisi sebuah daun sudah ditempel keluarga lain, tempelan
+  // berikutnya diletakkan di luar tempelan sebelumnya (bukan menyelip di antaranya).
+  const ujungKiri={}, ujungKanan={};
+  function ikuti(peta,id){ let n=0; while(peta[id]!==undefined && n++<500) id=peta[id]; return id; }
+
+  function tempatkanUnit(unit,idxSisip){
+    if(unit._ditempatkan){
+      const r=rentangUnit(unit);
+      return r ? r[1]+1 : (idxSisip!=null?idxSisip:urutanDaun.length);
+    }
+    unit._ditempatkan=true;
+    const lenAwal=urutanDaun.length;
+    const awal=idxSisip!=null?idxSisip:lenAwal;
+    const anak=anakUnitTerurut(unit);
+    if(!anak.length){
+      unit.ids.forEach((id,i)=>urutanDaun.splice(awal+i,0,id));
+    } else {
+      const masuk=anak.find(a=>a._ditempatkan)||null;
+      const rank0=a=>asalBelum(a,unit) ? (indexAnggota(a,unit)===0 ? 2 : 0) : 1;
+      const rank=urutKetat ? (a=>1) : rank0; // tepi kiri / tengah / tepi kanan
+      const daftar=anak.filter(a=>a!==masuk).sort((a,b)=>rank(a)-rank(b));
+      const r=masuk?rentangUnit(masuk):null;
+      // "masuk" = anak yang sudah ditempatkan lewat keluarga pasangannya; saudara-saudaranya
+      // ditempel menempel di sisi luar pasangan itu, dan diingat sebagai blok `_blok`.
+      const libre = !!(masuk && r && idxSisip!=null && (urutKetat || (indexAnggota(masuk,unit)===0 &&
+        masuk.ids.every(id=>{ const q=unitOrtu(id); return !q||q===unit; }))));
+      let pos0;
+      if(libre){
+        const kidMasuk=data.people[masuk.ids[indexAnggota(masuk,unit)]];
+        const tepiKiri=daftar.filter(a=>rank(a)===0), tepiKanan=daftar.filter(a=>rank(a)===2);
+        const tengah=daftar.filter(a=>rank(a)===1);
+        const tua=tengah.filter(a=>bandingLahir(data.people[a.ids[indexAnggota(a,unit)]],kidMasuk)<0);
+        const muda=tengah.filter(a=>tua.indexOf(a)<0);
+        let ps=r[0];
+        tepiKiri.concat(tua).forEach(a=>{ const nx=tempatkanUnit(a,ps); ps=Math.max(ps,nx); });
+        const r2=rentangUnit(masuk); ps=r2?r2[1]+1:ps;
+        muda.concat(tepiKanan).forEach(a=>{ const nx=tempatkanUnit(a,ps); ps=Math.max(ps,nx); });
+        unit._urutAnak=tepiKiri.concat(tua,[masuk],muda,tepiKanan);
+      } else {
+      pos0 = (masuk && r && idxSisip==null)
+        ? (indexAnggota(masuk,unit)===0 ? r[0] : r[1]+1)
+        : awal;
+      let pos=pos0; const lenSebelum=urutanDaun.length;
+      daftar.forEach(a=>{ const nx=tempatkanUnit(a,pos); pos=Math.max(pos,nx); });
+      const cnt=urutanDaun.length-lenSebelum;
+      if(masuk && cnt>0) unit._blok=[urutanDaun[pos0],urutanDaun[pos0+cnt-1]];
+      // urutan kiri-kanan anak (dipakai untuk menyusun urutan unit di tiap generasi)
+      unit._urutAnak = masuk ? (indexAnggota(masuk,unit)===0 ? daftar.concat([masuk]) : [masuk].concat(daftar)) : daftar.slice();
+      }
+    }
+    // Pasang keluarga asal tiap anggota: anggota KIRI di sisi kiri blok, anggota KANAN di sisi kanan.
+    unit.ids.forEach((id,i)=>{
+      const q=unitOrtu(id); if(!q||q._ditempatkan) return;
+      let blok=unit._blok;
+      if(!blok){ const r=rentangUnit(unit); if(!r) return; blok=[urutanDaun[r[0]],urutanDaun[r[1]]]; }
+      const sebelum=urutanDaun.length;
+      if(i===0){
+        const pos=urutanDaun.indexOf(ikuti(ujungKiri,blok[0]));
+        tempatkanUnit(q,pos);
+        if(urutanDaun.length>sebelum) ujungKiri[blok[0]]=urutanDaun[pos];
+      } else {
+        const pos=urutanDaun.indexOf(ikuti(ujungKanan,blok[1]))+1;
+        tempatkanUnit(q,pos);
+        const cnt=urutanDaun.length-sebelum;
+        if(cnt>0) ujungKanan[blok[1]]=urutanDaun[pos+cnt-1];
+      }
+    });
+    return awal+(urutanDaun.length-lenAwal);
+  }
+
+  const unitUnik=[...new Set(Object.values(idKeUnit))];
+  // kunci keluarga tiap unit (orang tua dari anggota yang punya orang tua tercatat)
+  unitUnik.forEach(u=>{
+    const pid=u.ids.find(id=>{ const o=data.people[id]; return o.idAyah||o.idIbu; });
+    u._kunci = pid ? (data.people[pid].idAyah||'')+'|'+(data.people[pid].idIbu||'') : 'solo:'+u.ids[0];
+  });
+  tempatkanUnit(idKeUnit[rootAktif()],null);
+  unitUnik.forEach(u=>{ if(!u._ditempatkan) tempatkanUnit(u,null); }); // sisa yang tak terhubung lewat jalur utama
+  unitUnik.forEach(u=>{ u._rentang=rentangUnit(u); });
+
+  const idealDaun={}; let kursor=0, kunciSebelum=null;
+  urutanDaun.forEach(id=>{
+    const k=idKeUnit[id]._kunci;
+    if(kunciSebelum!==null && k!==kunciSebelum) kursor+=GAP_CABANG;
+    idealDaun[id]=kursor; kursor+=NODE_W; kunciSebelum=k;
+  });
+
+  // 4) X akhir per generasi dari bawah ke atas. Unit ber-keturunan di tengah anak kandungnya;
+  //    unit daun di posisi ideal. Bertabrakan -> digeser supaya kartu tidak bertumpuk.
+  const x={};
+  const perGen={};
+  unitUnik.forEach(u=>{
+    const g=Math.max(...u.ids.map(id=>gen[id]));
+    (perGen[g]=perGen[g]||[]).push(u);
+  });
+  // Urutan unit di tiap generasi diturunkan dari generasi di atasnya (anak-anak tiap keluarga,
+  // kiri ke kanan, sesuai penempatan sisi suami/istri), jadi garis ke atas tidak bersilangan.
+  const urutGen={};
+  {
+    const gAsc=Object.keys(perGen).map(Number).sort((a,b)=>a-b);
+    const mulaiR=u=>u._rentang?u._rentang[0]:0;
+    const akhirR=u=>u._rentang?u._rentang[1]:0;
+    gAsc.forEach((g,gi)=>{
+      const lihat=new Set(); const hasil=[];
+      if(gi>0) (urutGen[gAsc[gi-1]]||[]).forEach(P=>(P._urutAnak||[]).forEach(k=>{
+        if(perGen[g].includes(k) && !lihat.has(k)){ lihat.add(k); hasil.push(k); }
+      }));
+      perGen[g].filter(u=>!lihat.has(u)).sort((a,b)=>mulaiR(a)-mulaiR(b)||akhirR(a)-akhirR(b)).forEach(u=>{
+        const i=hasil.findIndex(h=>mulaiR(h)>mulaiR(u));
+        if(i<0) hasil.push(u); else hasil.splice(i,0,u);
+      });
+      urutGen[g]=hasil;
+    });
+  }
+  Object.keys(perGen).map(Number).sort((a,b)=>b-a).forEach(g=>{
+    const units=urutGen[g]||perGen[g];
+    let prevEnd=-Infinity, prevKunci=null;
+    units.forEach(u=>{
+      let tengah;
+      if(idealDaun[u.ids[0]]!==undefined){
+        tengah = idealDaun[u.ids[0]] + (u.ids.length-1)*NODE_W/2;
+      } else {
+        const rawKids=anakDariUnit(u).filter(id=>x[id]!==undefined);
+        tengah = rawKids.length ? rawKids.reduce((s,id)=>s+x[id],0)/rawKids.length : 0;
+      }
+      const lebar=u.ids.length*NODE_W;
+      let startX=tengah-(lebar-NODE_W)/2;
+      const minStart=prevEnd+((prevKunci!==null && prevKunci!==u._kunci)?GAP_CABANG:0);
+      if(startX<minStart) startX=minStart;
+      u.ids.forEach((id,i)=>{ x[id]=startX+i*NODE_W; });
+      prevEnd=startX+lebar; prevKunci=u._kunci;
+    });
+  });
+
+  const minX=Math.min(...Object.values(x));
+  Object.keys(x).forEach(id=>{ x[id]-=minX; });
+
+  const posisi={};
+  semuaId.forEach(id=>{ posisi[id] = { x:x[id], y:(gen[id]-genMin)*GEN_H, gen:gen[id] }; });
+  return posisi;
+}
+
+// ===== Tampilan gabungan: akar terpilih tampil nyata, akar lain pudar sebagai latar =====
+// Data tiap akar TIDAK digabung. Saat menggambar dibuat data sementara: orang di akar aktif
+// memakai ID aslinya, orang di akar lain diberi awalan "idAkar~". Orang yang ditandai
+// "sama dengan" (p.sama={a:idAkar,i:idOrang}) dilebur jadi satu supaya pohonnya tersambung.
+let infoLatar=null, gabunganTampil=null;
+const PERAN=[['saya','Saya'],['pasangan','Pasangan saya'],['ayah','Ayah saya'],['ibu','Ibu saya'],['mertuaAyah','Ayah mertua'],['mertuaIbu','Ibu mertua']];
+function idGabunganAktif(){
+  const g=(store.gabung||[]).filter(id=>store.akar.some(a=>a.id===id));
+  return (g.length>1 && g.includes(store.aktifId)) ? g : [];
+}
+function jumlahLatar(){ const g=idGabunganAktif(); return g.length ? g.length-1 : 0; }
+function jumlahTautanGabung(){
+  const g=(store.gabung||[]).filter(id=>store.akar.some(a=>a.id===id)); let n=0;
+  const adaSaya=g.filter(aid=>{ const a=store.akar.find(x=>x.id===aid); return a.peran&&a.peran.saya&&a.data.people[a.peran.saya]; }).length;
+  if(adaSaya>=2) n+=adaSaya-1;
+  g.forEach(aid=>{
+    const a=store.akar.find(x=>x.id===aid);
+    Object.values(a.data.people).forEach(p=>{
+      if(p.sama && p.sama.a!==aid && g.includes(p.sama.a)){
+        const t=store.akar.find(x=>x.id===p.sama.a);
+        if(t && t.data.people[p.sama.i]) n++;
+      }
+    });
+  });
+  return n;
+}
+// Orang yang sama di akar berbeda (lewat "Peran saya" atau "Sama dengan") memakai foto TERBARU.
+// Dibandingkan waktu foto diganti (fotoAt); foto lama tanpa catatan dianggap paling tua,
+// dan bila sama-sama tanpa catatan, foto akar yang sedang dibuka yang dipakai.
+function fotoTerbaruPeta(){
+  const semua=store.akar; if(semua.length<2) return {};
+  const aktif=akarAktif();
+  const akars=[aktif].concat(semua.filter(a=>a!==aktif));
+  const induk={}, isi={}, kunci=(aid,pid)=>aid+'|'+pid;
+  const cari=k=>{ while(induk[k]!==k){ induk[k]=induk[induk[k]]; k=induk[k]; } return k; };
+  akars.forEach(a=>Object.keys(a.data.people).forEach(pid=>{ const k=kunci(a.id,pid); induk[k]=k; isi[k]=new Set([a.id]); }));
+  const satukan=(k1,k2)=>{
+    if(induk[k1]===undefined||induk[k2]===undefined) return;
+    const r1=cari(k1), r2=cari(k2); if(r1===r2) return;
+    let bentrok=false; isi[r1].forEach(x=>{ if(isi[r2].has(x)) bentrok=true; });
+    if(bentrok) return;
+    induk[r2]=r1; isi[r2].forEach(x=>isi[r1].add(x));
+  };
+  PERAN.forEach(([rk])=>{
+    let pertama=null;
+    akars.forEach(a=>{
+      const pid=a.peran&&a.peran[rk]; if(!pid||!a.data.people[pid]) return;
+      const k=kunci(a.id,pid); if(pertama===null) pertama=k; else satukan(pertama,k);
+    });
+  });
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const sm=p.sama; if(!sm) return;
+    satukan(kunci(a.id,p.id),kunci(sm.a,sm.i));
+  }));
+  const terbaik={};
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    if(!p.foto) return;
+    const r=cari(kunci(a.id,p.id)), at=p.fotoAt||0;
+    if(!terbaik[r]||at>terbaik[r].at) terbaik[r]={foto:p.foto,at};
+  }));
+  const peta={};
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const t=terbaik[cari(kunci(a.id,p.id))]; if(t) peta[kunci(a.id,p.id)]=t.foto;
+  }));
+  return peta;
+}
+function fotoTampilOrang(o){ const pm=fotoTerbaruPeta(); return pm[akarAktif().id+'|'+o.id]||o.foto||''; }
+function bangunGabungan(){
+  const ids=idGabunganAktif(); if(!ids.length) return null;
+  const urut=[store.aktifId].concat(ids.filter(id=>id!==store.aktifId));
+  const akars=urut.map(id=>store.akar.find(a=>a.id===id));
+  // gugus "orang yang sama" (union-find); satu gugus tidak boleh memuat dua orang dari akar yang sama
+  const induk={}, isi={};
+  const kunci=(aid,pid)=>aid+'|'+pid;
+  const cari=k=>{ while(induk[k]!==k){ induk[k]=induk[induk[k]]; k=induk[k]; } return k; };
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{ const k=kunci(a.id,p.id); induk[k]=k; isi[k]=new Set([a.id]); }));
+  const satukan=(k1,k2)=>{
+    if(induk[k1]===undefined||induk[k2]===undefined) return;
+    const r1=cari(k1), r2=cari(k2); if(r1===r2) return;
+    let bentrok=false; isi[r1].forEach(x=>{ if(isi[r2].has(x)) bentrok=true; });
+    if(bentrok) return;
+    induk[r2]=r1; isi[r2].forEach(x=>isi[r1].add(x));
+  };
+  // peran: orang dengan peran sama di akar berbeda dianggap satu orang
+  PERAN.forEach(([rk])=>{
+    let pertama=null;
+    akars.forEach(a=>{
+      const pid=a.peran&&a.peran[rk]; if(!pid||!a.data.people[pid]) return;
+      const k=kunci(a.id,pid); if(pertama===null) pertama=k; else satukan(pertama,k);
+    });
+  });
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const sm=p.sama; if(!sm) return;
+    satukan(kunci(a.id,p.id),kunci(sm.a,sm.i));
+  }));
+  const mid={}, asal={}, dari={}, people={};
+  const petaFoto=fotoTerbaruPeta();
+  const idGab=(aid,pid)=>mid[cari(kunci(aid,pid))];
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const r=cari(kunci(a.id,p.id));
+    if(mid[r]===undefined){
+      const m=(a.id===store.aktifId) ? p.id : (a.id+'~'+p.id);
+      const c=Object.assign({},p);
+      c.gender=genderDari(p); c.id=m; c.idAyah=null; c.idIbu=null; c.idPasangan=[]; c.statusPasangan={}; delete c.sama;
+      mid[r]=m; people[m]=c; asal[m]=new Set(); dari[m]=a.id;
+    } else {
+      const c=people[mid[r]];
+      ['nama','foto','lahir','wafat','alamat','anakKe'].forEach(f=>{ if(!c[f]&&p[f]) c[f]=p[f]; });
+    }
+    asal[mid[r]].add(a.id);
+  }));
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
+    const m=idGab(a.id,p.id), c=people[m];
+    const ft=petaFoto[a.id+'|'+p.id]; if(ft) c.foto=ft;
+    const peta=x=>(x&&a.data.people[x]) ? idGab(a.id,x) : null;
+    if(!c.idAyah) c.idAyah=peta(p.idAyah);
+    if(!c.idIbu) c.idIbu=peta(p.idIbu);
+    (p.idPasangan||[]).forEach(x=>{
+      const t=peta(x); if(!t||t===m) return;
+      if(!c.idPasangan.includes(t)) c.idPasangan.push(t);
+      const st=(p.statusPasangan||{})[x]; if(st&&!c.statusPasangan[t]) c.statusPasangan[t]=st;
+    });
+  }));
+  Object.values(people).forEach(c=>{
+    c.idPasangan.slice().forEach(t=>{
+      const o=people[t]; if(!o) return;
+      if(!o.idPasangan.includes(c.id)) o.idPasangan.push(c.id);
+      if(c.statusPasangan[t]&&!o.statusPasangan[c.id]) o.statusPasangan[c.id]=c.statusPasangan[t];
+    });
+  });
+  Object.values(people).forEach(c=>{
+    if(c.idAyah===c.id) c.idAyah=null;
+    if(c.idIbu===c.id) c.idIbu=null;
+    if(c.idAyah && c.idAyah===c.idIbu) c.idIbu=null;
+    if(!Object.keys(c.statusPasangan).length) delete c.statusPasangan;
+  });
+  const riil=new Set(); Object.keys(people).forEach(m=>{ if(asal[m].has(store.aktifId)) riil.add(m); });
+  // batang: saya + pasangan + keturunan selalu nyata, di akar mana pun dicatat
+  let sayaM=null;
+  for(const a of akars){ const pid=a.peran&&a.peran.saya; if(pid&&a.data.people[pid]){ sayaM=idGab(a.id,pid); break; } }
+  if(sayaM){
+    const turun=new Set([sayaM]), st=[sayaM];
+    while(st.length){
+      const x=st.pop();
+      Object.values(people).forEach(c=>{ if((c.idAyah===x||c.idIbu===x)&&!turun.has(c.id)){ turun.add(c.id); st.push(c.id); } });
+    }
+    turun.forEach(id=>{ riil.add(id); (people[id].idPasangan||[]).forEach(sp=>riil.add(sp)); });
+    // pada cabang kandung: orang tua kandung + saudara kandung (beserta pasangan dan keturunannya) ikut nyata;
+    // pada cabang mertua: orang tua mertua + saudara pasangan ikut nyata
+    const tambahKerabat=rks=>{
+      const ortuM=[];
+      rks.forEach(rk=>{
+        for(const a of akars){ const pid=a.peran&&a.peran[rk]; if(pid&&a.data.people[pid]){ ortuM.push(idGab(a.id,pid)); break; } }
+      });
+      ortuM.forEach(id=>riil.add(id));
+      const sdr=new Set(), st2=[];
+      Object.values(people).forEach(c=>{ if(ortuM.some(o=>c.idAyah===o||c.idIbu===o)){ sdr.add(c.id); st2.push(c.id); } });
+      while(st2.length){
+        const x=st2.pop();
+        Object.values(people).forEach(c=>{ if((c.idAyah===x||c.idIbu===x)&&!sdr.has(c.id)){ sdr.add(c.id); st2.push(c.id); } });
+      }
+      sdr.forEach(id=>{ riil.add(id); (people[id].idPasangan||[]).forEach(sp=>riil.add(sp)); });
+    };
+    const pa=akars[0].peran||{};
+    if(pa.ayah||pa.ibu) tambahKerabat(['ayah','ibu']);
+    if(pa.mertuaAyah||pa.mertuaIbu) tambahKerabat(['mertuaAyah','mertuaIbu']);
+  }
+  return {data:{people},riil,dari,saya:sayaM};
+}
+// ===== Penataan ketat: urutan lahir tidak digeser, garis satu keluarga tidak bersilangan =====
+// Orang nyata ditata sendiri (blok utama). Keluarga asal pasangan dan semua orang pudar ditata
+// sebagai blok terpisah, ditaruh di celah barisan generasi yang sama; bila tidak muat, ditumpuk
+// di rak di bawah pohon supaya kanvas tidak melebar. Hanya garis ANTAR blok yang boleh bersilang.
+function tataKetat(people,root){
+  const aslinya=data, rp=rootPaksa, uk=urutKetat;
+  data={people}; rootPaksa=root; urutKetat=true;
+  try{ return hitungLayout(); }
+  finally{ data=aslinya; rootPaksa=rp; urutKetat=uk; }
+}
+function petaAnak(people){
+  const m={};
+  Object.values(people).forEach(o=>{ [o.idAyah,o.idIbu].forEach(pp=>{ if(pp&&people[pp]&&pp!==o.id) (m[pp]=m[pp]||[]).push(o.id); }); });
+  return m;
+}
+function subsetOrang(semua,set){
+  const hasil={};
+  set.forEach(id=>{
+    const o=semua[id]; if(!o) return;
+    const c=Object.assign({},o);
+    c.idAyah=(o.idAyah&&set.has(o.idAyah))?o.idAyah:null;
+    c.idIbu=(o.idIbu&&set.has(o.idIbu))?o.idIbu:null;
+    c.idPasangan=(o.idPasangan||[]).filter(x=>set.has(x));
+    hasil[id]=c;
+  });
+  return hasil;
+}
+// Garis utama = leluhur p0 + semua keturunan leluhur itu. Keluarga asal orang yang "masuk lewat
+// pasangan", dan sisi kedua dari pasangan leluhur, dipotong supaya urutan saudara tidak terganggu.
+function potongAsal(sub,p0){
+  const naikDari=(mulai)=>{ const st=new Set(); (function naik(id){ if(!id||st.has(id)||!sub[id]) return; st.add(id); naik(sub[id].idAyah); naik(sub[id].idIbu); })(mulai); return st; };
+  const punya=o=>!!(o.idAyah||o.idIbu);
+  naikDari(p0).forEach(id=>{
+    const a=sub[id];
+    (a.idPasangan||[]).forEach(pid=>{
+      const b=sub[pid]; if(!b||pid===id||!punya(a)||!punya(b)) return;
+      const ga=genderDari(a), gb=genderDari(b);
+      const kiri=(ga==='m'&&gb!=='m')?a:((gb==='m'&&ga!=='m')?b:(a.id<b.id?a:b));
+      const potong=(kiri===a)?b:a;
+      potong.idAyah=null; potong.idIbu=null;
+    });
+  });
+  const anc=naikDari(p0), anak=petaAnak(sub), L=new Set(anc), st=[...anc];
+  while(st.length){ const x=st.pop(); (anak[x]||[]).forEach(c=>{ if(!L.has(c)){ L.add(c); st.push(c); } }); }
+  Object.values(sub).forEach(o=>{ if(!L.has(o.id)){ o.idAyah=null; o.idIbu=null; } });
+  return sub;
+}
+function komponenOrang(semua,set,anakMap){
+  const vis=new Set(), hasil=[];
+  set.forEach(id=>{
+    if(vis.has(id)) return;
+    const komp=[], st=[id]; vis.add(id);
+    while(st.length){
+      const x=st.pop(); komp.push(x); const o=semua[x];
+      [o.idAyah,o.idIbu].concat(o.idPasangan||[],anakMap[x]||[]).forEach(y=>{ if(y&&set.has(y)&&!vis.has(y)){ vis.add(y); st.push(y); } });
+    }
+    hasil.push(komp);
+  });
+  return hasil;
+}
+function cariJangkar(semua,C,akhir,anakMap){
+  const Cs=new Set(C), k1=[], k2=[], k3=[];
+  Object.keys(akhir).forEach(pid=>{
+    const o=semua[pid];
+    if((o.idAyah&&Cs.has(o.idAyah))||(o.idIbu&&Cs.has(o.idIbu))) k1.push(pid);
+    else if((o.idPasangan||[]).some(x=>Cs.has(x))) k2.push(pid);
+    else if((anakMap[pid]||[]).some(a=>Cs.has(a))) k3.push(pid);
+  });
+  return k1[0]||k2[0]||k3[0]||null;
+}
+function cariDx(nodes,dx0,ocup,batas){
+  const MARGIN=12, STEP=12;
+  const bebas=dx=>nodes.every(n=>{
+    const a=n.x+dx, b=a+NODE_W;
+    if(a<batas[0]||b>batas[1]) return false;
+    return !(ocup[n.gen]||[]).some(iv=>a<iv[1]+MARGIN && b>iv[0]-MARGIN);
+  });
+  if(bebas(dx0)) return dx0;
+  const maks=batas[1]-batas[0];
+  for(let d=STEP; d<=maks; d+=STEP){ if(bebas(dx0+d)) return dx0+d; if(bebas(dx0-d)) return dx0-d; }
+  return null;
+}
+function susunBlok(g){
+  const semua=g.data.people, ids=Object.keys(semua);
+  if(!ids.length) return null;
+  const rootAkar=(g.saya&&semua[g.saya])?g.saya:(semua[ROOT_ID]?ROOT_ID:ids[0]);
+  const R=new Set(ids.filter(id=>g.riil.has(id))); R.add(rootAkar);
+  const subR=subsetOrang(semua,R);
+  const punyaOrtu=id=>!!(subR[id]&&(subR[id].idAyah||subR[id].idIbu));
+  let p0=rootAkar;
+  if(!punyaOrtu(p0)){ const sp=(subR[p0].idPasangan||[]).find(punyaOrtu); if(sp) p0=sp; }
+  const posUtama=tataKetat(potongAsal(subR,p0),p0);
+  const anakSemua=petaAnak(semua);
+  const akhir={}, ocup={}, blokLabel=[], rak={};
+  const tambah=(id,x,gen,b)=>{ akhir[id]={x,gen,blok:b}; (ocup[gen]=ocup[gen]||[]).push([x,x+NODE_W]); };
+  Object.keys(posUtama).forEach(id=>tambah(id,posUtama[id].x,posUtama[id].gen,0));
+  let lebarUtama=0; Object.values(akhir).forEach(a=>{ lebarUtama=Math.max(lebarUtama,a.x+NODE_W); });
+  const batas=[-NODE_W, lebarUtama+NODE_W];
+  const lebarRak=Math.max(lebarUtama,4*NODE_W);
+  let rakBase=null, rakX=0, rakMaxGen=0, nBlok=1, aman=0;
+  while(aman++<600){
+    const sisa=new Set(ids.filter(id=>!akhir[id])); if(!sisa.size) break;
+    const komps=komponenOrang(semua,sisa,anakSemua);
+    const kandidat=komps.map(C=>({C,jang:cariJangkar(semua,C,akhir,anakSemua)})).filter(k=>k.jang);
+    let pilih;
+    if(kandidat.length){ kandidat.sort((a,b)=>a.C.length-b.C.length); pilih=kandidat[0]; }
+    else { komps.sort((a,b)=>b.length-a.length); pilih={C:komps[0],jang:null}; }
+    const C=pilih.C; let jang=pilih.jang, pos;
+    if(jang){
+      const set=new Set(C); set.add(jang);
+      pos=tataKetat(potongAsal(subsetOrang(semua,set),jang),jang);
+    } else {
+      const set=new Set(C), subC=subsetOrang(semua,set);
+      const akar0=C.find(id=>!(subC[id].idAyah||subC[id].idIbu))||C[0];
+      pos=tataKetat(potongAsal(subC,akar0),akar0);
+    }
+    let baru=Object.keys(pos).filter(id=>!akhir[id]&&id!==jang);
+    if(!baru.length){ pos={}; pos[C[0]]={x:0,gen:0}; baru=[C[0]]; jang=null; }
+    const dg=jang?(akhir[jang].gen-pos[jang].gen):0;
+    const nodes=baru.map(id=>({id,x:pos[id].x,gen:pos[id].gen+dg}));
+    let dx=null;
+    if(jang) dx=cariDx(nodes,akhir[jang].x-pos[jang].x,ocup,batas);
+    const bi=nBlok++;
+    if(dx!==null){
+      nodes.forEach(n=>tambah(n.id,n.x+dx,n.gen,bi));
+    } else {
+      const gmin=Math.min(...nodes.map(n=>n.gen)), gmax=Math.max(...nodes.map(n=>n.gen));
+      const xmin=Math.min(...nodes.map(n=>n.x)), xmax=Math.max(...nodes.map(n=>n.x));
+      const lebar=xmax-xmin+NODE_W;
+      const barisBaru=()=>{
+        const mulai=Math.max(rakBase===null?-Infinity:rakMaxGen,...Object.keys(ocup).map(Number))+2;
+        rakBase=mulai; rakX=0; rakMaxGen=mulai; rak[mulai]=true;
+      };
+      if(rakBase===null) barisBaru();
+      const bentur=xs=>{
+        let maks=null;
+        nodes.forEach(n=>{
+          const a=n.x-xmin+xs, b=a+NODE_W;
+          (ocup[rakBase+(n.gen-gmin)]||[]).forEach(iv=>{ if(a<iv[1]+12&&b>iv[0]-12) maks=Math.max(maks===null?-Infinity:maks,iv[1]+12); });
+        });
+        return maks;
+      };
+      for(let t=0;t<200;t++){
+        if(rakX>0 && rakX+lebar>lebarRak) barisBaru();
+        const m=bentur(rakX); if(m===null) break; rakX=m;
+      }
+      nodes.forEach(n=>tambah(n.id,n.x-xmin+rakX,rakBase+(n.gen-gmin),bi));
+      rakMaxGen=Math.max(rakMaxGen,rakBase+(gmax-gmin));
+      blokLabel.push({x:rakX,id:nodes.slice().sort((a,b)=>a.gen-b.gen||a.x-b.x)[0].id});
+      rakX+=lebar+GAP_CABANG;
+    }
+  }
+  let minX=Infinity; Object.values(akhir).forEach(a=>{ minX=Math.min(minX,a.x); });
+  const posisi={}, blok={};
+  Object.keys(akhir).forEach(id=>{ posisi[id]={x:akhir[id].x-minX,y:0,gen:akhir[id].gen}; blok[id]=akhir[id].blok; });
+  return {posisi,blok,rak,root:rootAkar,label:blokLabel.map(b=>({x:b.x-minX,id:b.id}))};
+}
+// Garis datar tiap keluarga menempati "lajur" di celah antar generasi. Urutan lajur menentukan garis mana
+// memotong atau MENIMPA garis lain. Untuk <=7 lajur semua urutan dicoba; dipakai yang biayanya terkecil
+// (menimpa = 10, bersentuhan di ujung = 3, memotong = 1).
+function urutkanLajur(fams,n,M){
+  if(n<2||n>7) return;
+  fams.forEach(f=>{ f.xAnak=f.anak.map(q=>q.x+M.CX); });
+  const dekat=(a,b)=>Math.abs(a-b)<1.5, dalam=(x,a,b)=>x>a+1.5&&x<b-1.5;
+  const biaya=(A,B)=>{
+    let c=0;
+    if(A.xAnak.some(x=>dekat(x,B.midX))) c+=10;
+    else if(dalam(B.midX,A.kiri,A.kanan)) c+=1;
+    else if(dekat(B.midX,A.kiri)||dekat(B.midX,A.kanan)) c+=3;
+    A.xAnak.forEach(x=>{ if(dalam(x,B.kiri,B.kanan)) c+=1; else if(dekat(x,B.kiri)||dekat(x,B.kanan)) c+=3; });
+    return c;
+  };
+  const c=[]; for(let i=0;i<n;i++){ c.push(new Array(n).fill(0)); }
+  fams.forEach(A=>fams.forEach(B=>{ if(A.lajur!==B.lajur) c[A.lajur][B.lajur]+=biaya(A,B); }));
+  const hitung=perm=>{ let t=0; for(let i=0;i<n;i++) for(let j=0;j<n;j++) if(i!==j&&perm[i]>perm[j]) t+=c[i][j]; return t; };
+  let terbaik=[...Array(n).keys()], biayaTerbaik=hitung(terbaik);
+  if(biayaTerbaik===0) return;
+  const perm=new Array(n), dipakai=new Array(n).fill(false);
+  (function cobaSemua(i){
+    if(i===n){ const b=hitung(perm); if(b<biayaTerbaik){ biayaTerbaik=b; terbaik=perm.slice(); } return; }
+    for(let v=0;v<n;v++){ if(dipakai[v]) continue; dipakai[v]=true; perm[i]=v; cobaSemua(i+1); dipakai[v]=false; }
+  })(0);
+  fams.forEach(f=>{ f.lajur=terbaik[f.lajur]; });
+}
+function gambarPohonBlok(target,M,L,g){
+  const orang=g.data.people, posisi=L.posisi;
+  const riilId=id=>g.riil.has(id);
+  const blokDari=id=>L.blok[id]||0;
+  const rekam=(t,a,b,c,bl)=>{ if(L.uji) L.uji.push({t,a,b,c,bl}); };
+  target.innerHTML='';
+  // 1) keluarga (anak per pasangan orang tua) di dalam satu blok; yang lintas blok jadi "silang"
+  const keluarga={}, silang=[];
+  Object.values(orang).forEach(o=>{
+    if(!posisi[o.id]) return;
+    const ortu=[o.idAyah,o.idIbu].filter(id=>id&&posisi[id]);
+    if(!ortu.length) return;
+    const rumah=blokDari(ortu[0]);
+    const ids=ortu.filter(id=>blokDari(id)===rumah), luar=ortu.filter(id=>blokDari(id)!==rumah);
+    if(blokDari(o.id)!==rumah){ silang.push({kid:o.id,ortu}); return; }
+    const kunci=rumah+'#'+ids.join('|');
+    const fm=(keluarga[kunci]=keluarga[kunci]||{ids,anak:[],idAnak:[],blok:rumah});
+    fm.anak.push(posisi[o.id]); fm.idAnak.push(o.id);
+    if(luar.length) silang.push({kid:o.id,ortu:luar});
+  });
+  const perKel={};
+  Object.values(keluarga).forEach(f=>{
+    const ortu=f.ids.map(id=>posisi[id]);
+    const ayahO=orang[f.ids[0]];
+    f.rapat=ortu.length===2 && ortu[0].gen===ortu[1].gen && (ayahO.idPasangan||[]).includes(f.ids[1]);
+    f.midX=f.rapat ? (ortu[0].x+ortu[1].x)/2+M.CX : ortu[0].x+M.CX;
+    const xs=f.anak.map(p=>p.x+M.CX).concat(f.midX);
+    f.kiri=Math.min(...xs); f.kanan=Math.max(...xs);
+    f.gen=f.anak[0].gen;
+    const k=f.blok+'|'+f.gen; (perKel[k]=perKel[k]||[]).push(f);
+  });
+  // 2) lajur garis dihitung per blok (antar blok boleh bersilang)
+  const jumlahLajur={};
+  Object.keys(perKel).forEach(k=>{
+    const fams=perKel[k]; fams.sort((a,b)=>a.kiri-b.kiri||a.kanan-b.kanan);
+    const lajur=[];
+    fams.forEach(f=>{ let i=lajur.findIndex(r=>f.kiri>r+8); if(i<0){ i=lajur.length; lajur.push(-Infinity); } lajur[i]=f.kanan; f.lajur=i; });
+    urutkanLajur(fams,lajur.length,M);
+    const gk=fams[0].gen; jumlahLajur[gk]=Math.max(jumlahLajur[gk]||0,lajur.length);
+  });
+  const daftarGen=[...new Set(Object.values(posisi).map(q=>q.gen))].sort((a,b)=>a-b);
+  const yGen={}; let yy=0;
+  daftarGen.forEach((gk,i)=>{ if(i>0) yy+=M.NODE_H+GAP_GEN+(jumlahLajur[gk]||0)*LAJUR_H+(L.rak[gk]?Math.round(M.NODE_H*0.35):0); yGen[gk]=yy; });
+  Object.values(posisi).forEach(q=>{ q.y=yGen[q.gen]; });
+  const kelasDari=(...ids)=>ids.every(riilId)?'':'pudar';
+  const siku=(pts,kelas)=>{
+    for(let i=0;i<pts.length-1;i++){
+      const [x1,y1]=pts[i], [x2,y2]=pts[i+1];
+      if(x1===x2) garisV(target,x1,y1,y2,M.T,kelas); else garisH(target,x1,y1,x2,M.T,kelas);
+    }
+  };
+  const pasKey=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+  const uPas={};
+  {
+    const jauh=[];
+    Object.values(orang).forEach(o=>{
+      const pos=posisi[o.id]; if(!pos) return;
+      (o.idPasangan||[]).forEach(pid=>{
+        const pos2=posisi[pid]; if(!pos2||!(pid>o.id)) return;
+        if(blokDari(o.id)!==blokDari(pid)||pos.gen!==pos2.gen) return;
+        const x1=Math.min(pos.x,pos2.x), x2=Math.max(pos.x,pos2.x);
+        const diantara=Object.keys(posisi).some(r=>r!==o.id&&r!==pid&&posisi[r].gen===pos.gen&&blokDari(r)===blokDari(o.id)&&posisi[r].x>x1+1&&posisi[r].x<x2-1);
+        if(diantara) jauh.push({k:pasKey(o.id,pid),gen:pos.gen,y:pos.y,x1,x2});
+      });
+    });
+    const tingkat={};
+    jauh.sort((a,b)=>(a.x2-a.x1)-(b.x2-b.x1)).forEach(j=>{
+      const lain=tingkat[j.gen]=tingkat[j.gen]||[];
+      let lv=0; lain.forEach(q=>{ if(j.x1<=q.x2+8&&j.x2>=q.x1-8) lv=Math.max(lv,q.lv+1); });
+      lain.push({x1:j.x1,x2:j.x2,lv});
+      uPas[j.k]=j.y+M.NODE_H+8+Math.min(lv,4)*7;
+    });
+  }
+  // 3) garis pasangan
+  Object.values(orang).forEach(o=>{
+    const pos=posisi[o.id]; if(!pos) return;
+    (o.idPasangan||[]).forEach(pid=>{
+      const pos2=posisi[pid]; if(!pos2||!(pid>o.id)) return;
+      const cerai=((o.statusPasangan||{})[pid]==='cerai');
+      const kls=kelasDari(o.id,pid);
+      if(blokDari(o.id)===blokDari(pid) && pos.gen===pos2.gen && uPas[pasKey(o.id,pid)]===undefined){
+        garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,[cerai?'cerai':'',kls].filter(Boolean).join(' '));
+        if(cerai){
+          const lb=document.createElement('div'); lb.className='label-cerai'+(kls?' pudar':''); lb.textContent='cerai';
+          lb.style.left=((pos.x+pos2.x)/2+M.CX)+'px'; lb.style.top=(pos.y+M.CY-M.T-(M.cetak?16:11))+'px';
+          target.appendChild(lb);
+        }
+      } else {
+        const yb=(uPas[pasKey(o.id,pid)]!==undefined)?uPas[pasKey(o.id,pid)]:Math.max(pos.y,pos2.y)+M.NODE_H+8;
+        siku([[pos.x+M.CX,pos.y+M.NODE_H],[pos.x+M.CX,yb],[pos2.x+M.CX,yb],[pos2.x+M.CX,pos2.y+M.NODE_H]],kls||'');
+      }
+    });
+  });
+  // 4) garis keluarga di dalam blok
+  Object.values(keluarga).forEach(f=>{
+    const ortu=f.ids.map(id=>posisi[id]);
+    const yU=f.rapat?uPas[pasKey(f.ids[0],f.ids[1])]:undefined;
+    const yMulai=(yU!==undefined)?yU:(f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H);
+    const kunciGaris=f.ids.join('|');
+    const dMaks=f.anak[0].y-(Math.max(yMulai,...ortu.map(q=>q.y+M.NODE_H))+6);
+    const dOto=12+f.lajur*LAJUR_H, dSimpan=(data&&data.garis)?data.garis[kunciGaris]:undefined;
+    let dGaris=(typeof dSimpan==='number')?dSimpan:dOto;
+    if(dMaks>=8) dGaris=Math.min(Math.max(dGaris,8),dMaks); else dGaris=dOto;
+    const yBus=f.anak[0].y-dGaris;
+    const rec={items:[],T:M.T,d:dGaris,yAnak:f.anak[0].y};
+    const ortuRiil=f.ids.some(riilId);
+    const anakRiil=f.idAnak.map(id=>ortuRiil&&riilId(id));
+    const gv=(x,y1,y2,k)=>{ const el=garisV(target,x,y1,y2,M.T,k); rec.items.push(y1===yBus?{el,role:'k',y2}:{el,role:'p',y1}); rekam('v',x,y1,y2,f.blok); };
+    const gh=(x1,y,x2,k)=>{ const el=garisH(target,x1,y,x2,M.T,k); rec.items.push({el,role:'b'}); rekam('h',y,x1,x2,f.blok); };
+    if(ortuRiil&&anakRiil.every(Boolean)){
+      gv(f.midX,yMulai,yBus);
+      if(f.kanan>f.kiri) gh(f.kiri,yBus,f.kanan);
+      f.anak.forEach(q=>gv(q.x+M.CX,yBus,q.y));
+    } else {
+      gv(f.midX,yMulai,yBus,'pudar');
+      if(f.kanan>f.kiri) gh(f.kiri,yBus,f.kanan,'pudar');
+      f.anak.forEach(q=>gv(q.x+M.CX,yBus,q.y,'pudar'));
+      if(anakRiil.some(Boolean)){
+        const xs=[f.midX]; f.anak.forEach((q,i)=>{ if(anakRiil[i]) xs.push(q.x+M.CX); });
+        const ka=Math.min(...xs), kb=Math.max(...xs);
+        gv(f.midX,yMulai,yBus);
+        if(kb>ka) gh(ka,yBus,kb);
+        f.anak.forEach((q,i)=>{ if(anakRiil[i]) gv(q.x+M.CX,yBus,q.y); });
+      }
+    }
+    if(modeGaris&&!M.cetak&&ortuRiil&&anakRiil.some(Boolean)&&dMaks>8){
+      const hx=(f.kanan>f.kiri)?(f.kiri+f.kanan)/2:f.midX;
+      const h=document.createElement('div'); h.className='handle-garis';
+      h.style.left=(hx-14)+'px'; h.style.top=(yBus-14)+'px';
+      h.addEventListener('pointerdown',e=>{
+        e.preventDefault(); e.stopPropagation();
+        const y0=e.clientY, d0=rec.d;
+        const gerak=ev=>{
+          const dn=Math.round(Math.min(dMaks,Math.max(8,d0-(ev.clientY-y0)/sk)));
+          rec.d=dn; const yb=rec.yAnak-dn; pasangGarisKeluarga(rec,yb); h.style.top=(yb-14)+'px';
+        };
+        const selesai=()=>{
+          window.removeEventListener('pointermove',gerak);
+          window.removeEventListener('pointerup',selesai);
+          window.removeEventListener('pointercancel',selesai);
+          data.garis=data.garis||{}; data.garis[kunciGaris]=rec.d; simpanData();
+        };
+        window.addEventListener('pointermove',gerak);
+        window.addEventListener('pointerup',selesai);
+        window.addEventListener('pointercancel',selesai);
+      });
+      target.appendChild(h);
+    }
+  });
+  // 5) garis antar blok (boleh bersilang, selalu di bawah garis lain)
+  silang.forEach(sv=>{
+    const k=posisi[sv.kid], pp=sv.ortu.map(id=>posisi[id]);
+    const rapat=pp.length===2 && pp[0].gen===pp[1].gen && (orang[sv.ortu[0]].idPasangan||[]).includes(sv.ortu[1]);
+    const mx=rapat ? (pp[0].x+pp[1].x)/2+M.CX : pp[0].x+M.CX;
+    const kx=k.x+M.CX, ky=k.y, py=pp[0].y;
+    const kls=kelasDari(sv.kid,...sv.ortu);
+    if(py+M.NODE_H < ky-4){
+      const ym=ky-12, ya=rapat ? py+M.CY : py+M.NODE_H;
+      siku([[kx,ky],[kx,ym],[mx,ym],[mx,ya]],kls);
+    } else {
+      const yb=ky+M.NODE_H+10;
+      siku([[kx,ky+M.NODE_H],[kx,yb],[mx,yb],[mx,py]],kls);
+    }
+  });
+  // 6) kartu
+  let maksX=0,maksY=0;
+  Object.values(orang).forEach(o=>{
+    const pos=posisi[o.id]; if(!pos) return;
+    maksX=Math.max(maksX,pos.x+NODE_W); maksY=Math.max(maksY,pos.y+M.NODE_H);
+    const n=document.createElement('div');
+    n.className='node'+((!M.cetak&&o.id===L.root)?' aktif':'')+(riilId(o.id)?'':' pudar');
+    n.dataset.id=o.id;
+    if(g.dari[o.id] && g.dari[o.id]!==store.aktifId) n.dataset.akar=g.dari[o.id];
+    n.style.left=pos.x+'px'; n.style.top=pos.y+'px';
+    const wrap=document.createElement('div'); wrap.className='avatar-wrap';
+    const av=document.createElement('div'); av.className='avatar';
+    if(o.foto) av.style.backgroundImage=`url("${o.foto}")`; else av.textContent=inisial(o.nama);
+    const dot=document.createElement('div'); dot.className='status-dot '+(o.status==='meninggal'?'meninggal':'hidup');
+    wrap.appendChild(av); wrap.appendChild(dot);
+    const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong'); nm.textContent=o.nama||'Tanpa nama';
+    const um=document.createElement('div'); um.className='umur';
+    const u=hitungUmur(o);
+    um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' \u2020':'')) : formatTglSingkat(o.lahir);
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
+    target.appendChild(n);
+  });
+  if(!M.cetak) L.label.forEach(lb=>{
+    const el=document.createElement('div'); el.className='label-blok';
+    const aid=g.dari[lb.id], ak=aid&&store.akar.find(a=>a.id===aid);
+    el.textContent=ak?ak.nama:'Keluarga lain';
+    el.style.left=lb.x+'px'; el.style.top=(posisi[lb.id].y-22)+'px';
+    target.appendChild(el);
+  });
+  return {w:maksX,h:maksY};
+}
+function bangunTunggal(akar){
+  const ak=akar||akarAktif(), pm=fotoTerbaruPeta(), people={};
+  Object.keys(data.people).forEach(id=>{
+    const o=data.people[id], ft=pm[ak.id+'|'+id];
+    people[id]=(ft&&ft!==o.foto) ? Object.assign({},o,{foto:ft}) : o;
+  });
+  return {data:{people},riil:new Set(Object.keys(people)),dari:{}};
+}
+function gambarDenganLatar(target,M){
+  const overlay=bangunGabungan();
+  if(!M.cetak) gabunganTampil=overlay;
+  const g=overlay||bangunTunggal();
+  try{
+    const L=susunBlok(g);
+    if(L) return gambarPohonBlok(target,M,L,g);
+  }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
+  if(!overlay) return gambarPohon(target,M);
+  const asli=data; data=g.data; infoLatar=g;
+  try{ return gambarPohon(target,M); }
+  finally{ data=asli; infoLatar=null; }
+}
+async function bukaLatar(id,akarId){
+  const g=gabunganTampil; const o=g&&g.data.people[id]; const ak=store.akar.find(a=>a.id===akarId);
+  if(!o||!ak) return;
+  const ya=await konfirmasi(o.nama||'Tanpa nama','Orang ini tercatat di akar "'+ak.nama+'". Buka akar tersebut?','Buka akar');
+  if(ya) gantiAkar(akarId);
+}
+
+// ===== Render =====
+const canvas=$('canvas'), viewport=$('viewport');
+function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za-z\u00C0-\u024F]/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'; }
+
+let contentW=0, contentH=0;
+
+// Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
+const M_LAYAR={NODE_H:110,CX:52,CY:29,T:2,cetak:false};
+const M_CETAK={NODE_H:176,CX:62,CY:44,T:3,cetak:true};
+function garisV(tg,x,y1,y2,T,kelas){
+  const d=document.createElement('div'); d.className='line line-v'+(kelas?' '+kelas:'');
+  d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;
+  tg.appendChild(d); return d;
+}
+function garisH(tg,x1,y,x2,T,kelas){
+  const d=document.createElement('div'); d.className='line line-h'+(kelas?' '+kelas:'');
+  d.style.cssText=`left:${Math.min(x1,x2)-T/2}px;top:${y-T/2}px;width:${Math.abs(x2-x1)+T}px;height:${T}px`;
+  tg.appendChild(d); return d;
+}
+function pasangGarisKeluarga(rec,yBus){
+  rec.items.forEach(it=>{
+    if(it.role==='b'){ it.el.style.top=(yBus-rec.T/2)+'px'; }
+    else { const a=(it.role==='p')?it.y1:yBus, b=(it.role==='p')?yBus:it.y2; it.el.style.top=Math.min(a,b)+'px'; it.el.style.height=Math.abs(b-a)+'px'; }
+  });
+}
+
+function gambarPohon(target,M){
+  const riilId=id=>!infoLatar||infoLatar.riil.has(id);
+  const posisi=hitungLayout();
+  target.innerHTML='';
+
+  // 1) kelompokkan anak per keluarga (pasangan orang tua yang sama)
+  const keluarga={};
+  Object.values(data.people).forEach(o=>{
+    const pos=posisi[o.id]; if(!pos) return;
+    const ids=[o.idAyah,o.idIbu].filter(id=>id&&posisi[id]);
+    if(!ids.length) return;
+    const kunci=ids.join('|');
+    const fm=(keluarga[kunci]=keluarga[kunci]||{ids,anak:[],idAnak:[]}); fm.anak.push(pos); fm.idAnak.push(o.id);
+  });
+  const perGenAnak={};
+  Object.values(keluarga).forEach(f=>{
+    const ortu=f.ids.map(id=>posisi[id]);
+    const ayahO=data.people[f.ids[0]];
+    f.rapat=ortu.length===2 && ortu[0].gen===ortu[1].gen && (ayahO.idPasangan||[]).includes(f.ids[1]);
+    f.midX=f.rapat ? (ortu[0].x+ortu[1].x)/2+M.CX : ortu[0].x+M.CX;
+    const xs=f.anak.map(p=>p.x+M.CX).concat(f.midX);
+    f.kiri=Math.min(...xs); f.kanan=Math.max(...xs);
+    f.gen=f.anak[0].gen;
+    (perGenAnak[f.gen]=perGenAnak[f.gen]||[]).push(f);
+  });
+  // 2) tiap keluarga di satu generasi dapat lajur sendiri bila rentang garisnya beririsan
+  const jumlahLajur={};
+  Object.keys(perGenAnak).forEach(g=>{
+    const fams=perGenAnak[g];
+    fams.sort((a,b)=>a.kiri-b.kiri||a.kanan-b.kanan);
+    const lajur=[];
+    fams.forEach(f=>{
+      let k=lajur.findIndex(r=>f.kiri>r+8);
+      if(k<0){ k=lajur.length; lajur.push(-Infinity); }
+      lajur[k]=f.kanan; f.lajur=k;
+    });
+    jumlahLajur[g]=lajur.length;
+  });
+  // 3) tinggi tiap generasi: celah ke bawah melebar sesuai jumlah lajur yang dibutuhkan
+  const daftarGen=[...new Set(Object.values(posisi).map(p=>p.gen))].sort((a,b)=>a-b);
+  const yGen={}; let yy=0;
+  daftarGen.forEach((g,i)=>{ if(i>0) yy+=M.NODE_H+GAP_GEN+(jumlahLajur[g]||0)*LAJUR_H; yGen[g]=yy; });
+  Object.values(posisi).forEach(p=>{ p.y=yGen[p.gen]; });
+
+  // 4) gambar garis: pasangan, lalu tiap keluarga (satu garis per keluarga)
+  Object.values(data.people).forEach(o=>{
+    const pos=posisi[o.id]; if(!pos) return;
+    (o.idPasangan||[]).forEach(pid=>{
+      const pos2=posisi[pid];
+      if(pos2 && pid>o.id){
+        const cerai=((o.statusPasangan||{})[pid]==='cerai');
+        const lp=!(riilId(o.id)&&riilId(pid));
+        garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,[cerai?'cerai':'',lp?'pudar':''].filter(Boolean).join(' '));
+        if(cerai){
+          const lb=document.createElement('div'); lb.className='label-cerai'+(lp?' pudar':''); lb.textContent='cerai';
+          lb.style.left=((pos.x+pos2.x)/2+M.CX)+'px'; lb.style.top=(pos.y+M.CY-M.T-(M.cetak?16:11))+'px';
+          target.appendChild(lb);
+        }
+      }
+    });
+  });
+  Object.values(keluarga).forEach(f=>{
+    const ortu=f.ids.map(id=>posisi[id]);
+    const yMulai=f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H;
+    const yBus=f.anak[0].y-12-f.lajur*LAJUR_H;
+    const ortuRiil=f.ids.some(riilId);
+    const anakRiil=f.idAnak.map(id=>ortuRiil&&riilId(id));
+    if(ortuRiil&&anakRiil.every(Boolean)){
+      garisV(target,f.midX,yMulai,yBus,M.T);
+      if(f.kanan>f.kiri) garisH(target,f.kiri,yBus,f.kanan,M.T);
+      f.anak.forEach(p=>garisV(target,p.x+M.CX,yBus,p.y,M.T));
+    } else {
+      // keluarga campuran: dasar pudar penuh, lalu bagian yang nyata ditimpa garis tegas
+      garisV(target,f.midX,yMulai,yBus,M.T,'pudar');
+      if(f.kanan>f.kiri) garisH(target,f.kiri,yBus,f.kanan,M.T,'pudar');
+      f.anak.forEach(p=>garisV(target,p.x+M.CX,yBus,p.y,M.T,'pudar'));
+      if(anakRiil.some(Boolean)){
+        const xs=[f.midX]; f.anak.forEach((p,i)=>{ if(anakRiil[i]) xs.push(p.x+M.CX); });
+        const ka=Math.min(...xs), kb=Math.max(...xs);
+        garisV(target,f.midX,yMulai,yBus,M.T);
+        if(kb>ka) garisH(target,ka,yBus,kb,M.T);
+        f.anak.forEach((p,i)=>{ if(anakRiil[i]) garisV(target,p.x+M.CX,yBus,p.y,M.T); });
+      }
+    }
+  });
+
+  let maksX=0,maksY=0;
+  Object.values(data.people).forEach(o=>{
+    const pos=posisi[o.id]; if(!pos) return;
+    maksX=Math.max(maksX,pos.x+NODE_W); maksY=Math.max(maksY,pos.y+M.NODE_H);
+
+    const n=document.createElement('div');
+    n.className='node'+((!M.cetak&&o.id===rootAktif())?' aktif':'')+(riilId(o.id)?'':' pudar');
+    n.dataset.id=o.id;
+    if(infoLatar&&infoLatar.dari[o.id]&&infoLatar.dari[o.id]!==store.aktifId) n.dataset.akar=infoLatar.dari[o.id];
+    n.style.left=pos.x+'px'; n.style.top=pos.y+'px';
+
+    const wrap=document.createElement('div'); wrap.className='avatar-wrap';
+    const av=document.createElement('div'); av.className='avatar';
+    if(o.foto) av.style.backgroundImage=`url("${o.foto}")`; else av.textContent=inisial(o.nama);
+    const dot=document.createElement('div'); dot.className='status-dot '+(o.status==='meninggal'?'meninggal':'hidup');
+    wrap.appendChild(av); wrap.appendChild(dot);
+
+    const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong'); nm.textContent=o.nama||'Tanpa nama';
+    const um=document.createElement('div'); um.className='umur';
+    const u=hitungUmur(o);
+    um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' †':'')) : formatTglSingkat(o.lahir);
+
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
+    target.appendChild(n);
+  });
+  return {w:maksX,h:maksY};
+}
+function render(pasKeLayarJuga){
+  const u=gambarDenganLatar(canvas,M_LAYAR);
+  contentW=u.w; contentH=u.h;
+  canvas.style.width=contentW+'px'; canvas.style.height=contentH+'px';
+  if(pasKeLayarJuga) pasKeLayar(); else pasangTransform();
+}
+
+// ===== Pan & zoom =====
+let tx=0,ty=0,sk=1;
+function pasangTransform(){ canvas.style.transform=`translate(${tx}px,${ty}px) scale(${sk})`; }
+function pasKeLayar(){
+  const vp=viewport.getBoundingClientRect();
+  sk=Math.min(1,(vp.width-24)/Math.max(contentW,1),(vp.height-130)/Math.max(contentH,1));
+  sk=Math.max(sk,0.15);
+  tx=(vp.width-contentW*sk)/2;
+  ty=70+Math.max(0,(vp.height-130-contentH*sk)/2);
+  pasangTransform();
+}
+function zoomDi(cx,cy,skBaru){
+  skBaru=Math.min(2.5,Math.max(0.15,skBaru));
+  const r=skBaru/sk;
+  tx=cx-(cx-tx)*r; ty=cy-(cy-ty)*r; sk=skBaru;
+  pasangTransform();
+}
+
+const pointer=new Map();
+let tap=null, jarakAwal=0, skAwal=1, geserTerakhir=false, blokirKlikSampai=0;
+function titikTengahDua(){
+  const [a,b]=[...pointer.values()];
+  return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y)};
+}
+viewport.addEventListener('pointerdown',e=>{
+  const r=viewport.getBoundingClientRect();
+  pointer.set(e.pointerId,{x:e.clientX-r.left,y:e.clientY-r.top});
+  if(pointer.size===1){ tap={x:e.clientX,y:e.clientY,gerak:false}; geserTerakhir=false; }
+  else { geserTerakhir=true; if(tap) tap.gerak=true; const t=titikTengahDua(); jarakAwal=t.d||1; skAwal=sk; }
+  tutupFab();
+});
+viewport.addEventListener('pointermove',e=>{
+  if(!pointer.has(e.pointerId)) return;
+  const r=viewport.getBoundingClientRect();
+  const lama=pointer.get(e.pointerId);
+  const baru={x:e.clientX-r.left,y:e.clientY-r.top};
+  pointer.set(e.pointerId,baru);
+  if(pointer.size===1){
+    if(tap && !tap.gerak && Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>8){ tap.gerak=true; geserTerakhir=true; }
+    if(tap && tap.gerak){ tx+=baru.x-lama.x; ty+=baru.y-lama.y; pasangTransform(); }
+  } else if(pointer.size===2){
+    const t=titikTengahDua();
+    zoomDi(t.x,t.y,skAwal*(t.d/jarakAwal));
+  }
+});
+function selesaiPointer(e){
+  pointer.delete(e.pointerId);
+  if(pointer.size===1 && tap){ tap.gerak=true; geserTerakhir=true; } // dari 2 jari ke 1 jari: jangan loncat
+  if(pointer.size===0) tap=null;
+}
+// Modal dibuka dari event 'click' (SESUDAH jari terangkat) supaya ketukan yang sama tidak
+// "tembus" ke isi modal yang baru muncul di bawah jari (mis. membuka pilihan Status/Ayah/Ibu).
+viewport.addEventListener('click',e=>{
+  if(geserTerakhir || Date.now()<blokirKlikSampai) return;
+  const n=e.target.closest ? e.target.closest('.node') : null;
+  if(n){ if(n.dataset.akar) bukaLatar(n.dataset.id,n.dataset.akar); else bukaKartu(n.dataset.id); }
+});
+viewport.addEventListener('pointerup',selesaiPointer);
+viewport.addEventListener('pointercancel',selesaiPointer);
+viewport.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=viewport.getBoundingClientRect();
+  zoomDi(e.clientX-r.left,e.clientY-r.top,sk*(e.deltaY<0?1.1:1/1.1));
+},{passive:false});
+window.addEventListener('resize',()=>{ if(!$('modalOverlay').classList.contains('hidden')) return; pasKeLayar(); });
+
+// ===== Menu FAB =====
+function tutupFab(){ tutupDrawer(); }
+
+async function kirimBerkas(isi,namaFile,judulBagikan,dialogTitle,mime){
+  const cap=window.Capacitor;
+  const plg=cap&&cap.Plugins;
+  if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&plg&&plg.Filesystem&&plg.Share){
+    try{
+      const r=await plg.Filesystem.writeFile({path:namaFile,data:isi,directory:'CACHE',encoding:'utf8'});
+      await plg.Share.share({title:judulBagikan,dialogTitle:dialogTitle,files:[r.uri]});
+    }catch(err){
+      const m=String((err&&err.message)||err||'');
+      if(!/cancel|dismiss/i.test(m)) alert('Gagal membagikan: '+m);
+    }
+    return;
+  }
+  const blob=new Blob([isi],{type:mime||'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=namaFile;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function stempelTanggal(){ const t=new Date(); const p=n=>String(n).padStart(2,'0'); return `${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}`; }
+$('btnBackup').addEventListener('click',async()=>{
+  tutupFab();
+  const isi=JSON.stringify({format:'akar-keluarga',versi:2,aktifId:store.aktifId,gabung:store.gabung||[],pengguna:store.pengguna||null,akar:store.akar},null,1);
+  await kirimBerkas(isi,`akar-keluarga-${stempelTanggal()}.json`,'Backup Akar Keluarga','Simpan backup ke...','application/json');
+});
+$('btnRestore').addEventListener('click',()=>{ tutupFab(); $('inputRestore').value=''; $('inputRestore').click(); });
+function normalisasiPeople(people){
+  Object.keys(people).forEach(k=>{
+    const p=people[k]; if(!p||typeof p!=='object') throw new Error('format');
+    p.id=p.id||k; p.idPasangan=p.idPasangan||[]; p.idAyah=p.idAyah||null; p.idIbu=p.idIbu||null; p.foto=p.foto||''; p.nama=p.nama||'';
+  });
+}
+$('inputRestore').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(d&&Array.isArray(d.akar)&&d.akar.length){
+        const daftar=d.akar.map((a,i)=>{
+          if(!a||!a.data||typeof a.data.people!=='object'||!Object.keys(a.data.people).length) throw new Error('format');
+          normalisasiPeople(a.data.people);
+          const dataAkar={people:a.data.people}; if(a.data.wilayah&&typeof a.data.wilayah==='object') dataAkar.wilayah=a.data.wilayah; if(a.data.garis&&typeof a.data.garis==='object') dataAkar.garis=a.data.garis;
+          return {id:String(a.id||idAkarBaru()),nama:String(a.nama||('Akar '+(i+1))),warna:a.warna||WARNA_AKAR[i%WARNA_AKAR.length],pin:!!a.pin,data:dataAkar,dibuat:a.dibuat||Date.now(),pemilikId:a.pemilikId||'',pemilikNama:a.pemilikNama||'',terkunci:!!a.terkunci,asalId:a.asalId||'',mode:a.mode||'',peran:(a.peran&&typeof a.peran==='object')?a.peran:{}};
+        });
+        if(!confirm('Semua akar saat ini ('+store.akar.length+') akan diganti dengan isi file backup ('+daftar.length+' akar). Lanjutkan?')) return;
+        const lamaPengguna=store.pengguna;
+        store={versi:2,aktifId:daftar.some(a=>a.id===d.aktifId)?d.aktifId:daftar[0].id,akar:daftar,gabung:(Array.isArray(d.gabung)?d.gabung.filter(x=>daftar.some(a=>a.id===x)):[]),pengguna:(d.pengguna&&d.pengguna.id&&d.pengguna.nama)?{id:String(d.pengguna.id),nama:String(d.pengguna.nama)}:lamaPengguna};
+        if(store.pengguna) store.akar.forEach(a=>{ if(!a.pemilikId&&!a.terkunci){ a.pemilikId=store.pengguna.id; a.pemilikNama=store.pengguna.nama; } });
+        data=akarAktif().data;
+      } else {
+        if(!d||typeof d.people!=='object'||!Object.keys(d.people).length) throw new Error('format');
+        normalisasiPeople(d.people);
+        if(akarAktif().terkunci){ alert('Akar ini terkunci (hasil impor) dan tidak bisa diganti lewat Restore.'); return; }
+        if(!confirm('Data akar "'+akarAktif().nama+'" akan diganti dengan isi file backup. Lanjutkan?')) return;
+        const a=akarAktif();
+        a.data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') a.data.wilayah=d.wilayah; if(d.garis&&typeof d.garis==='object') a.data.garis=d.garis;
+        if(typeof d.namaKeluarga==='string'&&d.namaKeluarga.trim()) a.nama=d.namaKeluarga.trim();
+        data=a.data;
+      }
+      simpanData(); tutupKartu(); perbaruiJudul(); segarkanDaftarAkar(); segarkanPin(); render(true);
+    }catch(err){ alert('File backup tidak valid.'); }
+  };
+  r.readAsText(f);
+});
+$('btnMulaiBaru').addEventListener('click',async()=>{
+  tutupFab();
+  const a=akarAktif();
+  if(a.terkunci){ alert('Akar ini terkunci (hasil impor). Untuk membuangnya, hapus akar lewat menu titik tiga di daftar akar.'); return; }
+  const ya=await konfirmasi('Kosongkan akar "'+a.nama+'"?','Semua orang di akar ini akan dihapus dan akar dimulai lagi dari satu orang kosong. Akar lain tidak terpengaruh. Tindakan ini tidak bisa dibatalkan. Sebaiknya Backup dulu.','Ya, kosongkan');
+  if(!ya) return;
+  const wilLama=a.data.wilayah;
+  a.data={people:{diri:{id:'diri',nama:'',status:'hidup',gender:'m',jalur:'A',foto:'',idAyah:null,idIbu:null,idPasangan:[]}}};
+  if(wilLama) a.data.wilayah=wilLama;
+  data=a.data;
+  simpanData(); segarkanDaftarAkar(); render(true); bukaModal('diri',true);
+});
+const KERTAS=[['A4',210,297],['A3',297,420],['A2',420,594],['A1',594,841],['A0',841,1189]];
+function pilihKertas(w,h){
+  const mm=96/25.4;
+  const land=w>=h;
+  let pilih=null;
+  for(const [nama,a,b] of KERTAS){
+    const pw=(land?b:a)*mm, ph=(land?a:b)*mm;
+    const fit=Math.min(pw/w,ph/h);
+    pilih={paper:nama,landscape:land,fit};
+    if(fit>=1) break;
+  }
+  pilih.zoom=Math.min(pilih.fit*0.97,1.4);
+  return pilih;
+}
+function masukModeGaris(){
+  if(akarAktif().terkunci){ alert('Akar ini terkunci (hasil impor), garisnya tidak bisa diedit.'); return; }
+  tutupFab(); modeGaris=true; $('barGaris').classList.remove('hidden'); render(false);
+}
+function keluarModeGaris(){ modeGaris=false; $('barGaris').classList.add('hidden'); simpanData(); render(false); }
+$('btnEditGaris').addEventListener('click',masukModeGaris);
+$('garisSelesai').addEventListener('click',keluarModeGaris);
+$('garisReset').addEventListener('click',()=>{ if(data.garis){ delete data.garis; simpanData(); } render(false); });
+function cetakTerbuka(){ return !$('cetakOverlay').classList.contains('hidden'); }
+function tutupCetakDlg(){ $('cetakOverlay').classList.add('hidden'); }
+$('btnCetak').addEventListener('click',()=>{
+  tutupFab();
+  const wadah=$('cetakDaftar'); wadah.innerHTML='';
+  store.akar.forEach(a=>{
+    const lb=document.createElement('label'); lb.className='pilih-cetak';
+    const rb=document.createElement('input'); rb.type='radio'; rb.name='akarCetak'; rb.value=a.id; rb.checked=(a.id===store.aktifId);
+    const sp=document.createElement('span');
+    const b=document.createElement('b'); b.textContent=a.nama||'Akar';
+    const sm=document.createElement('small'); sm.textContent=Object.keys(a.data.people).length+' orang';
+    sp.appendChild(b); sp.appendChild(sm); lb.appendChild(rb); lb.appendChild(sp); wadah.appendChild(lb);
+  });
+  $('cetakOverlay').classList.remove('hidden');
+});
+$('cetakBatal').addEventListener('click',tutupCetakDlg);
+$('cetakOverlay').addEventListener('click',e=>{ if(e.target===$('cetakOverlay')) tutupCetakDlg(); });
+$('cetakYa').addEventListener('click',()=>{
+  const r=document.querySelector('input[name="akarCetak"]:checked');
+  const a=r&&store.akar.find(x=>x.id===r.value);
+  tutupCetakDlg(); if(a) cetakAkar(a);
+});
+async function cetakAkar(akar){
+  // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
+  let u; const dataAsli=data; data=akar.data;
+  try{
+    const g=bangunTunggal(akar); let L=null;
+    try{ L=susunBlok(g); }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
+    u = L ? gambarPohonBlok($('cetakCanvas'),M_CETAK,L,g) : gambarPohon($('cetakCanvas'),M_CETAK);
+  } finally { data=dataAsli; }
+  $('cetakCanvas').style.width=u.w+'px'; $('cetakCanvas').style.height=u.h+'px';
+  const PAD=64;
+  const judul=(akar.nama||'').trim();
+  const W=Math.max(u.w,1)+2*PAD;
+  const fs=Math.max(26,Math.min(56,(W-2*PAD)/(Math.max(judul.length,1)*0.62)));
+  const jd=$('cetakJudul');
+  jd.textContent=judul; jd.style.display=judul?'block':'none';
+  jd.style.fontSize=fs+'px'; jd.style.marginBottom='44px';
+  const judulH=judul?Math.ceil(fs*1.25)+44:0;
+  const H=Math.max(u.h,1)+2*PAD+judulH;
+  const wrap=$('cetakWrap');
+  wrap.style.width=W+'px'; wrap.style.padding=PAD+'px';
+  const k=pilihKertas(W,H);
+  document.documentElement.style.setProperty('--pzc',k.zoom);
+  const cap=window.Capacitor;
+  const native=!!(cap&&cap.isNativePlatform&&cap.isNativePlatform());
+  if(native){
+    const jembatan=cap.Plugins&&cap.Plugins.AkarPrint;
+    if(!jembatan){ alert('Cetak gagal: jembatan cetak tidak terdaftar di app ini.'); return; }
+    try{ await jembatan.print({name:'Akar Keluarga',paper:k.paper,landscape:k.landscape}); }
+    catch(err){ alert('Cetak gagal: '+((err&&err.message)||err)); }
+    return;
+  }
+  window.print();
+}
+
+
+// ===== Drawer =====
+function bukaDrawer(){ segarkanDaftarAkar(); $('drawer').classList.add('buka'); $('drawerScrim').classList.remove('hidden'); }
+function tutupDrawer(){ $('drawer').classList.remove('buka'); $('drawerScrim').classList.add('hidden'); }
+function drawerTerbuka(){ return $('drawer').classList.contains('buka'); }
+$('btnMenu').addEventListener('click',bukaDrawer);
+$('drawerScrim').addEventListener('click',tutupDrawer);
+$('btnPusat').addEventListener('click',pasKeLayar);
+
+// ===== Dialog konfirmasi =====
+let dlgResolve=null;
+function konfirmasi(judul,teks,labelYa){
+  return new Promise(res=>{
+    $('dlgJudul').textContent=judul; $('dlgTeks').textContent=teks; $('dlgYa').textContent=labelYa||'Ya';
+    dlgResolve=res; $('dlgOverlay').classList.remove('hidden');
+  });
+}
+function tutupDlg(hasil){
+  $('dlgOverlay').classList.add('hidden');
+  const r=dlgResolve; dlgResolve=null; if(r) r(hasil);
+}
+function dlgTerbuka(){ return !$('dlgOverlay').classList.contains('hidden'); }
+$('dlgBatal').addEventListener('click',()=>tutupDlg(false));
+$('dlgYa').addEventListener('click',()=>tutupDlg(true));
+$('dlgOverlay').addEventListener('click',e=>{ if(e.target===$('dlgOverlay')) tutupDlg(false); });
+
+// ===== Dialog nama (ganti nama / akar baru) =====
+let namaResolve=null, namaWajib=false;
+function mintaNama(judul,teks,awal,placeholder,wajib){
+  return new Promise(res=>{
+    namaWajib=!!wajib;
+    $('namaJudul').textContent=judul; $('namaTeks').textContent=teks;
+    $('fNamaKeluarga').value=awal||''; $('fNamaKeluarga').placeholder=placeholder||'';
+    $('namaBatal').style.display=namaWajib?'none':'';
+    namaResolve=res; $('namaOverlay').classList.remove('hidden');
+    setTimeout(()=>$('fNamaKeluarga').focus(),80);
+  });
+}
+function namaTerbuka(){ return !$('namaOverlay').classList.contains('hidden'); }
+function tutupNamaDlg(hasil){
+  $('namaOverlay').classList.add('hidden');
+  const r=namaResolve; namaResolve=null; if(r) r(hasil===undefined?null:hasil);
+}
+function kirimNama(){ const v=$('fNamaKeluarga').value.trim(); if(namaWajib&&!v){ $('fNamaKeluarga').focus(); return; } tutupNamaDlg(v); }
+$('namaSimpan').addEventListener('click',kirimNama);
+$('namaBatal').addEventListener('click',()=>tutupNamaDlg(null));
+$('fNamaKeluarga').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); kirimNama(); } });
+$('namaOverlay').addEventListener('click',e=>{ if(e.target===$('namaOverlay')&&!namaWajib) tutupNamaDlg(null); });
+
+// ===== Daftar akar, pin, dan menu akar =====
+function jumlahOrang(a){ return Object.keys(a.data.people||{}).length; }
+const IKON_GEMBOK='<svg class="ikon-gembok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>';
+function perbaruiJudul(){ const nl=jumlahLatar(); $('judulApp').textContent=(akarAktif().nama||'Akar Keluarga')+(nl?' (+'+nl+' latar)':''); $('gembokJudul').classList.toggle('hidden',!akarAktif().terkunci); }
+function segarkanDaftarAkar(){
+  const w=$('daftarAkar'); w.innerHTML='';
+  store.akar.forEach(a=>{
+    const row=document.createElement('div'); row.className='akar-baris'+(a.id===store.aktifId?' aktif':''); row.dataset.id=a.id;
+    row.innerHTML=`<span class="akar-titik" style="background:${esc(a.warna)}"></span><div class="akar-teks"><div class="akar-nama">${a.terkunci?IKON_GEMBOK:''}${esc(a.nama)}</div><div class="akar-sub">${jumlahOrang(a)} orang${a.terkunci?' \u00b7 dari '+esc(a.pemilikNama||'pengirim'):''}${a.pin?' \u00b7 di layar':''}</div></div><button class="akar-menu" data-id="${esc(a.id)}" aria-label="Menu akar">\u22ee</button>`;
+    w.appendChild(row);
+  });
+}
+function hurufPin(nama){
+  const inti=String(nama||'').replace(/^\s*(keluarga|kel\.?|keturunan)\s+/i,'');
+  const m=inti.match(/[A-Za-z\u00C0-\u024F]/)||String(nama||'').match(/[A-Za-z\u00C0-\u024F]/);
+  return m?m[0].toUpperCase():'?';
+}
+function segarkanPin(){
+  const w=$('pinAkar'); w.innerHTML='';
+  const pins=store.akar.filter(a=>a.pin);
+  if(store.akar.length<2||!pins.length) return;
+  pins.forEach(a=>{
+    const b=document.createElement('button'); b.className='pin'+(a.id===store.aktifId?' aktif':''); b.dataset.id=a.id;
+    b.style.background=a.warna; b.title=a.nama; b.textContent=hurufPin(a.nama);
+    w.appendChild(b);
+  });
+}
+function gantiAkar(id){
+  const a=store.akar.find(x=>x.id===id); if(!a) return;
+  tutupKartu(); tutupRingkasan();
+  if(!$('modalOverlay').classList.contains('hidden')) tutupModal();
+  if(id!==store.aktifId){
+    store.aktifId=id; data=a.data; simpanData();
+    perbaruiJudul(); render(true);
+  }
+  segarkanDaftarAkar(); segarkanPin();
+}
+$('daftarAkar').addEventListener('click',e=>{
+  const m=e.target.closest('.akar-menu');
+  if(m){ e.stopPropagation(); bukaMenuAkar(m.dataset.id); return; }
+  const row=e.target.closest('.akar-baris'); if(row){ gantiAkar(row.dataset.id); tutupDrawer(); }
+});
+$('pinAkar').addEventListener('click',e=>{ const b=e.target.closest('.pin'); if(b) gantiAkar(b.dataset.id); });
+$('btnAkarBaru').addEventListener('click',async()=>{
+  tutupDrawer();
+  const nama=await mintaNama('Akar baru','Beri nama akar ini, misalnya "Keluarga Istri". Nama ini juga menjadi judul saat dicetak.','','Contoh: Keluarga Istri');
+  if(!nama) return;
+  const pakai=new Set(store.akar.map(a=>a.warna));
+  const warna=WARNA_AKAR.find(w=>!pakai.has(w))||WARNA_AKAR[store.akar.length%WARNA_AKAR.length];
+  const baru=buatAkar(idAkarBaru(),nama,warna,{people:{diri:{id:'diri',nama:'',status:'hidup',gender:'m',jalur:'A',foto:'',idAyah:null,idIbu:null,idPasangan:[]}}},store.akar.filter(a=>a.pin).length<MAKS_PIN);
+  if(store.pengguna){ baru.pemilikId=store.pengguna.id; baru.pemilikNama=store.pengguna.nama; }
+  store.akar.push(baru);
+  gantiAkar(baru.id); simpanData();
+  bukaModal('diri',true);
+});
+let akarMenuId=null;
+function sheetTerbuka(){ return !$('akarMenuOverlay').classList.contains('hidden'); }
+function tutupSheet(){ $('akarMenuOverlay').classList.add('hidden'); akarMenuId=null; }
+function isiSheet(){
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  $('akarMenuJudul').textContent=a.nama;
+  $('amBagikan').style.display=a.terkunci?'none':'';
+  $('amPin').textContent=a.pin?'Lepas dari layar (pojok kanan atas)':'Pin ke layar (pojok kanan atas)';
+  $('amGabung').textContent=(store.gabung||[]).includes(a.id)?'Keluarkan dari tampilan gabungan':'Ikutkan ke tampilan gabungan';
+  const w=$('amWarna'); w.innerHTML='';
+  WARNA_AKAR.forEach(c=>{ const b=document.createElement('button'); b.style.background=c; b.dataset.warna=c; b.setAttribute('aria-label','Warna '+c); if(c===a.warna) b.className='pilih'; w.appendChild(b); });
+}
+function bukaMenuAkar(id){ akarMenuId=id; isiSheet(); $('akarMenuOverlay').classList.remove('hidden'); }
+$('akarMenuOverlay').addEventListener('click',e=>{ if(e.target===$('akarMenuOverlay')) tutupSheet(); });
+$('amWarna').addEventListener('click',e=>{
+  const b=e.target.closest('button'); const a=store.akar.find(x=>x.id===akarMenuId); if(!b||!a) return;
+  a.warna=b.dataset.warna; simpanData(); isiSheet(); segarkanDaftarAkar(); segarkanPin();
+});
+$('amPin').addEventListener('click',()=>{
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  if(!a.pin && store.akar.filter(x=>x.pin).length>=MAKS_PIN){ alert('Maksimal '+MAKS_PIN+' akar di layar. Lepas pin akar lain dulu.'); return; }
+  a.pin=!a.pin; simpanData(); isiSheet(); segarkanDaftarAkar(); segarkanPin();
+});
+function peranTerbuka(){ return !$('peranOverlay').classList.contains('hidden'); }
+function tutupPeran(){ $('peranOverlay').classList.add('hidden'); simpanData(); perbaruiJudul(); render(true); }
+function saranPeran(a){
+  const pr=a.peran=a.peran||{}, o=a.data.people[pr.saya]; if(!o) return;
+  const isi=(k,v)=>{ if(v&&a.data.people[v]&&!pr[k]) pr[k]=v; };
+  isi('ayah',o.idAyah); isi('ibu',o.idIbu);
+  const sp=(o.idPasangan||[]).find(x=>a.data.people[x]);
+  isi('pasangan',sp);
+  const so=sp&&a.data.people[sp];
+  if(so){ isi('mertuaAyah',so.idAyah); isi('mertuaIbu',so.idIbu); }
+}
+function isiPeran(){
+  const wadah=$('peranIsi'), st=$('peranSheet').scrollTop; wadah.innerHTML='';
+  store.akar.forEach(a=>{
+    a.peran=a.peran||{};
+    const kotak=document.createElement('div'); kotak.className='peran-akar';
+    const jd=document.createElement('div'); jd.className='peran-nama'; jd.textContent=(a.nama||'Akar')+(a.id===store.aktifId?' (dipilih)':''); kotak.appendChild(jd);
+    const daftar=Object.values(a.data.people).sort((x,y)=>String(x.nama||'').localeCompare(String(y.nama||'')));
+    PERAN.forEach(([rk,label])=>{
+      const lb=document.createElement('label'); lb.className='peran-baris'; lb.textContent=label;
+      const sel=document.createElement('select'); sel.className='peran-sel';
+      const k0=document.createElement('option'); k0.value=''; k0.textContent='\u2014 tidak ada di akar ini \u2014'; sel.appendChild(k0);
+      daftar.forEach(q=>{
+        const op=document.createElement('option'); op.value=q.id;
+        op.textContent=(q.nama||'Tanpa nama')+((q.lahir&&q.lahir.tahun)?' ('+q.lahir.tahun+')':'')+' \u00b7 '+q.id;
+        sel.appendChild(op);
+      });
+      sel.value=(a.peran[rk]&&a.data.people[a.peran[rk]])?a.peran[rk]:'';
+      sel.addEventListener('change',()=>{
+        if(sel.value) a.peran[rk]=sel.value; else delete a.peran[rk];
+        if(rk==='saya') saranPeran(a);
+        simpanData(); isiPeran();
+      });
+      lb.appendChild(sel); kotak.appendChild(lb);
+    });
+    wadah.appendChild(kotak);
+  });
+  $('peranSheet').scrollTop=st;
+}
+$('btnPeran').addEventListener('click',()=>{ tutupDrawer(); isiPeran(); $('peranOverlay').classList.remove('hidden'); });
+$('peranTutup').addEventListener('click',tutupPeran);
+$('peranOverlay').addEventListener('click',e=>{ if(e.target===$('peranOverlay')) tutupPeran(); });
+$('amGabung').addEventListener('click',()=>{
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  store.gabung=store.gabung||[];
+  const ada=store.gabung.includes(a.id);
+  if(ada) store.gabung=store.gabung.filter(x=>x!==a.id); else store.gabung.push(a.id);
+  simpanData(); isiSheet(); perbaruiJudul(); render(true);
+  if(!ada){
+    if(store.gabung.length<2) alert('Ikutkan juga minimal satu akar lain. Akar yang sedang dipilih tampil nyata, akar lain tampil pudar di latarnya.');
+    else if(!jumlahTautanGabung()) alert('Belum ada orang yang ditandai sama. Buka menu "Peran saya di tiap akar" di drawer, lalu pilih siapa Anda di tiap akar supaya pohonnya tersambung.');
+  }
+});
+$('amNama').addEventListener('click',async()=>{
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  const id=a.id; tutupSheet();
+  const nama=await mintaNama('Ganti nama akar','Nama ini juga menjadi judul saat dicetak.',a.nama,'Nama akar');
+  if(!nama) return;
+  a.nama=nama; simpanData(); perbaruiJudul(); segarkanDaftarAkar(); segarkanPin();
+});
+$('amHapus').addEventListener('click',async()=>{
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  if(store.akar.length<2){ alert('Akar terakhir tidak bisa dihapus. Gunakan "Mulai baru" untuk mengosongkannya.'); return; }
+  tutupSheet();
+  const ya=await konfirmasi('Hapus akar "'+a.nama+'"?','Semua orang di akar ini ikut terhapus dan tidak bisa dikembalikan. Sebaiknya Backup dulu.','Ya, hapus');
+  if(!ya) return;
+  const aktifDihapus=a.id===store.aktifId;
+  store.akar=store.akar.filter(x=>x.id!==a.id);
+  store.gabung=(store.gabung||[]).filter(x=>x!==a.id);
+  if(aktifDihapus){ store.aktifId=store.akar[0].id; data=store.akar[0].data; perbaruiJudul(); render(true); }
+  simpanData(); segarkanDaftarAkar(); segarkanPin();
+});
+perbaruiJudul(); segarkanDaftarAkar(); segarkanPin();
+
+// ===== Ringkasan generasi =====
+function ringkasanTerbuka(){ return !$('ringkasanOverlay').classList.contains('hidden'); }
+function tutupRingkasan(){ $('ringkasanOverlay').classList.add('hidden'); }
+function bukaRingkasan(){
+  const a=akarAktif();
+  const posisi=hitungLayout();
+  const ids=Object.keys(posisi);
+  const genMin=Math.min(...ids.map(id=>posisi[id].gen));
+  const perGen={};
+  ids.forEach(id=>{ const g=posisi[id].gen-genMin+1; (perGen[g]=perGen[g]||[]).push(data.people[id]); });
+  const daftarGen=Object.keys(perGen).map(Number).sort((x,y)=>x-y);
+  const maks=Math.max(...daftarGen.map(g=>perGen[g].length));
+  const semua=ids.map(id=>data.people[id]);
+  const hidup=semua.filter(o=>o.status!=='meninggal').length;
+  const laki=semua.filter(o=>genderDari(o)!=='f').length;
+  const terlepas=Object.keys(data.people).length-ids.length;
+  let h='<div class="rk-judul">Per generasi</div>';
+  daftarGen.forEach(g=>{
+    const n=perGen[g].length;
+    h+=`<div class="rk-gen"><div class="rk-gen-atas"><span>Generasi ${g}${g===1?' (leluhur tertua)':''}</span><b>${n} orang</b></div><div class="rk-bar"><i style="width:${Math.round(n/maks*100)}%"></i></div></div>`;
+  });
+  h+='<div class="rk-pemisah"></div>';
+  h+=`<div class="rk-baris"><span>Total</span><span>${semua.length} orang</span></div>`;
+  h+=`<div class="rk-baris"><span>Hidup</span><span>${hidup}</span></div>`;
+  h+=`<div class="rk-baris"><span>Meninggal</span><span>${semua.length-hidup}</span></div>`;
+  h+=`<div class="rk-baris"><span>Laki-laki</span><span>${laki}</span></div>`;
+  h+=`<div class="rk-baris"><span>Perempuan</span><span>${semua.length-laki}</span></div>`;
+  h+=`<div class="rk-baris"><span>Jumlah generasi</span><span>${daftarGen.length}</span></div>`;
+  if(terlepas>0) h+=`<div class="rk-catatan">${terlepas} orang belum tersambung ke pohon ini, jadi tidak ikut dihitung.</div>`;
+  $('rkAkar').textContent=a.nama;
+  $('rkIsi').innerHTML=h; $('rkIsi').scrollTop=0;
+  $('ringkasanOverlay').classList.remove('hidden');
+}
+$('btnRingkasan').addEventListener('click',()=>{ tutupFab(); bukaRingkasan(); });
+$('ringkasanOverlay').addEventListener('click',e=>{ if(e.target===$('ringkasanOverlay')) tutupRingkasan(); });
+
+// ===== Pengguna, bagikan akar, impor akar =====
+function idPenggunaBaru(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function perbaruiPenggunaTeks(){ $('penggunaTeks').textContent=(store.pengguna&&store.pengguna.nama)||'belum diisi'; }
+async function pastikanPengguna(){
+  if(store.pengguna&&store.pengguna.nama){ perbaruiPenggunaTeks(); return; }
+  const nama=await mintaNama('Siapa nama Anda?','Nama ini terlihat oleh keluarga yang menerima akar yang Anda bagikan. Gunakan nama asli.','','Nama lengkap',true);
+  store.pengguna={id:(store.pengguna&&store.pengguna.id)||idPenggunaBaru(),nama};
+  store.akar.forEach(a=>{ if(!a.pemilikId&&!a.terkunci){ a.pemilikId=store.pengguna.id; a.pemilikNama=nama; } });
+  simpanData(); perbaruiPenggunaTeks(); segarkanDaftarAkar();
+}
+$('btnPengguna').addEventListener('click',async()=>{
+  tutupFab();
+  const n=await mintaNama('Nama saya','Nama ini terlihat oleh penerima akar yang Anda bagikan.',(store.pengguna&&store.pengguna.nama)||'','Nama lengkap');
+  if(!n) return;
+  store.pengguna=store.pengguna||{id:idPenggunaBaru(),nama:n};
+  store.pengguna.nama=n;
+  store.akar.forEach(a=>{ if(a.pemilikId===store.pengguna.id&&!a.terkunci) a.pemilikNama=n; });
+  simpanData(); perbaruiPenggunaTeks();
+});
+
+let bagikanId=null;
+function bagikanTerbuka(){ return !$('bagikanOverlay').classList.contains('hidden'); }
+function tutupBagikan(){ $('bagikanOverlay').classList.add('hidden'); bagikanId=null; }
+$('amBagikan').addEventListener('click',()=>{
+  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
+  bagikanId=a.id; tutupSheet();
+  $('bagikanNama').textContent='Akar: '+a.nama;
+  document.querySelector('input[name="modeBagikan"][value="dasar"]').checked=true;
+  $('bagikanOverlay').classList.remove('hidden');
+});
+$('bagikanBatal').addEventListener('click',tutupBagikan);
+$('bagikanOverlay').addEventListener('click',e=>{ if(e.target===$('bagikanOverlay')) tutupBagikan(); });
+function bangunBerkasAkar(akar,mode){
+  const people={};
+  Object.values(akar.data.people).forEach(o=>{
+    const c=JSON.parse(JSON.stringify(o)); delete c.sama;
+    if(mode==='dasar'&&c.status!=='meninggal'){
+      c.foto=''; delete c.alamat;
+      if(c.lahir){ if(c.lahir.tahun) c.lahir={tahun:c.lahir.tahun}; else delete c.lahir; }
+    }
+    people[c.id]=c;
+  });
+  const d={people}; if(mode==='lengkap'&&akar.data.wilayah) d.wilayah=akar.data.wilayah; if(akar.data.garis) d.garis=akar.data.garis;
+  return {format:'akar-keluarga-akar',versi:2,pengirim:{id:store.pengguna.id,nama:store.pengguna.nama},akar:{id:akar.id,nama:akar.nama,warna:akar.warna,mode,diubah:Date.now(),data:d}};
+}
+$('bagikanYa').addEventListener('click',async()=>{
+  const a=store.akar.find(x=>x.id===bagikanId); if(!a) return;
+  const mode=document.querySelector('input[name="modeBagikan"]:checked').value;
+  tutupBagikan();
+  const isi=JSON.stringify(bangunBerkasAkar(a,mode));
+  const bersih=a.nama.replace(/[^A-Za-z0-9\u00C0-\u024F]+/g,'-').replace(/^-+|-+$/g,'')||'akar';
+  await kirimBerkas(isi,`Akar-${bersih}-${stempelTanggal()}.akar`,'Akar Keluarga: '+a.nama,'Bagikan akar ke...','application/octet-stream');
+});
+
+$('btnImpor').addEventListener('click',()=>{ tutupFab(); $('inputImpor').value=''; $('inputImpor').click(); });
+$('inputImpor').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>imporBerkas(String(r.result)); r.readAsText(f);
+});
+async function imporBerkas(teks){
+  let d;
+  try{ d=JSON.parse(teks); }catch(e){ alert('File tidak dikenali. Pastikan ini file akar yang dibagikan dari app Akar Keluarga.'); return; }
+  if(d&&(Array.isArray(d.akar)||d.people)){ alert('Ini file Backup, bukan file akar yang dibagikan. Gunakan "Restore data" untuk file ini.'); return; }
+  try{
+    if(!d||d.format!=='akar-keluarga-akar'||!d.pengirim||!d.pengirim.id||!d.akar||!d.akar.data||typeof d.akar.data.people!=='object'||!Object.keys(d.akar.data.people).length) throw new Error('format');
+    normalisasiPeople(d.akar.data.people);
+    Object.values(d.akar.data.people).forEach(q=>{ if(q&&typeof q==='object') delete q.sama; });
+  }catch(e){ alert('File akar tidak valid.'); return; }
+  const dataAkar={people:d.akar.data.people}; if(d.akar.data.wilayah&&typeof d.akar.data.wilayah==='object') dataAkar.wilayah=d.akar.data.wilayah; if(d.akar.data.garis&&typeof d.akar.data.garis==='object') dataAkar.garis=d.akar.data.garis;
+  const pengirim=String(d.pengirim.nama||'pengirim');
+  const milikSendiri=!!(store.pengguna&&d.pengirim.id===store.pengguna.id);
+  if(milikSendiri){
+    const ya=await konfirmasi('Akar milik Anda sendiri','File ini berasal dari akar yang dibuat di perangkat Anda. Impor sebagai salinan terpisah yang hanya bisa dilihat?','Ya, impor salinan');
+    if(!ya) return;
+  } else {
+    const ada=store.akar.find(a=>a.terkunci&&a.asalId===String(d.akar.id)&&a.pemilikId===String(d.pengirim.id));
+    if(ada){
+      const ya=await konfirmasi('Perbarui "'+ada.nama+'"?','Versi baru dari '+pengirim+' akan menggantikan salinan ini. Salinan ini hanya bisa dilihat, jadi tidak ada ubahan lokal yang hilang.','Ya, perbarui');
+      if(!ya) return;
+      ada.data=dataAkar; ada.mode=String(d.akar.mode||''); ada.pemilikNama=pengirim;
+      gantiAkar(ada.id); simpanData(); tutupDrawer();
+      alert('Akar "'+ada.nama+'" diperbarui.');
+      return;
+    }
+  }
+  const pakai=new Set(store.akar.map(a=>a.warna));
+  const warna=WARNA_AKAR.find(w=>!pakai.has(w))||WARNA_AKAR[store.akar.length%WARNA_AKAR.length];
+  const nama=pengirim+' \u00b7 '+String(d.akar.nama||'Akar');
+  const baru=buatAkar(idAkarBaru(),nama,warna,dataAkar,store.akar.filter(a=>a.pin).length<MAKS_PIN);
+  baru.terkunci=true; baru.pemilikId=String(d.pengirim.id); baru.pemilikNama=pengirim; baru.asalId=String(d.akar.id); baru.mode=String(d.akar.mode||'');
+  store.akar.push(baru);
+  gantiAkar(baru.id); simpanData(); tutupDrawer();
+  alert('Akar "'+nama+'" ditambahkan. Akar ini hanya bisa dilihat.');
+}
+perbaruiPenggunaTeks();
+
+// ===== Kartu profil =====
+let kartuId=null;
+function esc(t){ return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function tautanOrang(id){ const o=data.people[id]; return o ? `<a href="#" class="tautan" data-id="${esc(id)}">${esc(o.nama||'Tanpa nama')}</a>` : ''; }
+function urutLahir(a,b){
+  if(a.anakKe>0||b.anakKe>0){ const d=bandingLahir(a,b); if(d) return d; }
+  const ya=(a.lahir&&a.lahir.tahun)||9999, yb=(b.lahir&&b.lahir.tahun)||9999;
+  return ya-yb || String(a.nama||'').localeCompare(String(b.nama||''));
+}
+function barisRelasi(label,ids){
+  const t=ids.map(tautanOrang).filter(Boolean);
+  return t.length ? `<div class="kartu-baris"><b>${label}:</b> ${t.join(', ')}</div>` : '';
+}
+function teksAlamat(a){
+  if(!a) return '';
+  return [a.jalan,a.desa,a.kec?('Kec. '+a.kec):'',a.kab,a.prov].filter(Boolean).join(', ');
+}
+function barisPasangan(o){
+  const t=(o.idPasangan||[]).filter(x=>data.people[x]).map(x=>tautanOrang(x)+(((o.statusPasangan||{})[x]==='cerai')?' <span class="ket-cerai">(cerai)</span>':''));
+  return t.length?`<div class="kartu-baris"><b>Pasangan:</b> ${t.join(', ')}</div>`:'';
+}
+function barisAnak(o){
+  const semua=anakDari(o.id).sort(urutLahir);
+  if(!semua.length) return '';
+  const grup=[];
+  (o.idPasangan||[]).filter(x=>data.people[x]).forEach(pid=>{
+    const a=semua.filter(c=>(c.idAyah===o.id&&c.idIbu===pid)||(c.idIbu===o.id&&c.idAyah===pid));
+    if(a.length) grup.push({pid,anak:a});
+  });
+  const dipakai=new Set(grup.flatMap(g=>g.anak.map(c=>c.id)));
+  const sisa=semua.filter(c=>!dipakai.has(c.id));
+  if(grup.length<2&&!(grup.length&&sisa.length)) return barisRelasi('Anak',semua.map(c=>c.id));
+  let h='';
+  grup.forEach(g=>{ h+=barisRelasi('Anak dengan '+esc(namaDari(g.pid)||'pasangan'),g.anak.map(c=>c.id)); });
+  if(sisa.length) h+=barisRelasi('Anak lainnya',sisa.map(c=>c.id));
+  return h;
+}
+function bukaKartu(id){
+  const o=data.people[id]; if(!o) return;
+  kartuId=id;
+  const foto=$('kartuFoto'), fotoO=fotoTampilOrang(o);
+  if(fotoO){
+    foto.className='kartu-foto'; foto.style.backgroundImage=`url("${fotoO}")`; foto.innerHTML='';
+  } else {
+    foto.className='kartu-foto kosong '+(genderDari(o)==='f'?'f':'m'); foto.style.backgroundImage='';
+    foto.innerHTML=`<span class="inisial">${esc(inisial(o.nama))}</span>`;
+  }
+  const meninggal=o.status==='meninggal';
+  foto.insertAdjacentHTML('beforeend',`<span class="kartu-status ${meninggal?'meninggal':'hidup'}"></span><span class="kartu-kode">${esc(o.id)}</span>`);
+  const umur=hitungUmur(o);
+  const lahir=formatTglSingkat(o.lahir), wafat=formatTglSingkat(o.wafat);
+  const sub=[];
+  if(umur!==null) sub.push(meninggal?`${umur} tahun (saat wafat)`:`${umur} tahun`);
+  let h=`<div class="kartu-nama">${esc(o.nama||'Tanpa nama')}</div>`;
+  h+=`<div class="kartu-sub">${esc(sub.join(' \u00b7 '))}</div>`;
+  if(lahir) h+=`<div class="kartu-baris"><b>Lahir:</b> ${esc(lahir)}</div>`;
+  if(meninggal&&wafat) h+=`<div class="kartu-baris"><b>Wafat:</b> ${esc(wafat)}</div>`;
+  const txtAlamat=teksAlamat(o.alamat);
+  if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}</div>`;
+  h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
+  h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
+  h+=barisPasangan(o);
+  h+=barisAnak(o);
+  $('kartuInfo').innerHTML=h; $('kartuInfo').scrollTop=0;
+  $('kartuEdit').style.display=akarAktif().terkunci?'none':'flex';
+  $('kartuOverlay').classList.remove('hidden');
+}
+function tutupKartu(){ $('kartuOverlay').classList.add('hidden'); kartuId=null; }
+function kartuTerbuka(){ return !$('kartuOverlay').classList.contains('hidden'); }
+$('kartuOverlay').addEventListener('click',e=>{ if(e.target===$('kartuOverlay')) tutupKartu(); });
+$('kartuInfo').addEventListener('click',e=>{
+  const t=e.target.closest&&e.target.closest('.tautan');
+  if(t){ e.preventDefault(); bukaKartu(t.dataset.id); }
+});
+$('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if(id) bukaModal(id); });
+
+// ===== Tombol Back Android =====
+function tanganiBack(){
+  if(modeGaris){ keluarModeGaris(); return true; }
+  if(cetakTerbuka()){ tutupCetakDlg(); return true; }
+  if(peranTerbuka()){ tutupPeran(); return true; }
+  if(dlgTerbuka()){ tutupDlg(false); return true; }
+  if(sheetTerbuka()){ tutupSheet(); return true; }
+  if(cropTerbuka()){ tutupCrop(); return true; }
+  if(bagikanTerbuka()){ tutupBagikan(); return true; }
+  if(namaTerbuka()){ if(!namaWajib) tutupNamaDlg(null); return true; }
+  if(!$('modalOverlay').classList.contains('hidden')){ tutupModal(); return true; }
+  if(ringkasanTerbuka()){ tutupRingkasan(); return true; }
+  if(kartuTerbuka()){ tutupKartu(); return true; }
+  if(drawerTerbuka()){ tutupDrawer(); return true; }
+  return false;
+}
+(function(){
+  const cap=window.Capacitor;
+  const AppPlg=cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.Plugins&&cap.Plugins.App;
+  if(AppPlg&&AppPlg.addListener){
+    AppPlg.addListener('backButton',()=>{ if(!tanganiBack()&&AppPlg.exitApp) AppPlg.exitApp(); });
+  }
+})();
+
+// ===== Wilayah Indonesia (diambil online, disimpan di cache) =====
+const WIL_URL='https://www.emsifa.com/api-wilayah-indonesia/v2';
+const wilMem={};
+async function wilAmbil(path){
+  if(wilMem[path]) return wilMem[path];
+  const kunci='wil:'+path;
+  try{ const c=localStorage.getItem(kunci); if(c){ wilMem[path]=JSON.parse(c); return wilMem[path]; } }catch(e){}
+  const r=await fetch(`${WIL_URL}/${path}.json`);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const j=await r.json();
+  const arr=(Array.isArray(j.data)?j.data:[]).map(x=>({id:String(x.id),name:String(x.name)}));
+  if(!arr.length) throw new Error('kosong');
+  wilMem[path]=arr;
+  try{ localStorage.setItem(kunci,JSON.stringify(arr)); }catch(e){}
+  return arr;
+}
+let wilF={}, wilToken=0, wilUbah=false;
+function wilStatus(t){ $('wilStatus').textContent=t||''; }
+function isiSel(sel,arr,pilihId,label){
+  sel.innerHTML='';
+  const o0=document.createElement('option'); o0.value=''; o0.textContent=label; sel.appendChild(o0);
+  arr.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; sel.appendChild(o); });
+  sel.value=pilihId||'';
+  if(sel.value!==(pilihId||'')) sel.value='';
+}
+function isiSelTersimpan(sel,id,nama,label){ isiSel(sel,id?[{id,name:nama}]:[],id,label); }
+function teksPilihan(sel){ return sel.selectedIndex>0 ? sel.options[sel.selectedIndex].textContent : ''; }
+async function muatDaftar(sel,path,pilihId,label){
+  const tok=wilToken;
+  wilStatus('Memuat data wilayah...');
+  try{
+    const arr=(await wilAmbil(path)).slice().sort((a,b)=>a.name.localeCompare(b.name,'id'));
+    if(tok!==wilToken) return false;
+    isiSel(sel,arr,pilihId,label); wilStatus(''); return true;
+  }catch(e){
+    if(tok!==wilToken) return false;
+    wilStatus('Data wilayah tidak bisa dimuat (periksa internet). Alamat bisa ditulis lengkap di kolom Jalan / dusun.');
+    return false;
+  }
+}
+async function muatProv(){
+  const ok=await muatDaftar($('fProv'),'provinces',wilF.provId,'- pilih provinsi -');
+  if(ok&&wilF.provId) await muatKab();
+}
+async function muatKab(){ if(!wilF.provId) return; await muatDaftar($('fKab'),'regencies/'+wilF.provId,wilF.kabId,'- pilih kabupaten / kota -'); }
+async function muatKec(){
+  if(!wilF.kabId) return;
+  const ok=await muatDaftar($('fKec'),'districts/'+wilF.kabId,wilF.kecId,'- pilih kecamatan -');
+  if(ok&&wilF.kecId) await muatDesa();
+}
+async function muatDesa(){ if(!wilF.kecId) return; await muatDaftar($('fDesa'),'villages/'+wilF.kecId,wilF.desaId,'- pilih desa / kelurahan -'); }
+function aturBlokWilayah(){
+  const adaKab=!!wilF.kabId;
+  $('wilayahInfo').classList.toggle('hidden',!(adaKab&&!wilUbah));
+  $('wilayahPilih').classList.toggle('hidden',adaKab&&!wilUbah);
+  $('wilayahTeks').textContent=adaKab?('Wilayah: '+[wilF.kab,wilF.prov].filter(Boolean).join(', ')):'';
+}
+function siapkanAlamat(o){
+  wilToken++; wilUbah=false;
+  const a=o.alamat||{}, u=data.wilayah||{};
+  const dasar=a.kabId?a:u;
+  wilF={provId:dasar.provId||'',prov:dasar.prov||'',kabId:dasar.kabId||'',kab:dasar.kab||'',
+        kecId:a.kecId||'',kec:a.kec||'',desaId:a.desaId||'',desa:a.desa||''};
+  $('fJalan').value=a.jalan||'';
+  isiSelTersimpan($('fProv'),wilF.provId,wilF.prov,'- pilih provinsi -');
+  isiSelTersimpan($('fKab'),wilF.kabId,wilF.kab,'- pilih kabupaten / kota -');
+  isiSelTersimpan($('fKec'),wilF.kecId,wilF.kec,'- pilih kecamatan -');
+  isiSelTersimpan($('fDesa'),wilF.desaId,wilF.desa,'- pilih desa / kelurahan -');
+  $('fUtama').checked=!data.wilayah;
+  wilStatus('');
+  aturBlokWilayah();
+  if(wilF.kabId) muatKec(); else muatProv();
+}
+$('btnUbahWilayah').addEventListener('click',()=>{ wilUbah=true; aturBlokWilayah(); $('fUtama').checked=false; muatProv(); });
+$('fProv').addEventListener('change',()=>{
+  wilF.provId=$('fProv').value; wilF.prov=teksPilihan($('fProv'));
+  wilF.kabId=wilF.kab=wilF.kecId=wilF.kec=wilF.desaId=wilF.desa='';
+  isiSel($('fKab'),[],'','- pilih kabupaten / kota -'); isiSel($('fKec'),[],'','- pilih kecamatan -'); isiSel($('fDesa'),[],'','- pilih desa / kelurahan -');
+  muatKab();
+});
+$('fKab').addEventListener('change',()=>{
+  wilF.kabId=$('fKab').value; wilF.kab=teksPilihan($('fKab'));
+  wilF.kecId=wilF.kec=wilF.desaId=wilF.desa='';
+  isiSel($('fKec'),[],'','- pilih kecamatan -'); isiSel($('fDesa'),[],'','- pilih desa / kelurahan -');
+  muatKec();
+});
+$('fKec').addEventListener('change',()=>{
+  wilF.kecId=$('fKec').value; wilF.kec=teksPilihan($('fKec'));
+  wilF.desaId=wilF.desa='';
+  isiSel($('fDesa'),[],'','- pilih desa / kelurahan -');
+  muatDesa();
+});
+$('fDesa').addEventListener('change',()=>{ wilF.desaId=$('fDesa').value; wilF.desa=teksPilihan($('fDesa')); });
+function simpanAlamat(o){
+  const jalan=$('fJalan').value.trim();
+  if(wilF.kecId||wilF.desaId||jalan){
+    o.alamat={jalan,desaId:wilF.desaId,desa:wilF.desa,kecId:wilF.kecId,kec:wilF.kec,kabId:wilF.kabId,kab:wilF.kab,provId:wilF.provId,prov:wilF.prov};
+  } else delete o.alamat;
+  if(wilF.kabId && $('fUtama').checked && !$('wilayahPilih').classList.contains('hidden')){
+    data.wilayah={provId:wilF.provId,prov:wilF.prov,kabId:wilF.kabId,kab:wilF.kab};
+  }
+}
+
+// ===== Modal anggota =====
+let idAktif=null, fotoTemp='';
+function namaDari(id){ const o=data.people[id]; return o ? (o.nama||'Tanpa nama') : null; }
+function segarkanFoto(){
+  const pv=$('previewFoto'); pv.innerHTML='';
+  if(!fotoTemp) return;
+  const t=document.createElement('div'); t.className='foto-thumb'; t.style.backgroundImage=`url("${fotoTemp}")`;
+  const b=document.createElement('button'); b.type='button'; b.className='btn-kecil'; b.textContent='Hapus foto';
+  b.addEventListener('click',e=>{ e.preventDefault(); fotoTemp=''; $('fFotoFile').value=''; segarkanFoto(); });
+  pv.appendChild(t); pv.appendChild(b);
+}
+function bukaModal(id,fokusNama){
+  if(akarAktif().terkunci) return;
+  const o=data.people[id]; if(!o) return;
+  idAktif=id; fotoTemp=o.foto||'';
+  $('modalTitle').textContent=o.nama||'Anggota';
+  $('fNama').value=o.nama||'';
+  $('fStatus').value=o.status==='meninggal'?'meninggal':'hidup';
+  $('fGender').value=genderDari(o); segarSaklar();
+  $('fAnakKe').value=(o.anakKe>0)?o.anakKe:'';
+  $('fFotoFile').value=''; segarkanFoto();
+  const lh=o.lahir||{}, wf=o.wafat||{};
+  $('fLahirTgl').value=lh.tanggal||''; $('fLahirBln').value=lh.bulan||''; $('fLahirThn').value=lh.tahun||'';
+  $('fWafatTgl').value=wf.tanggal||''; $('fWafatBln').value=wf.bulan||''; $('fWafatThn').value=wf.tahun||'';
+  aturWafat();
+  siapkanAlamat(o);
+  isiPilihanOrtu(o); aturTombolOrtu(o);
+  isiDaftarPasangan(o); isiSama(o);
+  blokirKlikSampai=Date.now()+600;
+  $('modalOverlay').classList.remove('hidden');
+  if(fokusNama) setTimeout(()=>$('fNama').focus(),60);
+}
+function tutupModal(){ $('modalOverlay').classList.add('hidden'); idAktif=null; }
+function segarSaklar(){
+  [['skStatus','fStatus'],['skGender','fGender']].forEach(([sk,sel])=>{
+    document.querySelectorAll('#'+sk+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===$(sel).value));
+  });
+}
+[['skStatus','fStatus'],['skGender','fGender']].forEach(([sk,sel])=>{
+  document.querySelectorAll('#'+sk+' button').forEach(b=>b.addEventListener('click',()=>{
+    $(sel).value=b.dataset.v; $(sel).dispatchEvent(new Event('change')); segarSaklar();
+  }));
+});
+function aturWafat(){ segarSaklar(); $('wrapWafat').style.display=$('fStatus').value==='meninggal'?'block':'none'; }
+$('fStatus').addEventListener('change',aturWafat);
+$('btnTutup').addEventListener('click',tutupModal);
+$('modalOverlay').addEventListener('click',e=>{ if(e.target===$('modalOverlay')) tutupModal(); });
+
+// ===== Crop foto =====
+const FOTO_PX=480;
+let cropIm=null, cropUrl='', cropS=1, cropMin=1, cropX=0, cropY=0, cropF=300;
+const cropPtr=new Map(); let cropJarak=0, cropSAwal=1;
+function cropTerbuka(){ return !$('cropOverlay').classList.contains('hidden'); }
+function cropTerapkan(){
+  const el=$('cropImg');
+  el.style.transform=`translate(${cropX}px,${cropY}px) scale(${cropS})`;
+  $('cropZoom').value=cropS/cropMin;
+}
+function cropBatasi(){
+  const iw=cropIm.naturalWidth, ih=cropIm.naturalHeight;
+  cropS=Math.min(cropMin*5,Math.max(cropMin,cropS));
+  cropX=Math.min(0,Math.max(cropF-iw*cropS,cropX));
+  cropY=Math.min(0,Math.max(cropF-ih*cropS,cropY));
+}
+function cropZoomDi(px,py,sBaru){
+  const r=Math.min(cropMin*5,Math.max(cropMin,sBaru))/cropS;
+  cropX=px-(px-cropX)*r; cropY=py-(py-cropY)*r; cropS*=r;
+  cropBatasi(); cropTerapkan();
+}
+function bukaCrop(file){
+  const url=URL.createObjectURL(file);
+  const im=new Image();
+  im.onload=()=>{
+    if(!im.naturalWidth){ URL.revokeObjectURL(url); alert('Foto tidak bisa dibaca.'); return; }
+    cropIm=im; cropUrl=url;
+    const el=$('cropImg'); el.src=url; el.style.width=im.naturalWidth+'px'; el.style.height=im.naturalHeight+'px';
+    $('cropOverlay').classList.remove('hidden');
+    cropF=$('cropFrame').clientWidth||300;
+    cropMin=cropF/Math.min(im.naturalWidth,im.naturalHeight);
+    cropS=cropMin;
+    cropX=(cropF-im.naturalWidth*cropS)/2; cropY=(cropF-im.naturalHeight*cropS)/2;
+    cropBatasi(); cropTerapkan();
+  };
+  im.onerror=()=>{ URL.revokeObjectURL(url); alert('Foto tidak bisa dibaca.'); };
+  im.src=url;
+}
+function tutupCrop(){
+  $('cropOverlay').classList.add('hidden');
+  if(cropUrl){ URL.revokeObjectURL(cropUrl); cropUrl=''; }
+  cropIm=null; cropPtr.clear(); $('cropImg').removeAttribute('src');
+  $('fFotoFile').value='';
+}
+$('fFotoFile').addEventListener('change',e=>{ const f=e.target.files[0]; if(f) bukaCrop(f); });
+$('btnPilihFoto').addEventListener('click',()=>$('fFotoFile').click());
+$('cropBatal').addEventListener('click',tutupCrop);
+$('cropPakai').addEventListener('click',()=>{
+  if(!cropIm) return;
+  const c=document.createElement('canvas'); c.width=FOTO_PX; c.height=FOTO_PX;
+  const g=c.getContext('2d'); g.imageSmoothingQuality='high';
+  g.drawImage(cropIm,-cropX/cropS,-cropY/cropS,cropF/cropS,cropF/cropS,0,0,FOTO_PX,FOTO_PX);
+  fotoTemp=c.toDataURL('image/jpeg',0.8); segarkanFoto(); tutupCrop();
+});
+$('cropZoom').addEventListener('input',e=>{ if(cropIm) cropZoomDi(cropF/2,cropF/2,cropMin*parseFloat(e.target.value)); });
+(function(){
+  const fr=$('cropFrame');
+  function titik(e){ const r=fr.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; }
+  fr.addEventListener('pointerdown',e=>{
+    if(!cropIm) return;
+    fr.setPointerCapture&&fr.setPointerCapture(e.pointerId);
+    cropPtr.set(e.pointerId,titik(e));
+    if(cropPtr.size===2){ const [a,b]=[...cropPtr.values()]; cropJarak=Math.hypot(a.x-b.x,a.y-b.y)||1; cropSAwal=cropS; }
+  });
+  fr.addEventListener('pointermove',e=>{
+    if(!cropIm||!cropPtr.has(e.pointerId)) return;
+    const lama=cropPtr.get(e.pointerId), baru=titik(e);
+    cropPtr.set(e.pointerId,baru);
+    if(cropPtr.size===1){ cropX+=baru.x-lama.x; cropY+=baru.y-lama.y; cropBatasi(); cropTerapkan(); }
+    else if(cropPtr.size===2){
+      const [a,b]=[...cropPtr.values()];
+      const d=Math.hypot(a.x-b.x,a.y-b.y)||1;
+      cropZoomDi((a.x+b.x)/2,(a.y+b.y)/2,cropSAwal*(d/cropJarak));
+    }
+  });
+  const lepas=e=>{ cropPtr.delete(e.pointerId); };
+  fr.addEventListener('pointerup',lepas); fr.addEventListener('pointercancel',lepas);
+  fr.addEventListener('wheel',e=>{ if(!cropIm) return; e.preventDefault(); const t=titik(e); cropZoomDi(t.x,t.y,cropS*(e.deltaY<0?1.1:1/1.1)); },{passive:false});
+})();
+
+function bacaTanggal(t,b,y){
+  const tahun=bacaAngka(y); if(!tahun) return null;
+  const tg=bacaAngka(t), bl=bacaAngka(b);
+  const out={tahun};
+  if(bl>=1&&bl<=12){ out.bulan=bl; if(tg>=1&&tg<=31) out.tanggal=tg; }
+  return out;
+}
+// Terapkan isi form ke data (dipakai Simpan, dan otomatis sebelum menambah anggota
+// supaya ketikan yang belum disimpan tidak hilang).
+function isiSama(o){
+  const w=$('wrapSama'), sel=$('fSama');
+  const lain=store.akar.filter(a=>a.id!==store.aktifId);
+  w.style.display=lain.length?'':'none'; sel.innerHTML='';
+  if(!lain.length) return;
+  const k=document.createElement('option'); k.value=''; k.textContent='\u2014 belum ditandai \u2014'; sel.appendChild(k);
+  lain.forEach(a=>{
+    const g=document.createElement('optgroup'); g.label=a.nama;
+    Object.values(a.data.people).sort((x,y)=>String(x.nama||'').localeCompare(String(y.nama||''))).forEach(q=>{
+      const op=document.createElement('option'); op.value=a.id+'|'+q.id;
+      op.textContent=(q.nama||'Tanpa nama')+((q.lahir&&q.lahir.tahun)?' ('+q.lahir.tahun+')':'');
+      g.appendChild(op);
+    });
+    sel.appendChild(g);
+  });
+  let nilai='';
+  if(o.sama && store.akar.some(a=>a.id===o.sama.a && a.data.people[o.sama.i])) nilai=o.sama.a+'|'+o.sama.i;
+  else {
+    for(const a of lain){
+      const q=Object.values(a.data.people).find(z=>z.sama&&z.sama.a===store.aktifId&&z.sama.i===o.id);
+      if(q){ nilai=a.id+'|'+q.id; break; }
+    }
+  }
+  sel.value=nilai;
+}
+function terapkanSama(o){
+  if($('wrapSama').style.display==='none') return;
+  store.akar.forEach(a=>{
+    if(a.id===store.aktifId||a.terkunci) return;
+    Object.values(a.data.people).forEach(q=>{ if(q.sama&&q.sama.a===store.aktifId&&q.sama.i===o.id) delete q.sama; });
+  });
+  const v=$('fSama').value;
+  if(v){ const i=v.indexOf('|'); o.sama={a:v.slice(0,i),i:v.slice(i+1)}; } else delete o.sama;
+}
+function terapkanForm(o){
+  o.nama=$('fNama').value.trim();
+  o.status=$('fStatus').value;
+  const gBaru=$('fGender').value, gLama=genderDari(o);
+  o.gender=gBaru;
+  if(fotoTemp&&fotoTemp!==o.foto) o.fotoAt=Date.now();
+  if(!fotoTemp) delete o.fotoAt;
+  o.foto=fotoTemp;
+  simpanAlamat(o);
+  terapkanStatusPasangan(o);
+  const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn'));
+  if(lh) o.lahir=lh; else delete o.lahir;
+  const wf=o.status==='meninggal' ? bacaTanggal($('fWafatTgl'),$('fWafatBln'),$('fWafatThn')) : null;
+  if(wf) o.wafat=wf; else delete o.wafat;
+  const nomorAnak=bacaAngka($('fAnakKe'));
+  if(nomorAnak!==null&&nomorAnak>0) o.anakKe=nomorAnak; else delete o.anakKe;
+  const ay=$('fAyah').value||null, ib=$('fIbu').value||null;
+  o.idAyah=ay; o.idIbu=(ib&&ib!==ay)?ib:null;
+  if(o.idAyah&&o.idIbu) hubungkanPasangan(o.idAyah,o.idIbu);
+  terapkanSama(o);
+  if(gBaru!==gLama && o.id!==rootAktif()){
+    o.jalur=jalurDari(o);
+    const dasar=o.jalur+gBaru;
+    if(dasar!==o.id) gantiId(o.id,idUnik(dasar));
+  }
+  idAktif=o.id;
+}
+$('btnSimpan').addEventListener('click',()=>{
+  const o=data.people[idAktif]; if(!o) return;
+  terapkanForm(o);
+  simpanData(); tutupModal(); render(false);
+});
+$('btnHapus').addEventListener('click',()=>{
+  const id=idAktif; const o=data.people[id]; if(!o) return;
+  if(id===rootAktif()){ alert('Orang utama (titik awal pohon) tidak bisa dihapus. Gunakan "Mulai baru" untuk mengosongkan semuanya.'); return; }
+  if(!confirm(`Hapus "${o.nama||'Tanpa nama'}"? Cabang yang hanya tersambung lewat orang ini juga tidak akan tampil lagi.`)) return;
+  delete data.people[id];
+  Object.values(data.people).forEach(p=>{
+    if(p.idAyah===id) p.idAyah=null;
+    if(p.idIbu===id) p.idIbu=null;
+    p.idPasangan=(p.idPasangan||[]).filter(x=>x!==id);
+    if(p.statusPasangan){ delete p.statusPasangan[id]; if(!Object.keys(p.statusPasangan).length) delete p.statusPasangan; }
+  });
+  simpanData(); tutupModal(); render(false);
+});
+
+function orangBaru(id,gender,jalur){
+  data.people[id]={id,nama:'',status:'hidup',gender,jalur,foto:'',idAyah:null,idIbu:null,idPasangan:[]};
+  return data.people[id];
+}
+function hubungkanPasangan(a,b){
+  const A=data.people[a], B=data.people[b]; if(!A||!B) return;
+  A.idPasangan=A.idPasangan||[]; B.idPasangan=B.idPasangan||[];
+  if(!A.idPasangan.includes(b)) A.idPasangan.push(b);
+  if(!B.idPasangan.includes(a)) B.idPasangan.push(a);
+}
+function gantiId(lama,baru){
+  const o=data.people[lama]; delete data.people[lama]; o.id=baru; data.people[baru]=o;
+  store.akar.forEach(ak=>Object.values(ak.data.people).forEach(q=>{ if(q.sama&&q.sama.a===store.aktifId&&q.sama.i===lama) q.sama.i=baru; }));
+  Object.values(data.people).forEach(p=>{
+    if(p.idAyah===lama) p.idAyah=baru;
+    if(p.idIbu===lama) p.idIbu=baru;
+    p.idPasangan=(p.idPasangan||[]).map(x=>x===lama?baru:x);
+    if(p.statusPasangan&&p.statusPasangan[lama]){ p.statusPasangan[baru]=p.statusPasangan[lama]; delete p.statusPasangan[lama]; }
+  });
+}
+function turunanDari(id){
+  const s=new Set();
+  (function r(x){ anakDari(x).forEach(a=>{ if(!s.has(a.id)){ s.add(a.id); r(a.id); } }); })(id);
+  return s;
+}
+function isiDaftarPasangan(o){
+  const w=$('daftarPasangan'); w.innerHTML='';
+  const ps=(o.idPasangan||[]).filter(id=>data.people[id]);
+  if(!ps.length){ w.textContent='-'; return; }
+  ps.forEach(pid=>{
+    const row=document.createElement('div'); row.className='psg-baris';
+    const nm=document.createElement('span'); nm.textContent=namaDari(pid)||'Tanpa nama';
+    const sel=document.createElement('select'); sel.dataset.id=pid;
+    sel.innerHTML='<option value="menikah">Menikah</option><option value="cerai">Cerai</option>';
+    sel.value=((o.statusPasangan||{})[pid]==='cerai')?'cerai':'menikah';
+    row.appendChild(nm); row.appendChild(sel); w.appendChild(row);
+  });
+}
+function terapkanStatusPasangan(o){
+  document.querySelectorAll('#daftarPasangan select').forEach(sel=>{
+    const pid=sel.dataset.id, q=data.people[pid]; if(!q) return;
+    o.statusPasangan=o.statusPasangan||{}; q.statusPasangan=q.statusPasangan||{};
+    if(sel.value==='cerai'){ o.statusPasangan[pid]='cerai'; q.statusPasangan[o.id]='cerai'; }
+    else { delete o.statusPasangan[pid]; delete q.statusPasangan[o.id]; }
+    if(!Object.keys(o.statusPasangan).length) delete o.statusPasangan;
+    if(!Object.keys(q.statusPasangan).length) delete q.statusPasangan;
+  });
+}
+let opsiOrtuAktif=[];
+function bangunOpsiOrtu(el,opsi,pilih,idLain){
+  el.innerHTML='';
+  const kosong=document.createElement('option'); kosong.value=''; kosong.textContent='— belum ada —'; el.appendChild(kosong);
+  const buat=p=>{ const op=document.createElement('option'); op.value=p.id; op.textContent=(p.nama||'Tanpa nama')+' ('+p.id+')'; return op; };
+  const lain=idLain&&data.people[idLain];
+  const psgLain=lain?(lain.idPasangan||[]).filter(id=>opsi.some(p=>p.id===id)):[];
+  if(psgLain.length){
+    const g1=document.createElement('optgroup'); g1.label='Pasangan '+(lain.nama||'Tanpa nama');
+    psgLain.forEach(id=>g1.appendChild(buat(data.people[id])));
+    el.appendChild(g1);
+    const g2=document.createElement('optgroup'); g2.label='Semua orang';
+    opsi.filter(p=>!psgLain.includes(p.id)).forEach(p=>g2.appendChild(buat(p)));
+    el.appendChild(g2);
+  } else opsi.forEach(p=>el.appendChild(buat(p)));
+  el.value=pilih||'';
+}
+function segarkanOpsiOrtu(){
+  const ay=$('fAyah').value, ib=$('fIbu').value;
+  bangunOpsiOrtu($('fAyah'),opsiOrtuAktif,ay,ib);
+  bangunOpsiOrtu($('fIbu'),opsiOrtuAktif,ib,ay);
+}
+$('fAyah').addEventListener('change',segarkanOpsiOrtu);
+$('fIbu').addEventListener('change',segarkanOpsiOrtu);
+function isiPilihanOrtu(o){
+  const terlarang=turunanDari(o.id); terlarang.add(o.id);
+  opsiOrtuAktif=Object.values(data.people).filter(p=>!terlarang.has(p.id));
+  const ay=(o.idAyah&&data.people[o.idAyah])?o.idAyah:'';
+  const ib=(o.idIbu&&data.people[o.idIbu])?o.idIbu:'';
+  bangunOpsiOrtu($('fAyah'),opsiOrtuAktif,ay,ib);
+  bangunOpsiOrtu($('fIbu'),opsiOrtuAktif,ib,ay);
+}
+function aturTombolOrtu(o){
+  const b=document.querySelector('[data-rel="orangtua"]');
+  b.textContent=!o.idAyah?'+ ayah':!o.idIbu?'+ ibu':'+ orang tua';
+  b.disabled=!!(o.idAyah&&o.idIbu); b.style.opacity=b.disabled?0.4:1;
+}
+
+// Tambah anggota tanpa dialog: anggota baru langsung dibuat dengan isian kosong dan
+// formnya terbuka (kursor di nama). Jenis kelamin bisa diubah di form (ID ikut menyesuaikan).
+document.querySelectorAll('.modal-tambah-tombol button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const o=data.people[idAktif]; if(!o) return;
+    terapkanForm(o);
+    const rel=btn.dataset.rel; let baru=null;
+
+    if(rel==='anak'){
+      const ps=(o.idPasangan||[]).filter(id=>data.people[id]);
+      const psgId=ps.length?ps[ps.length-1]:null; // pasangan terbaru; bisa diubah lewat pilihan Ayah/Ibu
+      const sayaIbu=genderDari(o)==='f';
+      const idAyah=sayaIbu ? psgId : o.id;
+      const idIbu =sayaIbu ? o.id : psgId;
+      const acuan=data.people[idAyah]||data.people[idIbu];
+      const jOrtu=jalurDari(acuan);
+      const jalur=jOrtu+'.'+nomorAnakBerikutnya(jOrtu);
+      baru=orangBaru(idUnik(jalur+'m'),'m',jalur);
+      baru.idAyah=idAyah; baru.idIbu=idIbu;
+    }
+    else if(rel==='pasangan'){
+      const g=genderDari(o)==='m'?'f':'m';
+      const jalur=jalurDari(o);
+      baru=orangBaru(idUnik(jalur+g),g,jalur);
+      hubungkanPasangan(o.id,baru.id);
+    }
+    else if(rel==='orangtua'){
+      if(o.idAyah && o.idIbu) return;
+      const sebagaiAyah=!o.idAyah;
+      const lain=data.people[sebagaiAyah?o.idIbu:o.idAyah]||null;
+      const g=sebagaiAyah?'m':'f';
+      const jalur=lain ? jalurDari(lain) : hurufKeluargaBerikutnya();
+      baru=orangBaru(idUnik(jalur+g),g,jalur);
+      if(sebagaiAyah) o.idAyah=baru.id; else o.idIbu=baru.id;
+      if(lain) hubungkanPasangan(lain.id,baru.id);
+    }
+
+    if(baru){ simpanData(); render(false); bukaModal(baru.id,true); }
+  });
+});
+
+render(true);
+pastikanPengguna();
+})().catch(err=>{
+  document.body.insertAdjacentHTML('beforeend','<pre style="position:fixed;inset:0;margin:0;background:#fff;color:#a00;padding:16px;z-index:999;white-space:pre-wrap;font-size:13px">Gagal memulai app:\n'+String(err&&err.stack||err)+'</pre>');
+});
+</script>
+</body>
+</html>

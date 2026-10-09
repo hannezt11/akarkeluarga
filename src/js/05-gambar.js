@@ -1,5 +1,41 @@
+// Geser nama manual (mode Edit): data.geser[id] = selisih x (px) dari posisi otomatis. Hanya untuk orang di akar aktif.
+function terapkanGeser(posisi,riilId){
+  const gs=data&&data.geser; if(!gs) return;
+  Object.keys(posisi).forEach(id=>{
+    const q=posisi[id]; if(q.xOto!==undefined) return;
+    q.xOto=q.x;
+    const d=gs[id]; if(typeof d!=='number'||!riilId(id)) return;
+    q.x=Math.max(0,q.x+d);
+  });
+}
+function pasangGeserNama(n,o,pos){
+  n.classList.add('geser');
+  n.addEventListener('pointerdown',e=>{
+    e.preventDefault(); e.stopPropagation();
+    const x0=e.clientX, d0=(data.geser&&data.geser[o.id])||0, oto=(pos.xOto!==undefined)?pos.xOto:pos.x;
+    let bingkai=0;
+    const gerak=ev=>{
+      const dn=Math.round(Math.max(-oto,d0+(ev.clientX-x0)/sk));
+      data.geser=data.geser||{}; data.geser[o.id]=dn;
+      if(!bingkai) bingkai=requestAnimationFrame(()=>{ bingkai=0; render(false); });
+    };
+    const selesai=()=>{
+      window.removeEventListener('pointermove',gerak);
+      window.removeEventListener('pointerup',selesai);
+      window.removeEventListener('pointercancel',selesai);
+      if(bingkai){ cancelAnimationFrame(bingkai); bingkai=0; }
+      if(data.geser&&!data.geser[o.id]) delete data.geser[o.id];
+      if(data.geser&&!Object.keys(data.geser).length) delete data.geser;
+      simpanData(); render(false);
+    };
+    window.addEventListener('pointermove',gerak);
+    window.addEventListener('pointerup',selesai);
+    window.addEventListener('pointercancel',selesai);
+  });
+}
 function gambarPohonBlok(target,M,L,g){
   const orang=g.data.people, posisi=L.posisi;
+  terapkanGeser(posisi,id=>g.riil.has(id));
   const riilId=id=>g.riil.has(id);
   const blokDari=id=>L.blok[id]||0;
   const rekam=(t,a,b,c,bl)=>{ if(L.uji) L.uji.push({t,a,b,c,bl}); };
@@ -203,6 +239,7 @@ function gambarPohonBlok(target,M,L,g){
     const u=hitungUmur(o);
     um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' \u2020':'')) : formatTglSingkat(o.lahir);
     n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
+    if(modeGaris&&!M.cetak&&riilId(o.id)) pasangGeserNama(n,o,pos);
     target.appendChild(n);
   });
   if(!M.cetak) L.label.forEach(lb=>{
@@ -271,6 +308,7 @@ function pasangGarisKeluarga(rec,yBus){
 function gambarPohon(target,M){
   const riilId=id=>!infoLatar||infoLatar.riil.has(id);
   const posisi=hitungLayout();
+  terapkanGeser(posisi,riilId);
   target.innerHTML='';
 
   // 1) kelompokkan anak per keluarga (pasangan orang tua yang sama)

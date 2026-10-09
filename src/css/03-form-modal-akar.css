@@ -123,3 +123,6 @@
 .pilih-cetak small{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px;}
 .dlg input[type=radio]{display:inline-block;width:auto;margin:3px 0 0;padding:0;flex:none;}
 
+
+.node.geser{touch-action:none;cursor:grab;outline:2px dashed var(--root);outline-offset:3px;border-radius:10px;z-index:5;}
+.node.geser:active{cursor:grabbing;}

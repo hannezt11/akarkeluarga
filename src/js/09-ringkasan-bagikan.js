@@ -76,7 +76,7 @@ function bangunBerkasAkar(akar,mode){
     }
     people[c.id]=c;
   });
-  const d={people}; if(mode==='lengkap'&&akar.data.wilayah) d.wilayah=akar.data.wilayah; if(akar.data.garis) d.garis=akar.data.garis;
+  const d={people}; if(mode==='lengkap'&&akar.data.wilayah) d.wilayah=akar.data.wilayah; if(akar.data.garis) d.garis=akar.data.garis; if(akar.data.geser) d.geser=akar.data.geser;
   return {format:'akar-keluarga-akar',versi:2,pengirim:{id:store.pengguna.id,nama:store.pengguna.nama},akar:{id:akar.id,nama:akar.nama,warna:akar.warna,mode,diubah:Date.now(),data:d}};
 }
 $('bagikanYa').addEventListener('click',async()=>{
@@ -102,7 +102,7 @@ async function imporBerkas(teks){
     normalisasiPeople(d.akar.data.people);
     Object.values(d.akar.data.people).forEach(q=>{ if(q&&typeof q==='object') delete q.sama; });
   }catch(e){ alert('File akar tidak valid.'); return; }
-  const dataAkar={people:d.akar.data.people}; if(d.akar.data.wilayah&&typeof d.akar.data.wilayah==='object') dataAkar.wilayah=d.akar.data.wilayah; if(d.akar.data.garis&&typeof d.akar.data.garis==='object') dataAkar.garis=d.akar.data.garis;
+  const dataAkar={people:d.akar.data.people}; if(d.akar.data.wilayah&&typeof d.akar.data.wilayah==='object') dataAkar.wilayah=d.akar.data.wilayah; if(d.akar.data.garis&&typeof d.akar.data.garis==='object') dataAkar.garis=d.akar.data.garis; if(d.akar.data.geser&&typeof d.akar.data.geser==='object') dataAkar.geser=d.akar.data.geser;
   const pengirim=String(d.pengirim.nama||'pengirim');
   const milikSendiri=!!(store.pengguna&&d.pengirim.id===store.pengguna.id);
   if(milikSendiri){

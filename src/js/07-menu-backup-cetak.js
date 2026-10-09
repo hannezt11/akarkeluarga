@@ -44,7 +44,7 @@ $('inputRestore').addEventListener('change',e=>{
         const daftar=d.akar.map((a,i)=>{
           if(!a||!a.data||typeof a.data.people!=='object'||!Object.keys(a.data.people).length) throw new Error('format');
           normalisasiPeople(a.data.people);
-          const dataAkar={people:a.data.people}; if(a.data.wilayah&&typeof a.data.wilayah==='object') dataAkar.wilayah=a.data.wilayah; if(a.data.garis&&typeof a.data.garis==='object') dataAkar.garis=a.data.garis;
+          const dataAkar={people:a.data.people}; if(a.data.wilayah&&typeof a.data.wilayah==='object') dataAkar.wilayah=a.data.wilayah; if(a.data.garis&&typeof a.data.garis==='object') dataAkar.garis=a.data.garis; if(a.data.geser&&typeof a.data.geser==='object') dataAkar.geser=a.data.geser;
           return {id:String(a.id||idAkarBaru()),nama:String(a.nama||('Akar '+(i+1))),warna:a.warna||WARNA_AKAR[i%WARNA_AKAR.length],pin:!!a.pin,data:dataAkar,dibuat:a.dibuat||Date.now(),pemilikId:a.pemilikId||'',pemilikNama:a.pemilikNama||'',terkunci:!!a.terkunci,asalId:a.asalId||'',mode:a.mode||'',peran:(a.peran&&typeof a.peran==='object')?a.peran:{}};
         });
         if(!confirm('Semua akar saat ini ('+store.akar.length+') akan diganti dengan isi file backup ('+daftar.length+' akar). Lanjutkan?')) return;
@@ -58,7 +58,7 @@ $('inputRestore').addEventListener('change',e=>{
         if(akarAktif().terkunci){ alert('Akar ini terkunci (hasil impor) dan tidak bisa diganti lewat Restore.'); return; }
         if(!confirm('Data akar "'+akarAktif().nama+'" akan diganti dengan isi file backup. Lanjutkan?')) return;
         const a=akarAktif();
-        a.data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') a.data.wilayah=d.wilayah; if(d.garis&&typeof d.garis==='object') a.data.garis=d.garis;
+        a.data={people:d.people}; if(d.wilayah&&typeof d.wilayah==='object') a.data.wilayah=d.wilayah; if(d.garis&&typeof d.garis==='object') a.data.garis=d.garis; if(d.geser&&typeof d.geser==='object') a.data.geser=d.geser;
         if(typeof d.namaKeluarga==='string'&&d.namaKeluarga.trim()) a.nama=d.namaKeluarga.trim();
         data=a.data;
       }
@@ -100,7 +100,12 @@ function masukModeGaris(){
 function keluarModeGaris(){ modeGaris=false; $('barGaris').classList.add('hidden'); simpanData(); render(false); }
 $('btnEditGaris').addEventListener('click',masukModeGaris);
 $('garisSelesai').addEventListener('click',keluarModeGaris);
-$('garisReset').addEventListener('click',()=>{ if(data.garis){ delete data.garis; simpanData(); } render(false); });
+$('garisReset').addEventListener('click',async()=>{
+  if(!data.garis&&!data.geser){ return; }
+  const ya=await konfirmasi('Atur ulang tampilan?','Posisi nama dan garis yang sudah kamu geser akan kembali ke susunan otomatis.','Atur ulang');
+  if(!ya) return;
+  delete data.garis; delete data.geser; simpanData(); render(false);
+});
 function cetakTerbuka(){ return !$('cetakOverlay').classList.contains('hidden'); }
 function tutupCetakDlg(){ $('cetakOverlay').classList.add('hidden'); }
 $('btnCetak').addEventListener('click',()=>{

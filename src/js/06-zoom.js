@@ -51,7 +51,7 @@ function selesaiPointer(e){
 // Modal dibuka dari event 'click' (SESUDAH jari terangkat) supaya ketukan yang sama tidak
 // "tembus" ke isi modal yang baru muncul di bawah jari (mis. membuka pilihan Status/Ayah/Ibu).
 viewport.addEventListener('click',e=>{
-  if(geserTerakhir || Date.now()<blokirKlikSampai) return;
+  if(geserTerakhir || Date.now()<blokirKlikSampai || modeGaris) return;
   const n=e.target.closest ? e.target.closest('.node') : null;
   if(n){ if(n.dataset.akar) bukaLatar(n.dataset.id,n.dataset.akar); else bukaKartu(n.dataset.id); }
 });
