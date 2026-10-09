@@ -39,6 +39,9 @@ jobs:
           mkdir -p "$D"
           cp native/PrintPlugin.java native/MainActivity.java "$D/"
 
+      - name: Pasang ikon app
+        run: cp -r native/res/. android/app/src/main/res/
+
       - name: Sync web assets
         run: npx cap sync android
 
