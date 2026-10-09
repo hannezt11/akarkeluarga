@@ -1,0 +1,65 @@
+/* ===== Header, tombol menu, tombol pusat ===== */
+.topbar{display:flex;align-items:center;gap:12px;}
+.btn-menu{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.btn-pusat{position:absolute;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;width:48px;height:48px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
+.btn-pusat:active,.btn-menu:active{background:#eadfc6;}
+
+/* ===== Drawer ===== */
+.scrim{position:absolute;inset:0;background:rgba(36,30,20,0.45);z-index:30;}
+.scrim.hidden{display:none;}
+.drawer{position:absolute;top:0;bottom:0;left:0;width:78%;max-width:300px;background:var(--bg);z-index:31;transform:translateX(-102%);transition:transform .2s ease;display:flex;flex-direction:column;box-shadow:2px 0 14px rgba(0,0,0,0.25);padding-bottom:calc(14px + var(--bawah-aman));}
+.drawer.buka{transform:translateX(0);}
+.drawer-kepala{padding:calc(22px + env(safe-area-inset-top,0px)) 20px 16px;background:var(--root-deep);color:#f3ede0;}
+.drawer-kepala h2{margin:0;font-family:var(--font-title);font-weight:normal;font-size:20px;}
+.drawer-kepala p{margin:4px 0 0;font-size:12px;opacity:.75;}
+.drawer-isi{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.drawer-isi button,.drawer-bawah button{width:100%;text-align:left;padding:13px 14px;border-radius:10px;border:none;background:transparent;color:var(--root-deep);font-size:15px;}
+.drawer-isi button:active{background:#eadfc6;}
+.drawer-spacer{flex:1;}
+.drawer-bawah{padding:10px 12px 0;border-top:1px solid var(--card-border);margin:0 8px;}
+.drawer-bawah button{color:var(--meninggal);border:1px solid var(--card-border);background:var(--card);text-align:center;font-size:14px;}
+
+/* ===== Kartu profil ===== */
+.kartu-overlay{position:absolute;inset:0;background:rgba(24,20,13,0.62);z-index:22;display:flex;align-items:center;justify-content:center;padding:16px;}
+.kartu-overlay.hidden{display:none;}
+.kartu{position:relative;width:min(100%,340px);height:min(78dvh,560px);background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.kartu-foto{flex:2 1 0;min-height:0;position:relative;background-size:cover;background-position:center 30%;background-color:#e4dabf;display:flex;align-items:center;justify-content:center;}
+.kartu-foto.kosong.m{background:linear-gradient(160deg,#cfdcc8,#a9c0a6);}
+.kartu-foto.kosong.f{background:linear-gradient(160deg,#ecd5c9,#d9aea0);}
+.kartu-foto.kosong .inisial{font-family:var(--font-title);font-size:84px;color:rgba(36,56,43,0.65);}
+.kartu-kode{position:absolute;left:12px;bottom:10px;font-size:11px;color:#fff;background:rgba(0,0,0,0.42);padding:3px 8px;border-radius:10px;}
+.kartu-edit{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,250,240,0.92);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 6px rgba(0,0,0,0.3);}
+.kartu-info{flex:1 1 0;min-height:0;overflow-y:auto;padding:12px 16px 14px;}
+.kartu-nama{font-family:var(--font-title);font-size:20px;line-height:1.2;color:var(--root-deep);}
+.kartu-sub{font-size:13px;color:var(--ink-soft);margin:3px 0 8px;display:flex;align-items:center;gap:6px;}
+.kartu-sub .titik{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.kartu-sub .titik.hidup{background:var(--hidup);}
+.kartu-sub .titik.meninggal{background:var(--meninggal);}
+.kartu-baris{font-size:13px;line-height:1.5;color:var(--ink);margin:2px 0;}
+.kartu-baris b{font-weight:normal;color:var(--ink-soft);}
+.tautan{color:#1f5fd1;text-decoration:none;}
+.tautan:active{text-decoration:underline;}
+
+/* ===== Dialog konfirmasi ===== */
+.dlg-overlay{position:absolute;inset:0;background:rgba(24,20,13,0.6);z-index:40;display:flex;align-items:center;justify-content:center;padding:24px;}
+.dlg-overlay.hidden{display:none;}
+.dlg{width:100%;max-width:320px;background:var(--card);border-radius:16px;padding:20px 18px 14px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+.dlg h3{margin:0 0 8px;font-family:var(--font-title);font-weight:normal;font-size:18px;color:var(--meninggal);}
+.dlg p{margin:0 0 16px;font-size:14px;line-height:1.45;color:var(--ink);}
+.dlg input{display:block;width:100%;padding:10px;border:1px solid var(--card-border);border-radius:8px;background:#fff;font-size:15px;margin-bottom:14px;color:var(--ink);}
+.dlg h3.netral{color:var(--root-deep);}
+.dlg-tombol button.utama{background:var(--root);border-color:var(--root);color:#fff;}
+.drawer-isi button small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.dlg-tombol{display:flex;gap:10px;}
+.dlg-tombol button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--card-border);background:var(--bg);font-size:14px;color:var(--root-deep);}
+.dlg-tombol button.bahaya{background:var(--meninggal);border-color:var(--meninggal);color:#fff;}
+
+@media print{
+  .btn-pusat,.btn-menu,.btn-ringkasan,.drawer,.scrim,.kartu-overlay,.dlg-overlay,.pin-akar,.sheet-overlay{display:none !important;}
+}
+
+/* ===== Status pada kartu ===== */
+.kartu-status{position:absolute;left:12px;top:12px;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.35);}
+.kartu-status.hidup{background:#2fa555;}
+.kartu-status.meninggal{background:#d23a30;}
+

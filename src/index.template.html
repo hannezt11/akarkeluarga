@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Akar Keluarga</title>
+<style>
+@@CSS@@
+</style>
+</head>
+<body>
+<div class="frame-luar"><div class="frame-ponsel">
+
+  <header class="topbar">
+    <button id="btnMenu" class="btn-menu" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <h1 id="judulApp">Akar Keluarga</h1>
+    <svg id="gembokJudul" class="gembok-judul hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+  </header>
+  <button id="btnRingkasan" class="btn-ringkasan" aria-label="Ringkasan generasi"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h6a4 4 0 014 4v11a3 3 0 00-3-3H2z"/><path d="M22 5h-6a4 4 0 00-4 4v11a3 3 0 013-3h7z"/></svg></button>
+  <div id="pinAkar" class="pin-akar"></div>
+  <div id="barGaris" class="bar-garis hidden"><span>Edit garis: seret bulatan naik/turun untuk menggeser garis keluarga.</span><button id="garisReset">Atur ulang</button><button id="garisSelesai" class="utama">Selesai</button></div>
+
+  <main id="viewport" class="viewport">
+    <div id="canvas" class="canvas"></div>
+  </main>
+  <div id="cetakWrap"><div id="cetakJudul" class="cetak-judul"></div><div id="cetakGen" class="cetak-gen"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
+
+  <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+
+  <input type="file" id="inputRestore" accept="application/json,.json">
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Anggota</h2>
+        <button id="btnTutup" class="btn-icon">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
+        <div class="baris-2 saklar-baris">
+          <div class="saklar" id="skStatus"><button type="button" data-v="hidup">Hidup</button><button type="button" data-v="meninggal">Wafat</button></div>
+          <div class="saklar" id="skGender"><button type="button" data-v="m">Pria</button><button type="button" data-v="f">Wanita</button></div>
+        </div>
+        <select id="fStatus" style="display:none"><option value="hidup">Hidup</option><option value="meninggal">Meninggal</option></select>
+        <select id="fGender" style="display:none"><option value="m">Laki-laki</option><option value="f">Perempuan</option></select>
+        <div class="baris-2">
+          <div class="fld">Foto
+            <div class="foto-ctl">
+              <div id="previewFoto"></div>
+              <button type="button" id="btnPilihFoto" class="btn-kecil netral">Pilih foto</button>
+            </div>
+            <input type="file" id="fFotoFile" accept="image/*" style="display:none">
+          </div>
+          <label id="wrapAnakKe">Anak ke-
+            <input type="number" id="fAnakKe" min="1" max="99" placeholder="boleh kosong">
+          </label>
+        </div>
+        <label>Lahir
+          <div class="baris-tgl">
+            <input type="number" id="fLahirTgl" placeholder="tgl" min="1" max="31">
+            <input type="number" id="fLahirBln" placeholder="bln" min="1" max="12">
+            <input type="number" id="fLahirThn" placeholder="tahun" min="1" max="2100">
+          </div>
+        </label>
+        <label id="wrapWafat">Wafat
+          <div class="baris-tgl">
+            <input type="number" id="fWafatTgl" placeholder="tgl" min="1" max="31">
+            <input type="number" id="fWafatBln" placeholder="bln" min="1" max="12">
+            <input type="number" id="fWafatThn" placeholder="tahun" min="1" max="2100">
+          </div>
+        </label>
+        <div class="baris-2">
+          <label>Ayah <select id="fAyah"></select></label>
+          <label>Ibu <select id="fIbu"></select></label>
+        </div>
+        <div class="blok-alamat">
+          <div class="judul-blok">Alamat</div>
+          <div id="wilayahInfo" class="wilayah-info hidden"><span id="wilayahTeks"></span><button type="button" id="btnUbahWilayah" class="btn-teks">Ubah</button></div>
+          <div id="wilayahPilih" class="hidden">
+            <div class="baris-2">
+              <label>Provinsi <select id="fProv"></select></label>
+              <label>Kab / Kota <select id="fKab"></select></label>
+            </div>
+            <div class="cek-utama"><input type="checkbox" id="fUtama"><span>Jadikan wilayah utama keluarga</span></div>
+          </div>
+          <div class="baris-2">
+            <label>Kecamatan <select id="fKec"></select></label>
+            <label>Desa / Kelurahan <select id="fDesa"></select></label>
+          </div>
+          <label>Jalan / dusun <input type="text" id="fJalan" placeholder="Contoh: Dusun Krajan"></label>
+          <div id="wilStatus" class="wil-status"></div>
+        </div>
+        <label id="wrapSama">Sama dengan orang di akar lain (jarang perlu) <select id="fSama"></select></label>
+        <div class="relasi-info">
+          <div class="judul-blok">Pasangan</div>
+          <div id="daftarPasangan"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btnHapus" class="btn-bahaya">Hapus</button>
+        <button id="btnSimpan" class="btn-utama">Simpan</button>
+      </div>
+      <div class="modal-tambah">
+        <p class="modal-tambah-judul">Tambah dari orang ini</p>
+        <div class="modal-tambah-tombol">
+          <button data-rel="anak">+ anak</button>
+          <button data-rel="pasangan">+ pasangan</button>
+          <button data-rel="orangtua">+ orang tua</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="drawerScrim" class="scrim hidden"></div>
+  <aside id="drawer" class="drawer">
+    <div class="drawer-kepala"><h2>Akar Keluarga</h2><p>Daftar akar</p></div>
+    <div class="drawer-scroll">
+      <div id="daftarAkar" class="daftar-akar"></div>
+      <button id="btnAkarBaru" class="btn-akar-baru">+ Tambah akar baru</button>
+      <button id="btnImpor" class="btn-akar-baru">Impor akar dari file</button>
+      <input type="file" id="inputImpor" style="display:none">
+      <div class="drawer-pemisah"></div>
+      <div class="drawer-isi">
+        <button id="btnBackup">Backup data</button>
+        <button id="btnRestore">Restore data</button>
+        <button id="btnCetak">Cetak PDF</button>
+        <button id="btnEditGaris">Edit garis<small>Geser garis penghubung anak</small></button>
+        <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
+        <button id="btnPeran">Peran saya di tiap akar</button>
+      </div>
+    </div>
+    <div class="drawer-bawah"><button id="btnMulaiBaru">Mulai baru (kosongkan akar ini)</button></div>
+  </aside>
+
+  <div id="ringkasanOverlay" class="kartu-overlay hidden">
+    <div class="ringkasan">
+      <div class="ringkasan-kepala"><h3>Ringkasan</h3><p id="rkAkar"></p></div>
+      <div id="rkIsi" class="ringkasan-isi"></div>
+    </div>
+  </div>
+
+  <div id="kartuOverlay" class="kartu-overlay hidden">
+    <div class="kartu">
+      <div id="kartuFoto" class="kartu-foto"></div>
+      <button id="kartuEdit" class="kartu-edit" aria-label="Edit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+      <div id="kartuInfo" class="kartu-info"></div>
+    </div>
+  </div>
+
+  <div id="cropOverlay" class="crop-overlay hidden">
+    <div class="crop-judul">Atur foto: geser dan cubit untuk zoom</div>
+    <div id="cropFrame" class="crop-frame"><img id="cropImg" alt=""><div class="crop-grid"></div></div>
+    <input type="range" id="cropZoom" class="crop-zoom" min="1" max="5" step="0.01" value="1">
+    <div class="crop-tombol"><button id="cropBatal">Batal</button><button id="cropPakai" class="utama">Pakai foto</button></div>
+  </div>
+
+  <div id="akarMenuOverlay" class="sheet-overlay hidden">
+    <div class="sheet">
+      <div id="akarMenuJudul" class="sheet-judul"></div>
+      <button id="amBagikan">Bagikan akar ini</button>
+      <button id="amNama">Ganti nama (juga judul cetak)</button>
+      <div id="amWarna" class="sheet-warna"></div>
+      <button id="amPin"></button>
+      <button id="amGabung"></button>
+      <button id="amHapus" class="bahaya">Hapus akar ini</button>
+    </div>
+  </div>
+
+  <div id="peranOverlay" class="sheet-overlay hidden">
+    <div id="peranSheet" class="sheet peran-sheet">
+      <div class="sheet-judul">Peran saya di tiap akar</div>
+      <p class="peran-info">Pilih siapa Anda di setiap akar. Orang dengan peran yang sama di akar berbeda otomatis dianggap satu orang, jadi akar-akar itu tersambung. Cukup isi yang ada di akar tersebut.</p>
+      <div id="peranIsi"></div>
+      <button id="peranTutup" class="peran-tutup">Selesai</button>
+    </div>
+  </div>
+
+  <div id="cetakOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 class="netral">Cetak PDF</h3>
+      <p>Pilih akar yang akan dicetak. Hasil cetak hanya berisi akar itu saja, tanpa tampilan pudar dari akar lain.</p>
+      <div id="cetakDaftar" class="cetak-daftar"></div>
+      <div class="dlg-tombol"><button id="cetakBatal">Batal</button><button id="cetakYa" class="utama">Cetak</button></div>
+    </div>
+  </div>
+
+  <div id="bagikanOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 class="netral">Bagikan akar</h3>
+      <p id="bagikanNama"></p>
+      <label class="pilih-bagikan"><input type="radio" name="modeBagikan" value="dasar" checked><span><b>Dasar</b> (disarankan)<small>Orang yang masih hidup hanya nama, hubungan, status, dan tahun lahir. Foto dan alamat mereka tidak ikut. Yang sudah meninggal dikirim lengkap.</small></span></label>
+      <label class="pilih-bagikan"><input type="radio" name="modeBagikan" value="lengkap"><span><b>Lengkap</b><small>Semua data, termasuk foto dan alamat orang yang masih hidup.</small></span></label>
+      <div class="dlg-tombol"><button id="bagikanBatal">Batal</button><button id="bagikanYa" class="utama">Bagikan</button></div>
+    </div>
+  </div>
+
+  <div id="namaOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 id="namaJudul" class="netral">Nama akar</h3>
+      <p id="namaTeks"></p>
+      <input type="text" id="fNamaKeluarga" maxlength="60" placeholder="Contoh: Keluarga Besar Hanz">
+      <div class="dlg-tombol"><button id="namaBatal">Batal</button><button id="namaSimpan" class="utama">Simpan</button></div>
+    </div>
+  </div>
+
+  <div id="dlgOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 id="dlgJudul"></h3>
+      <p id="dlgTeks"></p>
+      <div class="dlg-tombol"><button id="dlgBatal">Batal</button><button id="dlgYa" class="bahaya">Ya</button></div>
+    </div>
+  </div>
+
+</div></div>
+<script>
+(async function(){
+@@JS@@
+})().catch(err=>{
+  document.body.insertAdjacentHTML('beforeend','<pre style="position:fixed;inset:0;margin:0;background:#fff;color:#a00;padding:16px;z-index:999;white-space:pre-wrap;font-size:13px">Gagal memulai app:\n'+String(err&&err.stack||err)+'</pre>');
+});
+</script>
+</body>
+</html>

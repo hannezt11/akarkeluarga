@@ -26,16 +26,16 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .viewport{position:absolute;inset:0;touch-action:none;}
 .canvas{position:absolute;top:0;left:0;transform-origin:0 0;}
 
-.node{position:absolute;width:104px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
-.avatar-wrap{position:relative;width:58px;height:58px;}
-.avatar{width:58px;height:58px;border-radius:50%;background:#e4dabf;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--root-deep);border:1px solid var(--card-border);}
+.node{position:absolute;width:88px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.avatar-wrap{position:relative;width:44px;height:44px;}
+.avatar{width:44px;height:44px;border-radius:50%;background:#e4dabf;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--root-deep);border:1px solid var(--card-border);}
 .node.aktif .avatar{box-shadow:0 0 0 2px var(--gold);}
-.status-dot{position:absolute;top:0;right:0;width:12px;height:12px;border-radius:50%;border:2px solid var(--bg);}
+.status-dot{position:absolute;top:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg);}
 .status-dot.hidup{background:var(--hidup);}
 .status-dot.meninggal{background:var(--meninggal);}
-.node .nama{font-size:12px;line-height:1.25;text-align:center;color:var(--ink);max-height:2.5em;overflow:hidden;}
+.node .nama{font-size:11px;line-height:1.2;text-align:center;color:var(--ink);max-height:2.4em;overflow:hidden;}
 .node .nama.kosong{color:var(--ink-soft);font-style:italic;}
-.node .umur{font-size:10px;color:var(--ink-soft);line-height:1.2;min-height:12px;}
+.node .umur{font-size:9.5px;color:var(--ink-soft);line-height:1.2;min-height:11px;}
 
 .line{position:absolute;background:var(--garis);}
 .line-v{width:2px;}
@@ -280,12 +280,12 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 #cetakWrap{display:none;}
 .cetak-gen{font-size:16px;line-height:1.25;color:var(--ink);text-align:left;white-space:pre;margin-bottom:18px;}
 .cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
-.cetak .node{width:124px;gap:6px;}
-.cetak .avatar-wrap{width:88px;height:88px;}
-.cetak .avatar{width:88px;height:88px;font-size:30px;border:1px solid #cdbf9d;}
-.cetak .status-dot{width:18px;height:18px;border-width:3px;}
-.cetak .node .nama{font-size:16px;line-height:1.25;max-height:3.75em;}
-.cetak .node .umur{font-size:13px;}
+.cetak .node{width:100px;gap:5px;}
+.cetak .avatar-wrap{width:72px;height:72px;}
+.cetak .avatar{width:72px;height:72px;font-size:26px;border:1px solid #cdbf9d;}
+.cetak .status-dot{width:15px;height:15px;border-width:3px;}
+.cetak .node .nama{font-size:14px;line-height:1.25;max-height:3.75em;}
+.cetak .node .umur{font-size:12px;}
 @page{margin:0;}
 @media print{
   #canvas,.viewport{display:none !important;}
@@ -512,11 +512,11 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 (async function(){
 const STORAGE_KEY='akarKeluargaData';
 const ROOT_ID='diri';
-const NODE_W=132, GEN_H=170, NODE_H=110;
-const GAP_CABANG=56;  // jarak ekstra antar cabang keluarga (seperti akar yang menyebar)
-const GAP_GEN=44;     // celah dasar antar generasi
-const LAJUR_H=10;     // tinggi tiap lajur garis; celah generasi melebar sesuai jumlah lajur
-const CX=52; // titik tengah horizontal avatar di dalam kartu .node (lebar 104px)
+const NODE_W=108, GEN_H=140, NODE_H=88;   // lebar slot kartu (kartu 88px + celah 20px)
+const GAP_CABANG=22;  // jarak ekstra antar cabang keluarga (seperti akar yang menyebar)
+const GAP_GEN=26;     // celah dasar antar generasi
+const LAJUR_H=8;      // tinggi tiap lajur garis; celah generasi melebar sesuai jumlah lajur
+const CX=44; // titik tengah horizontal avatar di dalam kartu .node (lebar 88px)
 const $=id=>document.getElementById(id);
 
 function dataContoh(){
@@ -661,12 +661,49 @@ function bandingLahir(a,b){
   return ka-kb;
 }
 
+// ===== Pasangan: mantan (cerai) dan pasangan sekarang =====
+// Rantai pasangan ditata [mantan] - [orang] - [pasangan sekarang]: mantan di kiri, pasangan
+// sekarang di kanan, semuanya berdampingan, jadi garis pernikahan tidak melewati kartu lain.
+// Pada pasangan yang bercerai, "pusat" = pihak yang berada di garis keluarga orang utama
+// (jalur ID sejalan, lalu punya orang tua tercatat, lalu laki-laki); pihak lainnya = "mantan".
+function jalurSegmen(o){ return String(jalurDari(o)).split('.'); }
+function sejalurDengan(a,b){
+  const A=jalurSegmen(a), B=jalurSegmen(b), n=Math.min(A.length,B.length);
+  for(let i=0;i<n;i++) if(A[i]!==B[i]) return false;
+  return true;
+}
+function skorPusat(x,r){ return (r&&sejalurDengan(x,r)?4:0)+((x.idAyah||x.idIbu)?1:0)+(genderDari(x)==='m'?0.5:0); }
+function statusCerai(a,b){ return ((a.statusPasangan||{})[b.id]==='cerai')||((b.statusPasangan||{})[a.id]==='cerai'); }
+// Mantan yang menikah lagi: pasangan barunya (beserta anak mereka berdua dan keturunannya) tidak
+// ditampilkan, karena sudah tidak ada ikatan keluarga.
+function orangTersembunyi(people,root){
+  const hasil=new Set(), r=people[root]; if(!r) return hasil;
+  const anakMap=petaAnak(people);
+  Object.values(people).forEach(o=>(o.idPasangan||[]).forEach(pid=>{
+    const t=people[pid]; if(!t||pid<=o.id||!statusCerai(o,t)) return;
+    const pusat=skorPusat(o,r)>=skorPusat(t,r)?o:t, mantan=(pusat===o)?t:o;
+    (mantan.idPasangan||[]).forEach(sid=>{
+      const sp=people[sid]; if(!sp||sid===pusat.id||sid===root) return;
+      const antri=[sid];
+      (anakMap[mantan.id]||[]).forEach(c=>{ const oc=people[c]; if(oc&&(oc.idAyah===sid||oc.idIbu===sid)) antri.push(c); });
+      while(antri.length){
+        const x=antri.pop(); if(hasil.has(x)||x===root) continue; hasil.add(x);
+        (anakMap[x]||[]).forEach(c=>antri.push(c));
+        ((people[x]||{}).idPasangan||[]).forEach(q=>{ if(q!==mantan.id&&q!==pusat.id) antri.push(q); });
+      }
+      let naik=[people[sid].idAyah,people[sid].idIbu];
+      while(naik.length){ const x=naik.pop(); if(!x||!people[x]||hasil.has(x)||x===root) continue; hasil.add(x); naik.push(people[x].idAyah,people[x].idIbu); }
+    });
+  }));
+  return hasil;
+}
 function hitungLayout(){
   // 1) Generasi (G) tiap orang lewat BFS dari orang utama.
   const gen={}; const antrian=[[rootAktif(),0]];
+  const sembunyi=orangTersembunyi(data.people,rootAktif());
   while(antrian.length){
     const [id,g]=antrian.shift();
-    if(gen[id]!==undefined) continue;
+    if(gen[id]!==undefined || sembunyi.has(id)) continue;
     const o=data.people[id]; if(!o) continue;
     gen[id]=g;
     if(o.idAyah) antrian.push([o.idAyah,g-1]);
@@ -680,17 +717,32 @@ function hitungLayout(){
   // 2) Kelompokkan jadi "unit": sendiri, atau berpasangan.
   const idKeUnit={};
   {
-    const sudah=new Set();
-    semuaId.forEach(id=>{
+    const sudah=new Set(), rootO=data.people[rootAktif()];
+    const pasanganTampil=id=>(data.people[id].idPasangan||[]).filter(pid=>semuaId.includes(pid));
+    // yang punya paling banyak pasangan diproses lebih dulu, supaya jadi pusat rantai
+    const urut=semuaId.slice().sort((a,b)=>pasanganTampil(b).length-pasanganTampil(a).length);
+    urut.forEach(id=>{
       if(sudah.has(id)) return;
       const o=data.people[id];
-      const pasanganId=(o.idPasangan||[]).find(pid=>semuaId.includes(pid)&&!sudah.has(pid));
-      let unit;
-      if(pasanganId){
-        const ids=[id,pasanganId];
-        if(genderDari(data.people[id])==='f' && genderDari(data.people[pasanganId])==='m') ids.reverse();
-        unit={ids};
-      } else unit={ids:[id]};
+      const calon=pasanganTampil(id).filter(pid=>!sudah.has(pid));
+      const cerai=pid=>statusCerai(o,data.people[pid]);
+      let ids, pusat=0;
+      if(calon.length>=2){
+        const mantan=calon.filter(cerai), kini=calon.filter(pid=>!cerai(pid));
+        // semua mantan di kiri (yang terbaru tepat di sebelah orangnya), pasangan sekarang di kanan
+        ids=[].concat(mantan,[id],kini);
+        pusat=mantan.length;
+        if(ids.length===2 && !mantan.length && genderDari(o)==='f' && genderDari(data.people[ids[1]])==='m') ids.reverse();
+      } else if(calon.length===1){
+        const pid=calon[0], t=data.people[pid];
+        if(cerai(pid)){
+          ids=(skorPusat(o,rootO)>=skorPusat(t,rootO)) ? [pid,id] : [id,pid]; // mantan di kiri
+        } else {
+          ids=[id,pid];
+          if(genderDari(o)==='f' && genderDari(t)==='m') ids.reverse();
+        }
+      } else ids=[id];
+      const unit={ids,pusat:(ids.length>=3?pusat:0)};
       unit.ids.forEach(uid=>{ idKeUnit[uid]=unit; sudah.add(uid); });
     });
   }
@@ -738,6 +790,12 @@ function hitungLayout(){
     const i=unit.ids.findIndex(id=>{ const o=data.people[id]; return pu.ids.includes(o.idAyah)||pu.ids.includes(o.idIbu); });
     return i<0?0:i;
   }
+  // Letak anggota lain (pasangan) terhadap anggota yang "masuk" lewat keluarga pu:
+  // 'kanan' = semua di kanan, 'kiri' = semua di kiri, 'tengah' = di kedua sisi.
+  function sisiPasangan(unit,pu){
+    const i=indexAnggota(unit,pu), n=unit.ids.length;
+    return i===0 ? 'kanan' : (i===n-1 ? 'kiri' : 'tengah');
+  }
   function asalBelum(unit,pu){ // ada anggota lain yang keluarga asalnya belum dipasang?
     return unit.ids.some(id=>{ const q=unitOrtu(id); return q && q!==pu && !q._ditempatkan; });
   }
@@ -759,13 +817,13 @@ function hitungLayout(){
       unit.ids.forEach((id,i)=>urutanDaun.splice(awal+i,0,id));
     } else {
       const masuk=anak.find(a=>a._ditempatkan)||null;
-      const rank0=a=>asalBelum(a,unit) ? (indexAnggota(a,unit)===0 ? 2 : 0) : 1;
+      const rank0=a=>asalBelum(a,unit) ? ({kanan:2,kiri:0,tengah:1})[sisiPasangan(a,unit)] : 1;
       const rank=urutKetat ? (a=>1) : rank0; // tepi kiri / tengah / tepi kanan
       const daftar=anak.filter(a=>a!==masuk).sort((a,b)=>rank(a)-rank(b));
       const r=masuk?rentangUnit(masuk):null;
       // "masuk" = anak yang sudah ditempatkan lewat keluarga pasangannya; saudara-saudaranya
       // ditempel menempel di sisi luar pasangan itu, dan diingat sebagai blok `_blok`.
-      const libre = !!(masuk && r && idxSisip!=null && (urutKetat || (indexAnggota(masuk,unit)===0 &&
+      const libre = !!(masuk && r && idxSisip!=null && (urutKetat || (sisiPasangan(masuk,unit)==='kanan' &&
         masuk.ids.every(id=>{ const q=unitOrtu(id); return !q||q===unit; }))));
       let pos0;
       if(libre){
@@ -781,23 +839,36 @@ function hitungLayout(){
         unit._urutAnak=tepiKiri.concat(tua,[masuk],muda,tepiKanan);
       } else {
       pos0 = (masuk && r && idxSisip==null)
-        ? (indexAnggota(masuk,unit)===0 ? r[0] : r[1]+1)
+        ? (sisiPasangan(masuk,unit)==='kanan' ? r[0] : r[1]+1)
         : awal;
       let pos=pos0; const lenSebelum=urutanDaun.length;
       daftar.forEach(a=>{ const nx=tempatkanUnit(a,pos); pos=Math.max(pos,nx); });
       const cnt=urutanDaun.length-lenSebelum;
       if(masuk && cnt>0) unit._blok=[urutanDaun[pos0],urutanDaun[pos0+cnt-1]];
       // urutan kiri-kanan anak (dipakai untuk menyusun urutan unit di tiap generasi)
-      unit._urutAnak = masuk ? (indexAnggota(masuk,unit)===0 ? daftar.concat([masuk]) : [masuk].concat(daftar)) : daftar.slice();
+      unit._urutAnak = masuk ? (sisiPasangan(masuk,unit)==='kanan' ? daftar.concat([masuk]) : [masuk].concat(daftar)) : daftar.slice();
       }
     }
-    // Pasang keluarga asal tiap anggota: anggota KIRI di sisi kiri blok, anggota KANAN di sisi kanan.
+    // Pasang keluarga asal tiap anggota. Anggota yang keluarganya sudah terpasang jadi patokan (k):
+    // yang di kirinya dipasang di sisi kiri blok, yang di kanannya di sisi kanan. Tanpa patokan:
+    // anggota kiri di sisi kiri, kanan di sisi kanan; pada rantai, orang pusat dipasang di sisi
+    // kiri paling dalam, lalu para mantan di luarnya.
+    const n=unit.ids.length;
+    const k=unit.ids.findIndex(id=>{ const q=unitOrtu(id); return q&&q._ditempatkan; });
+    const kiriList=[], kananList=[];
     unit.ids.forEach((id,i)=>{
+      if(i===k) return;
+      const kiri = k>=0 ? i<k : i<=unit.pusat;
+      (kiri?kiriList:kananList).push(i);
+    });
+    kiriList.sort((a,b)=>b-a); // yang paling dekat ke tengah dulu
+    const pasangKeluarga=(i,kiri)=>{
+      const id=unit.ids[i];
       const q=unitOrtu(id); if(!q||q._ditempatkan) return;
       let blok=unit._blok;
       if(!blok){ const r=rentangUnit(unit); if(!r) return; blok=[urutanDaun[r[0]],urutanDaun[r[1]]]; }
       const sebelum=urutanDaun.length;
-      if(i===0){
+      if(kiri){
         const pos=urutanDaun.indexOf(ikuti(ujungKiri,blok[0]));
         tempatkanUnit(q,pos);
         if(urutanDaun.length>sebelum) ujungKiri[blok[0]]=urutanDaun[pos];
@@ -807,7 +878,9 @@ function hitungLayout(){
         const cnt=urutanDaun.length-sebelum;
         if(cnt>0) ujungKanan[blok[1]]=urutanDaun[pos+cnt-1];
       }
-    });
+    };
+    kiriList.forEach(i=>pasangKeluarga(i,true));
+    kananList.forEach(i=>pasangKeluarga(i,false));
     return awal+(urutanDaun.length-lenAwal);
   }
 
@@ -1122,7 +1195,7 @@ function cariJangkar(semua,C,akhir,anakMap){
   });
   return k1[0]||k2[0]||k3[0]||null;
 }
-function cariDx(nodes,dx0,ocup,batas){
+function cariDx(nodes,dx0,ocup,batas,pref){
   const MARGIN=12, STEP=12;
   const bebas=dx=>nodes.every(n=>{
     const a=n.x+dx, b=a+NODE_W;
@@ -1131,13 +1204,20 @@ function cariDx(nodes,dx0,ocup,batas){
   });
   if(bebas(dx0)) return dx0;
   const maks=batas[1]-batas[0];
+  if(pref){ // ujung rantai pasangan: cari ruang ke sisi luar dulu, baru ke sisi sebaliknya
+    for(let d=STEP; d<=maks; d+=STEP){ if(bebas(dx0+pref*d)) return dx0+pref*d; }
+    for(let d=STEP; d<=maks; d+=STEP){ if(bebas(dx0-pref*d)) return dx0-pref*d; }
+    return null;
+  }
   for(let d=STEP; d<=maks; d+=STEP){ if(bebas(dx0+d)) return dx0+d; if(bebas(dx0-d)) return dx0-d; }
   return null;
 }
 function susunBlok(g){
-  const semua=g.data.people, ids=Object.keys(semua);
-  if(!ids.length) return null;
-  const rootAkar=(g.saya&&semua[g.saya])?g.saya:(semua[ROOT_ID]?ROOT_ID:ids[0]);
+  const semua=g.data.people, idsSemua=Object.keys(semua);
+  if(!idsSemua.length) return null;
+  const rootAkar=(g.saya&&semua[g.saya])?g.saya:(semua[ROOT_ID]?ROOT_ID:idsSemua[0]);
+  const sembunyi=orangTersembunyi(semua,rootAkar);
+  const ids=idsSemua.filter(id=>!sembunyi.has(id));
   const R=new Set(ids.filter(id=>g.riil.has(id))); R.add(rootAkar);
   const subR=subsetOrang(semua,R);
   const punyaOrtu=id=>!!(subR[id]&&(subR[id].idAyah||subR[id].idIbu));
@@ -1173,7 +1253,20 @@ function susunBlok(g){
     const dg=jang?(akhir[jang].gen-pos[jang].gen):0;
     const nodes=baru.map(id=>({id,x:pos[id].x,gen:pos[id].gen+dg}));
     let dx=null;
-    if(jang) dx=cariDx(nodes,akhir[jang].x-pos[jang].x,ocup,batas);
+    if(jang){
+      // Ujung rantai pasangan [mantan] - [orang] - [pasangan sekarang]: keluarga asalnya diletakkan di sisi
+      // luar (mantan -> kiri, pasangan sekarang -> kanan) dan boleh melebar keluar dari lebar blok utama.
+      // Pasangan biasa (tanpa rantai) tidak berubah.
+      const spJ=(semua[jang].idPasangan||[]).filter(q=>akhir[q]);
+      const pusatRantai=spJ.find(q=>(semua[q].idPasangan||[]).filter(z=>akhir[z]).length>=2);
+      let pref=0, batasPakai=batas;
+      if(pusatRantai){
+        pref=akhir[pusatRantai].x>akhir[jang].x ? -1 : 1;
+        const lebarBlok=Math.max(...nodes.map(n=>n.x))-Math.min(...nodes.map(n=>n.x))+NODE_W+12;
+        batasPakai=[batas[0]-(pref<0?lebarBlok:0), batas[1]+(pref>0?lebarBlok:0)];
+      }
+      dx=cariDx(nodes,akhir[jang].x-pos[jang].x,ocup,batasPakai,pref);
+    }
     const bi=nBlok++;
     if(dx!==null){
       nodes.forEach(n=>tambah(n.id,n.x+dx,n.gen,bi));
@@ -1276,6 +1369,27 @@ function gambarPohonBlok(target,M,L,g){
     urutkanLajur(fams,lajur.length,M);
     const gk=fams[0].gen; jumlahLajur[gk]=Math.max(jumlahLajur[gk]||0,lajur.length);
   });
+  // Garis antar blok (anak di satu blok, orang tua di blok lain) juga diberi lajur sendiri, di bawah
+  // lajur keluarga biasa, supaya tidak menumpuk di jalur yang sama dengan garis keluarga lain.
+  const lajurSilang=new Map();
+  {
+    const perGenS={};
+    silang.forEach(sv=>{
+      const k=posisi[sv.kid], pp=sv.ortu.map(id=>posisi[id]).filter(Boolean);
+      if(!k||!pp.length||!(pp[0].gen<k.gen)) return;
+      const rapat=pp.length===2 && pp[0].gen===pp[1].gen && (orang[sv.ortu[0]].idPasangan||[]).includes(sv.ortu[1]);
+      const mx=rapat ? (pp[0].x+pp[1].x)/2+M.CX : pp[0].x+M.CX, kx=k.x+M.CX;
+      (perGenS[k.gen]=perGenS[k.gen]||[]).push({sv,a:Math.min(kx,mx),b:Math.max(kx,mx)});
+    });
+    Object.keys(perGenS).forEach(gk=>{
+      const dasar=jumlahLajur[gk]||0, lj=[];
+      perGenS[gk].sort((u,v)=>u.a-v.a||u.b-v.b).forEach(e=>{
+        let i=lj.findIndex(r=>e.a>r+8); if(i<0){ i=lj.length; lj.push(-Infinity); }
+        lj[i]=e.b; lajurSilang.set(e.sv,dasar+i);
+      });
+      jumlahLajur[gk]=dasar+lj.length;
+    });
+  }
   const daftarGen=[...new Set(Object.values(posisi).map(q=>q.gen))].sort((a,b)=>a-b);
   const yGen={}; let yy=0;
   daftarGen.forEach((gk,i)=>{ if(i>0) yy+=M.NODE_H+GAP_GEN+(jumlahLajur[gk]||0)*LAJUR_H+(L.rak[gk]?Math.round(M.NODE_H*0.35):0); yGen[gk]=yy; });
@@ -1393,7 +1507,7 @@ function gambarPohonBlok(target,M,L,g){
     const kx=k.x+M.CX, ky=k.y, py=pp[0].y;
     const kls=kelasDari(sv.kid,...sv.ortu);
     if(py+M.NODE_H < ky-4){
-      const ym=ky-12, ya=rapat ? py+M.CY : py+M.NODE_H;
+      const ym=ky-12-(lajurSilang.get(sv)||0)*LAJUR_H, ya=rapat ? py+M.CY : py+M.NODE_H;
       siku([[kx,ky],[kx,ym],[mx,ym],[mx,ya]],kls);
     } else {
       const yb=ky+M.NODE_H+10;
@@ -1466,8 +1580,8 @@ function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za
 let contentW=0, contentH=0;
 
 // Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
-const M_LAYAR={NODE_H:110,CX:52,CY:29,T:2,cetak:false};
-const M_CETAK={NODE_H:176,CX:62,CY:44,T:3,cetak:true};
+const M_LAYAR={NODE_H:88,CX:44,CY:22,T:2,cetak:false};
+const M_CETAK={NODE_H:150,CX:50,CY:36,T:3,cetak:true};
 function garisV(tg,x,y1,y2,T,kelas){
   const d=document.createElement('div'); d.className='line line-v'+(kelas?' '+kelas:'');
   d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;

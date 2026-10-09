@@ -1,0 +1,25 @@
+/* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
+#cetakWrap{display:none;}
+.cetak-gen{font-size:16px;line-height:1.25;color:var(--ink);text-align:left;white-space:pre;margin-bottom:18px;}
+.cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
+.cetak .node{width:100px;gap:5px;}
+.cetak .avatar-wrap{width:72px;height:72px;}
+.cetak .avatar{width:72px;height:72px;font-size:26px;border:1px solid #cdbf9d;}
+.cetak .status-dot{width:15px;height:15px;border-width:3px;}
+.cetak .node .nama{font-size:14px;line-height:1.25;max-height:3.75em;}
+.cetak .node .umur{font-size:12px;}
+@page{margin:0;}
+@media print{
+  #canvas,.viewport{display:none !important;}
+  #cetakWrap{display:block !important;zoom:var(--pzc,1);margin:0 auto;box-sizing:border-box;background:#fff;}
+  #cetakCanvas{display:block !important;position:relative !important;transform:none !important;zoom:1 !important;margin:0 auto;}
+}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .topbar,.fab-wrap,.modal-overlay{display:none !important;}
+  html,body{overflow:visible;height:auto;background:#fff;}
+  .frame-luar{position:static;background:#fff;display:block;}
+  .frame-ponsel{max-width:none;height:auto;max-height:none;overflow:visible;box-shadow:none;background:#fff;}
+  .viewport{position:static;}
+  .canvas{position:relative !important;transform:none !important;zoom:var(--pz);}
+}

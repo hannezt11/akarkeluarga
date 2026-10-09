@@ -1,0 +1,125 @@
+/* ===== Form alamat ===== */
+.blok-alamat{border-top:1px solid var(--card-border);padding-top:10px;margin:4px 0 12px;}
+.judul-blok{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+.wilayah-info{font-size:13px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;}
+.btn-teks{border:none;background:none;color:#1f5fd1;font-size:13px;padding:4px 2px;}
+.wil-status{font-size:12px;color:var(--ink-soft);margin:0 0 8px;min-height:14px;}
+.modal-body input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0;vertical-align:middle;}
+.cek-utama{display:flex;align-items:center;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.hidden{display:none !important;}
+
+/* ===== Crop foto ===== */
+.crop-overlay{position:absolute;inset:0;z-index:25;background:#14110b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;}
+.crop-overlay.hidden{display:none;}
+.crop-judul{color:#f3ede0;font-size:15px;}
+.crop-frame{position:relative;width:min(86vw,340px);aspect-ratio:1/1;overflow:hidden;background:#000;touch-action:none;outline:2px solid rgba(255,255,255,0.9);}
+.crop-frame img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;}
+.crop-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px)),linear-gradient(to bottom,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px));}
+.crop-zoom{width:min(86vw,340px);}
+.crop-tombol{display:flex;gap:10px;width:min(86vw,340px);}
+.crop-tombol button{flex:1;padding:12px;border-radius:10px;border:1px solid #5b5240;background:#2a2418;color:#f3ede0;font-size:14px;}
+.crop-tombol button.utama{background:var(--root);border-color:var(--root);}
+
+
+/* ===== Daftar akar (drawer), pin kanan atas, sheet menu ===== */
+.topbar h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 130px);}
+.drawer-scroll{flex:1;overflow-y:auto;}
+.drawer-judul{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);padding:14px 20px 6px;}
+.daftar-akar{padding:0 10px;display:flex;flex-direction:column;gap:4px;}
+.akar-baris{display:flex;align-items:center;gap:12px;padding:10px 8px 10px 12px;border-radius:12px;cursor:pointer;}
+.akar-baris:active{background:#eadfc6;}
+.akar-baris.aktif{background:#e9e0c8;}
+.akar-titik{width:16px;height:16px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);}
+.akar-teks{flex:1;min-width:0;}
+.akar-nama{font-size:15px;color:var(--root-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.akar-sub{font-size:12px;color:var(--ink-soft);}
+.akar-menu{flex:none;width:36px;height:36px;border:none;background:transparent;color:var(--ink-soft);font-size:20px;border-radius:50%;}
+.akar-menu:active{background:#d9ceb0;}
+.btn-akar-baru{margin:8px 10px 4px;width:calc(100% - 20px);padding:12px;border-radius:12px;border:1px dashed var(--card-border);background:transparent;color:var(--root);font-size:14px;text-align:center;}
+.drawer-pemisah{height:1px;background:var(--card-border);margin:10px 18px;}
+.pin-akar{position:absolute;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.pin-akar .pin{pointer-events:auto;width:42px;height:42px;border-radius:50%;border:2px solid #fff;color:#fff;font-family:var(--font-title);font-size:17px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.3);}
+.pin-akar .pin.aktif{box-shadow:0 0 0 3px var(--gold),0 2px 6px rgba(0,0,0,.3);}
+.sheet-overlay{position:absolute;inset:0;background:rgba(24,20,13,.55);z-index:45;display:flex;align-items:flex-end;}
+.sheet-overlay.hidden{display:none;}
+.sheet{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:14px 14px calc(16px + var(--bawah-aman));}
+.sheet-judul{font-family:var(--font-title);font-size:17px;color:var(--root-deep);padding:2px 8px 10px;}
+.sheet button{display:block;width:100%;text-align:left;padding:13px 10px;border:none;background:transparent;font-size:15px;color:var(--root-deep);border-radius:10px;}
+.sheet button:active{background:#eadfc6;}
+.sheet button.bahaya{color:var(--meninggal);}
+.sheet-warna{display:flex;gap:10px;flex-wrap:wrap;padding:10px;}
+.sheet-warna button{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);}
+.sheet-warna button.pilih{box-shadow:0 0 0 3px var(--gold);}
+
+
+/* ===== Ringkasan generasi ===== */
+.btn-ringkasan{position:absolute;left:18px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.btn-ringkasan:active{background:#eadfc6;}
+.ringkasan{width:min(100%,340px);max-height:78dvh;background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.ringkasan-kepala{padding:16px 18px 12px;background:var(--root-deep);color:#f3ede0;}
+.ringkasan-kepala h3{margin:0;font-family:var(--font-title);font-weight:normal;font-size:19px;}
+.ringkasan-kepala p{margin:3px 0 0;font-size:12px;opacity:.78;}
+.ringkasan-isi{padding:12px 18px 16px;overflow-y:auto;}
+.rk-judul{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);margin:6px 0 6px;}
+.rk-gen{margin:7px 0;}
+.rk-gen-atas{display:flex;justify-content:space-between;font-size:14px;color:var(--ink);}
+.rk-gen-atas b{font-weight:normal;color:var(--root-deep);}
+.rk-bar{height:6px;border-radius:3px;background:#e9e0c8;margin-top:4px;overflow:hidden;}
+.rk-bar i{display:block;height:100%;border-radius:3px;background:var(--root);}
+.rk-pemisah{height:1px;background:var(--card-border);margin:12px 0 8px;}
+.rk-baris{display:flex;justify-content:space-between;font-size:14px;margin:5px 0;color:var(--ink);}
+.rk-baris span:last-child{color:var(--root-deep);}
+.rk-catatan{font-size:12px;color:var(--ink-soft);margin-top:10px;line-height:1.4;}
+
+
+/* ===== Status pernikahan ===== */
+.line-h.cerai{background:repeating-linear-gradient(to right,var(--garis) 0,var(--garis) 6px,transparent 6px,transparent 10px);}
+.label-cerai{position:absolute;transform:translateX(-50%);font-size:9px;line-height:1;color:var(--ink-soft);white-space:nowrap;pointer-events:none;font-style:italic;}
+.cetak .label-cerai{font-size:13px;}
+.psg-baris{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0;font-size:14px;color:var(--ink);}
+.psg-baris span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.psg-baris select{width:auto;flex:none;min-width:110px;margin:0;}
+.ket-cerai{color:var(--ink-soft);}
+
+
+/* ===== Form edit: dua kolom, jarak aman dari bar sistem ===== */
+:root{--bawah-aman:max(env(safe-area-inset-bottom,0px),44px);}
+.baris-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.baris-2>label,.baris-2>.fld,.baris-2>.saklar{min-width:0;}
+.modal-body label{margin-bottom:8px;}
+.modal-body .fld{margin-bottom:8px;}
+.modal-body input,.modal-body select{margin-top:3px;padding:7px 8px;font-size:13px;}
+.modal-body .baris-2{gap:8px;}
+.blok-alamat{padding-top:6px;margin:2px 0 8px;}
+.judul-blok{margin-bottom:4px;}
+.saklar-baris{margin-bottom:8px;}
+.saklar{display:flex;border:1px solid var(--card-border);border-radius:999px;overflow:hidden;background:var(--card);}
+.saklar button{flex:1;border:0;background:transparent;padding:8px 4px;font-size:13px;color:var(--ink-soft);}
+.saklar button.on{background:var(--root);color:#fff;font-weight:600;}
+#skStatus button.on[data-v="meninggal"]{background:#9a3b3b;}
+.modal-body .fld{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:12px;}
+.foto-ctl{margin-top:5px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+#previewFoto{display:flex;align-items:center;gap:8px;}
+.btn-kecil.netral{color:var(--root-deep);}
+
+
+/* ===== Gembok, bagikan, impor ===== */
+.gembok-judul{flex:none;color:var(--ink-soft);}
+.gembok-judul.hidden{display:none;}
+.ikon-gembok{width:13px;height:13px;vertical-align:-1px;margin-right:5px;color:var(--ink-soft);}
+.pilih-bagikan{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:14px;color:var(--ink);cursor:pointer;}
+.pilih-bagikan span{display:block;}
+.pilih-bagikan small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.35;}
+.cetak-daftar{max-height:45vh;overflow-y:auto;margin-bottom:12px;}
+.handle-garis{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--root);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);z-index:6;touch-action:none;cursor:ns-resize;color:#fff;font-size:15px;line-height:24px;text-align:center;}
+.handle-garis::after{content:"\21D5";}
+.bar-garis{position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.3;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.18);}
+.bar-garis.hidden{display:none;}
+.bar-garis span{flex:1;}
+.bar-garis button{padding:8px 10px;border-radius:8px;border:1px solid var(--card-border);background:var(--bg);font-size:13px;color:var(--root-deep);}
+.bar-garis button.utama{background:var(--root);border-color:var(--root);color:#fff;}
+.pilih-cetak{display:flex;gap:10px;align-items:center;padding:9px 2px;font-size:14px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--card-border);}
+.pilih-cetak input{width:auto;margin:0;padding:0;flex:none;display:inline-block;}
+.pilih-cetak small{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px;}
+.dlg input[type=radio]{display:inline-block;width:auto;margin:3px 0 0;padding:0;flex:none;}
+
