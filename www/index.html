@@ -24,7 +24,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .topbar{position:absolute;top:0;left:0;right:0;z-index:10;padding:14px 18px;background:linear-gradient(to bottom,var(--bg) 75%,transparent);padding-top:calc(14px + env(safe-area-inset-top,0px));pointer-events:none;}
 .topbar h1{font-family:var(--font-title);font-size:19px;font-weight:normal;color:var(--root-deep);margin:0;}
 .viewport{position:absolute;inset:0;touch-action:none;}
-.canvas{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;}
+.canvas{position:absolute;top:0;left:0;transform-origin:0 0;}
 
 .node{position:absolute;width:104px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
 .avatar-wrap{position:relative;width:58px;height:58px;}
@@ -265,7 +265,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .pilih-bagikan small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.35;}
 .cetak-daftar{max-height:45vh;overflow-y:auto;margin-bottom:12px;}
 .handle-garis{position:absolute;width:28px;height:28px;border-radius:50%;background:var(--root);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);z-index:6;touch-action:none;cursor:ns-resize;color:#fff;font-size:15px;line-height:24px;text-align:center;}
-.handle-garis::after{content:"\\21D5";}
+.handle-garis::after{content:"\21D5";}
 .bar-garis{position:absolute;left:12px;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:8px 10px;font-size:12px;line-height:1.3;color:var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.18);}
 .bar-garis.hidden{display:none;}
 .bar-garis span{flex:1;}
@@ -278,6 +278,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 
 /* ===== Cetak: pohon digambar ulang lebih besar di wadah terpisah ===== */
 #cetakWrap{display:none;}
+.cetak-gen{font-size:16px;line-height:1.25;color:var(--ink);text-align:left;white-space:pre;margin-bottom:18px;}
 .cetak-judul{font-family:var(--font-title);color:var(--root-deep);text-align:center;white-space:nowrap;line-height:1.25;}
 .cetak .node{width:124px;gap:6px;}
 .cetak .avatar-wrap{width:88px;height:88px;}
@@ -317,7 +318,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
   <main id="viewport" class="viewport">
     <div id="canvas" class="canvas"></div>
   </main>
-  <div id="cetakWrap"><div id="cetakJudul" class="cetak-judul"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
+  <div id="cetakWrap"><div id="cetakJudul" class="cetak-judul"></div><div id="cetakGen" class="cetak-gen"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
 
   <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
 
@@ -1795,14 +1796,32 @@ $('cetakYa').addEventListener('click',()=>{
   const a=r&&store.akar.find(x=>x.id===r.value);
   tutupCetakDlg(); if(a) cetakAkar(a);
 });
+// Teks "Gen 1 : n" per generasi (semua orang dihitung, termasuk pasangan); memakai data akar yang sedang dicetak
+function barisRingkasGen(){
+  const ids=Object.keys(data.people); if(!ids.length) return [];
+  let posisi={}; try{ posisi=hitungLayout(); }catch(e){}
+  const pid=Object.keys(posisi); const baris=[];
+  if(pid.length){
+    const genMin=Math.min(...pid.map(id=>posisi[id].gen)), per={};
+    pid.forEach(id=>{ const g=posisi[id].gen-genMin+1; per[g]=(per[g]||0)+1; });
+    Object.keys(per).map(Number).sort((a,b)=>a-b).forEach(g=>baris.push('Gen '+g+' : '+per[g]));
+  }
+  const lepas=ids.length-pid.length;
+  if(lepas>0) baris.push('Lainnya : '+lepas);
+  baris.push('Total : '+ids.length);
+  return baris;
+}
 async function cetakAkar(akar){
   // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
-  let u; const dataAsli=data; data=akar.data;
+  let u, ringBaris=[]; const dataAsli=data; data=akar.data;
   try{
     const g=bangunTunggal(akar); let L=null;
     try{ L=susunBlok(g); }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
     u = L ? gambarPohonBlok($('cetakCanvas'),M_CETAK,L,g) : gambarPohon($('cetakCanvas'),M_CETAK);
+    ringBaris=barisRingkasGen();
   } finally { data=dataAsli; }
+  const cg=$('cetakGen'); cg.textContent=ringBaris.join('\n'); cg.style.display=ringBaris.length?'block':'none';
+  const ringH=ringBaris.length?ringBaris.length*20+18:0;
   $('cetakCanvas').style.width=u.w+'px'; $('cetakCanvas').style.height=u.h+'px';
   const PAD=64;
   const judul=(akar.nama||'').trim();
@@ -1812,7 +1831,7 @@ async function cetakAkar(akar){
   jd.textContent=judul; jd.style.display=judul?'block':'none';
   jd.style.fontSize=fs+'px'; jd.style.marginBottom='44px';
   const judulH=judul?Math.ceil(fs*1.25)+44:0;
-  const H=Math.max(u.h,1)+2*PAD+judulH;
+  const H=Math.max(u.h,1)+2*PAD+judulH+ringH;
   const wrap=$('cetakWrap');
   wrap.style.width=W+'px'; wrap.style.padding=PAD+'px';
   const k=pilihKertas(W,H);
