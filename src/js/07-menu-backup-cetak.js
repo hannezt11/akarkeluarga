@@ -120,7 +120,8 @@ $('cetakOverlay').addEventListener('click',e=>{ if(e.target===$('cetakOverlay'))
 $('cetakYa').addEventListener('click',()=>{
   const r=document.querySelector('input[name="akarCetak"]:checked');
   const a=r&&store.akar.find(x=>x.id===r.value);
-  tutupCetakDlg(); if(a) cetakAkar(a);
+  const tanpaHp=!!($('cetakHp')&&!$('cetakHp').checked);
+  tutupCetakDlg(); if(a) cetakAkar(a,{tanpaHp});
 });
 // Teks "Gen 1 : n" per generasi (semua orang dihitung, termasuk pasangan); memakai data akar yang sedang dicetak
 function barisRingkasGen(){
@@ -137,14 +138,15 @@ function barisRingkasGen(){
   baris.push('Total : '+ids.length);
   return baris;
 }
-async function cetakAkar(akar){
+async function cetakAkar(akar,opsi){
+  opsi=opsi||{}; const MC=mCetak(opsi.tanpaHp===true);
   // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
   let u, ringBaris=[]; const dataAsli=data; data=akar.data;
   const wrapUkur=$('cetakWrap'); wrapUkur.style.display='block'; wrapUkur.style.visibility='hidden'; wrapUkur.style.position='absolute'; wrapUkur.style.left='-99999px'; // agar tinggi kartu bisa diukur saat menggambar
   try{
     const g=bangunTunggal(akar); let L=null;
     try{ L=susunBlok(g); }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
-    u = L ? gambarPohonBlok($('cetakCanvas'),M_CETAK,L,g) : gambarPohon($('cetakCanvas'),M_CETAK);
+    u = L ? gambarPohonBlok($('cetakCanvas'),MC,L,g) : gambarPohon($('cetakCanvas'),MC);
     ringBaris=barisRingkasGen();
   } finally { data=dataAsli; ['display','visibility','position','left'].forEach(k=>wrapUkur.style.removeProperty(k)); }
   const cg=$('cetakGen'); cg.textContent=ringBaris.join('\n'); cg.style.display=ringBaris.length?'block':'none';

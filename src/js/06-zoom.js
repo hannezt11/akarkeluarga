@@ -9,7 +9,7 @@ function pasKeLayar(){
   const el=canvas.querySelector('.node.aktif');
   if(fit>=0.9||!el){ pasSemua(); return; }
   sk=0.9;
-  const cx=parseFloat(el.style.left)+44, cy=parseFloat(el.style.top)+44;
+  const cx=parseFloat(el.style.left)+el.offsetWidth/2, cy=parseFloat(el.style.top)+Math.min(el.offsetHeight/2,44);
   tx=vp.width/2-cx*sk; ty=(vp.height+60)/2-cy*sk;
   pasangTransform();
 }
@@ -17,7 +17,7 @@ function pusatkanKe(id){
   const el=canvas.querySelector('.node[data-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); if(!el) return false;
   const vp=viewport.getBoundingClientRect();
   sk=Math.max(sk,0.9);
-  const cx=parseFloat(el.style.left)+44, cy=parseFloat(el.style.top)+44;
+  const cx=parseFloat(el.style.left)+el.offsetWidth/2, cy=parseFloat(el.style.top)+Math.min(el.offsetHeight/2,44);
   tx=vp.width/2-cx*sk; ty=(vp.height+60)/2-cy*sk;
   pasangTransform();
   el.classList.remove('kilat'); void el.offsetWidth; el.classList.add('kilat');

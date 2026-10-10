@@ -14,3 +14,11 @@ $('btnTema').addEventListener('click',()=>{
 });
 try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',terapkanTema); }catch(e){}
 terapkanTema();
+
+// ===== Bentuk kartu: bulat / kartu ID =====
+function terapkanBentuk(){ const e=$('bentukTeks'); if(e) e.textContent=bentukPilihan()==='kartu'?'Kartu (foto, nama, alamat, HP)':'Bulat'; }
+$('btnBentuk').addEventListener('click',()=>{
+  try{ localStorage.setItem(BENTUK_KEY,bentukPilihan()==='kartu'?'bulat':'kartu'); }catch(e){}
+  terapkanBentuk(); render(true);
+});
+terapkanBentuk();

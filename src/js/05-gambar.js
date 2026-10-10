@@ -243,6 +243,7 @@ function gambarPohonBlok(target,M,L,g){
     n.dataset.id=o.id;
     if(g.dari[o.id] && g.dari[o.id]!==store.aktifId) n.dataset.akar=g.dari[o.id];
     n.style.left=pos.x+'px'; n.style.top=pos.y+'px';
+    if(M.kartu) isiNodeKartu(n,o,orang,M); else {
     const wrap=document.createElement('div'); wrap.className='avatar-wrap';
     const av=document.createElement('div'); av.className='avatar';
     if(o.foto) av.style.backgroundImage=`url("${o.foto}")`; else av.textContent=inisial(o.nama);
@@ -252,7 +253,7 @@ function gambarPohonBlok(target,M,L,g){
     const um=document.createElement('div'); um.className='umur';
     const u=hitungUmur(o);
     um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' \u2020':'')) : formatTglSingkat(o.lahir);
-    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); }
     if(modeGaris&&!M.cetak&&riilId(o.id)) pasangGeserNama(n,o,pos);
     target.appendChild(n);
   });
@@ -312,8 +313,33 @@ function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za
 let contentW=0, contentH=0;
 
 // Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
-const M_LAYAR={NODE_H:88,CX:44,CY:22,T:4,cetak:false};
-const M_CETAK={NODE_H:150,CX:50,CY:36,T:5,cetak:true};
+const M_LAYAR_BULAT={NODE_H:88,CX:44,CY:22,T:4,cetak:false};
+const M_CETAK_BULAT={NODE_H:150,CX:50,CY:36,T:5,cetak:true};
+const M_LAYAR_KARTU={NODE_H:112,CX:48,CY:30,T:4,cetak:false,kartu:true};
+const M_CETAK_KARTU={NODE_H:150,CX:52,CY:41,T:5,cetak:true,kartu:true};
+// Bentuk kartu (bulat / kartu ID) dipilih dari drawer, tersimpan di localStorage
+const BENTUK_KEY='akarBentuk';
+function bentukPilihan(){ try{ return localStorage.getItem(BENTUK_KEY)==='kartu'?'kartu':'bulat'; }catch(e){ return 'bulat'; } }
+function mLayar(){ return bentukPilihan()==='kartu'?M_LAYAR_KARTU:M_LAYAR_BULAT; }
+function mCetak(tanpaHp){ return bentukPilihan()==='kartu'?Object.assign({},M_CETAK_KARTU,{tanpaHp:!!tanpaHp}):M_CETAK_BULAT; }
+// Isi kartu ID: foto kecil, "umur. nama", kecamatan, no. hp
+function isiNodeKartu(n,o,P,M){
+  n.classList.add('kt');
+  const wrap=document.createElement('div'); wrap.className='avatar-wrap';
+  const av=document.createElement('div'); av.className='avatar';
+  if(o.foto) av.style.backgroundImage=`url("${o.foto}")`; else av.textContent=inisial(o.nama);
+  const dot=document.createElement('div'); dot.className='status-dot '+(o.status==='meninggal'?'meninggal':'hidup');
+  wrap.appendChild(av); wrap.appendChild(dot); n.appendChild(wrap);
+  const wafat=o.status==='meninggal', u=hitungUmur(o);
+  const nama=o.nama||'Tanpa nama';
+  const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong');
+  nm.textContent = u!==null ? (u+' th'+(wafat?' \u2020 ':'. ')+nama) : nama;
+  n.appendChild(nm);
+  let kec=''; try{ const r=alamatEfektif(o,P); kec=(r&&r.alamat&&r.alamat.kec)||''; }catch(e){}
+  kec=String(kec).replace(/^\s*(kecamatan|kec\.?)\s+/i,'').trim();
+  if(kec){ const e=document.createElement('div'); e.className='kt-kec'; e.textContent=kec; n.appendChild(e); }
+  if(o.hp && !wafat && !M.tanpaHp){ const e=document.createElement('div'); e.className='kt-hp'; e.textContent=o.hp; n.appendChild(e); }
+}
 function garisV(tg,x,y1,y2,T,kelas){
   const d=document.createElement('div'); d.className='line line-v'+(kelas?' '+kelas:'');
   d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;
@@ -424,6 +450,7 @@ function gambarPohon(target,M){
     if(infoLatar&&infoLatar.dari[o.id]&&infoLatar.dari[o.id]!==store.aktifId) n.dataset.akar=infoLatar.dari[o.id];
     n.style.left=pos.x+'px'; n.style.top=pos.y+'px';
 
+    if(M.kartu) isiNodeKartu(n,o,data.people,M); else {
     const wrap=document.createElement('div'); wrap.className='avatar-wrap';
     const av=document.createElement('div'); av.className='avatar';
     if(o.foto) av.style.backgroundImage=`url("${o.foto}")`; else av.textContent=inisial(o.nama);
@@ -436,12 +463,13 @@ function gambarPohon(target,M){
     um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' †':'')) : formatTglSingkat(o.lahir);
 
     n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
+    }
     target.appendChild(n);
   });
   return {w:maksX,h:maksY};
 }
 function render(pasKeLayarJuga){
-  const u=gambarDenganLatar(canvas,M_LAYAR);
+  const u=gambarDenganLatar(canvas,mLayar());
   contentW=u.w; contentH=u.h;
   canvas.style.width=contentW+'px'; canvas.style.height=contentH+'px';
   if(pasKeLayarJuga) pasKeLayar(); else pasangTransform();

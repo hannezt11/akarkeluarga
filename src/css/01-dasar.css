@@ -79,3 +79,21 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .modal-tambah-tombol button{padding:9px;border-radius:8px;border:1px solid var(--card-border);background:var(--card);font-size:13px;color:var(--root-deep);}
 
 
+
+/* ===== Bentuk kartu ID ===== */
+.node.kt{width:96px;height:112px;box-sizing:border-box;padding:5px 4px 0;gap:3px;background:var(--card);border:1px solid var(--card-border);border-top:3px solid #6b9a74;border-radius:10px;overflow:hidden;}
+.node.kt.gf{border-top-color:#c58a74;}
+.node.kt .avatar-wrap{width:44px;height:44px;flex:none;}
+.node.kt .avatar{width:44px;height:44px;border-radius:8px;font-size:15px;}
+.node.kt .status-dot{top:-3px;right:-3px;}
+.node.kt .nama{font-size:11px;font-weight:600;line-height:1.2;max-height:2.4em;width:100%;overflow:hidden;word-break:break-word;}
+.node.kt .kt-kec,.node.kt .kt-hp{font-size:10px;line-height:1.2;color:var(--ink-soft);width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.node.kt .kt-hp{color:var(--ink);}
+.node.kt.aktif{box-shadow:0 0 0 2px var(--gold);}
+.cetak .node.kt{width:104px;height:150px;padding:8px 5px 0;gap:4px;}
+.cetak .node.kt .avatar-wrap{width:60px;height:60px;}
+.cetak .node.kt .avatar{width:60px;height:60px;border-radius:10px;font-size:20px;border:1px solid #cdbf9d;}
+.cetak .node.kt .nama{font-size:13px;line-height:1.2;max-height:2.4em;}
+.cetak .node.kt .kt-kec,.cetak .node.kt .kt-hp{font-size:12px;}
+.cetak .node.kt .kt-hp{font-size:11px;letter-spacing:-.2px;}
+.cetak .node.kt{padding-left:2px;padding-right:2px;}
