@@ -36,6 +36,18 @@ function pasangGeserNama(n,o,pos){
 function gambarPohonBlok(target,M,L,g){
   const orang=g.data.people, posisi=L.posisi;
   terapkanGeser(posisi,id=>g.riil.has(id));
+  // Sorot jalur: leluhur + keturunan (beserta pasangan keturunan) orang terpilih; yang lain diredupkan
+  let S=null;
+  if(!M.cetak&&sorotId&&orang[sorotId]){
+    S=new Set([sorotId]);
+    const naik=id=>{ [orang[id].idAyah,orang[id].idIbu].forEach(x=>{ if(x&&orang[x]&&!S.has(x)){ S.add(x); naik(x); } }); };
+    naik(sorotId);
+    const D=new Set([sorotId]);
+    const turun=id=>{ Object.values(orang).forEach(c=>{ if((c.idAyah===id||c.idIbu===id)&&!D.has(c.id)){ D.add(c.id); turun(c.id); } }); };
+    turun(sorotId);
+    D.forEach(id=>{ S.add(id); (orang[id].idPasangan||[]).forEach(x=>{ if(orang[x]) S.add(x); }); });
+  }
+  const rd=(...ids)=>(S&&!ids.every(id=>S.has(id)))?' redup':'';
   const riilId=id=>g.riil.has(id);
   const blokDari=id=>L.blok[id]||0;
   const rekam=(t,a,b,c,bl)=>{ if(L.uji) L.uji.push({t,a,b,c,bl}); };
@@ -99,7 +111,7 @@ function gambarPohonBlok(target,M,L,g){
   const yGen={}; let yy=0;
   daftarGen.forEach((gk,i)=>{ if(i>0) yy+=M.NODE_H+GAP_GEN+(jumlahLajur[gk]||0)*LAJUR_H+(L.rak[gk]?Math.round(M.NODE_H*0.35):0); yGen[gk]=yy; });
   Object.values(posisi).forEach(q=>{ q.y=yGen[q.gen]; });
-  const kelasDari=(...ids)=>ids.every(riilId)?'':'pudar';
+  const kelasDari=(...ids)=>(ids.every(riilId)?'':'pudar')+rd(...ids);
   const siku=(pts,kelas)=>{
     for(let i=0;i<pts.length-1;i++){
       const [x1,y1]=pts[i], [x2,y2]=pts[i+1];
@@ -136,7 +148,8 @@ function gambarPohonBlok(target,M,L,g){
       const cerai=((o.statusPasangan||{})[pid]==='cerai');
       const kls=kelasDari(o.id,pid);
       if(blokDari(o.id)===blokDari(pid) && pos.gen===pos2.gen && uPas[pasKey(o.id,pid)]===undefined){
-        garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,[cerai?'cerai':'',kls].filter(Boolean).join(' '));
+        garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,['psg',cerai?'cerai':'',kls].filter(Boolean).join(' '));
+        if(!cerai){ const tt=document.createElement('div'); tt.className='titik-psg'+(kls?' '+kls:''); tt.style.left=((pos.x+pos2.x)/2+M.CX)+'px'; tt.style.top=(pos.y+M.CY)+'px'; target.appendChild(tt); }
       } else {
         const yb=(uPas[pasKey(o.id,pid)]!==undefined)?uPas[pasKey(o.id,pid)]:Math.max(pos.y,pos2.y)+M.NODE_H+8;
         siku([[pos.x+M.CX,pos.y+M.NODE_H],[pos.x+M.CX,yb],[pos2.x+M.CX,yb],[pos2.x+M.CX,pos2.y+M.NODE_H]],kls||'');
@@ -157,12 +170,14 @@ function gambarPohonBlok(target,M,L,g){
     const rec={items:[],T:M.T,d:dGaris,yAnak:f.anak[0].y};
     const ortuRiil=f.ids.some(riilId);
     const anakRiil=f.idAnak.map(id=>ortuRiil&&riilId(id));
+    const kBus=(S&&!(f.ids.some(id=>S.has(id))&&f.idAnak.some(id=>S.has(id))))?'redup':'';
+    const kAnak=ix=>(S&&!S.has(f.idAnak[ix]))?'redup':kBus;
     const gv=(x,y1,y2,k)=>{ const el=garisV(target,x,y1,y2,M.T,k); rec.items.push(y1===yBus?{el,role:'k',y2}:{el,role:'p',y1}); rekam('v',x,y1,y2,f.blok); };
     const gh=(x1,y,x2,k)=>{ const el=garisH(target,x1,y,x2,M.T,k); rec.items.push({el,role:'b'}); rekam('h',y,x1,x2,f.blok); };
     if(ortuRiil&&anakRiil.every(Boolean)){
-      gv(f.midX,yMulai,yBus);
-      if(f.kanan>f.kiri) gh(f.kiri,yBus,f.kanan);
-      f.anak.forEach(q=>gv(q.x+M.CX,yBus,q.y));
+      gv(f.midX,yMulai,yBus,kBus);
+      if(f.kanan>f.kiri) gh(f.kiri,yBus,f.kanan,kBus);
+      f.anak.forEach((q,ix)=>gv(q.x+M.CX,yBus,q.y,kAnak(ix)));
     } else {
       gv(f.midX,yMulai,yBus,'pudar');
       if(f.kanan>f.kiri) gh(f.kiri,yBus,f.kanan,'pudar');
@@ -220,7 +235,7 @@ function gambarPohonBlok(target,M,L,g){
     const pos=posisi[o.id]; if(!pos) return;
     maksX=Math.max(maksX,pos.x+NODE_W); maksY=Math.max(maksY,pos.y+M.NODE_H);
     const n=document.createElement('div');
-    n.className='node'+((!M.cetak&&o.id===L.root)?' aktif':'')+(riilId(o.id)?'':' pudar');
+    n.className='node'+((!M.cetak&&o.id===L.root)?' aktif':'')+(riilId(o.id)?'':' pudar')+(genderDari(o)==='f'?' gf':' gm')+(o.status==='meninggal'?' wafat':'')+rd(o.id);
     n.dataset.id=o.id;
     if(g.dari[o.id] && g.dari[o.id]!==store.aktifId) n.dataset.akar=g.dari[o.id];
     n.style.left=pos.x+'px'; n.style.top=pos.y+'px';
@@ -281,7 +296,7 @@ function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za
 let contentW=0, contentH=0;
 
 // Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
-const M_LAYAR={NODE_H:88,CX:44,CY:22,T:2,cetak:false};
+const M_LAYAR={NODE_H:88,CX:44,CY:22,T:3,cetak:false};
 const M_CETAK={NODE_H:150,CX:50,CY:36,T:3,cetak:true};
 function garisV(tg,x,y1,y2,T,kelas){
   const d=document.createElement('div'); d.className='line line-v'+(kelas?' '+kelas:'');
@@ -388,7 +403,7 @@ function gambarPohon(target,M){
     maksX=Math.max(maksX,pos.x+NODE_W); maksY=Math.max(maksY,pos.y+M.NODE_H);
 
     const n=document.createElement('div');
-    n.className='node'+((!M.cetak&&o.id===rootAktif())?' aktif':'')+(riilId(o.id)?'':' pudar');
+    n.className='node'+((!M.cetak&&o.id===rootAktif())?' aktif':'')+(riilId(o.id)?'':' pudar')+(genderDari(o)==='f'?' gf':' gm')+(o.status==='meninggal'?' wafat':'');
     n.dataset.id=o.id;
     if(infoLatar&&infoLatar.dari[o.id]&&infoLatar.dari[o.id]!==store.aktifId) n.dataset.akar=infoLatar.dari[o.id];
     n.style.left=pos.x+'px'; n.style.top=pos.y+'px';

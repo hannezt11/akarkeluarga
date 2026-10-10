@@ -6,6 +6,8 @@ let infoLatar=null, gabunganTampil=null;
 const PERAN=[['saya','Saya'],['pasangan','Pasangan saya'],['ayah','Ayah saya'],['ibu','Ibu saya'],['mertuaAyah','Ayah mertua'],['mertuaIbu','Ibu mertua']];
 // Set gabungan: store.setGabung=[{id,nama,akar:[idAkar,...]}]. Akar yang sedang dibuka menampilkan set yang
 // memuatnya (bila ada beberapa, set yang terakhir dipilih: store.setAktifId). Mis. set 1 = A+B, set 2 = C+D.
+function samaDari(p){ return Array.isArray(p.sama)?p.sama:(p.sama?[p.sama]:[]); }
+function setSama(p,arr){ if(arr&&arr.length) p.sama=arr; else delete p.sama; }
 function semuaSet(){
   if(!Array.isArray(store.setGabung)){
     store.setGabung=[];
@@ -30,10 +32,12 @@ function jumlahTautanGabung(daftar){
   g.forEach(aid=>{
     const a=store.akar.find(x=>x.id===aid);
     Object.values(a.data.people).forEach(p=>{
-      if(p.sama && p.sama.a!==aid && g.includes(p.sama.a)){
-        const t=store.akar.find(x=>x.id===p.sama.a);
-        if(t && t.data.people[p.sama.i]) n++;
-      }
+      samaDari(p).forEach(sm=>{
+        if(sm.a!==aid && g.includes(sm.a)){
+          const t=store.akar.find(x=>x.id===sm.a);
+          if(t && t.data.people[sm.i]) n++;
+        }
+      });
     });
   });
   return n;
@@ -63,8 +67,7 @@ function fotoTerbaruPeta(){
     });
   });
   akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
-    const sm=p.sama; if(!sm) return;
-    satukan(kunci(a.id,p.id),kunci(sm.a,sm.i));
+    samaDari(p).forEach(sm=>satukan(kunci(a.id,p.id),kunci(sm.a,sm.i)));
   }));
   const terbaik={};
   akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
@@ -104,8 +107,7 @@ function bangunGabungan(){
     });
   });
   akars.forEach(a=>Object.values(a.data.people).forEach(p=>{
-    const sm=p.sama; if(!sm) return;
-    satukan(kunci(a.id,p.id),kunci(sm.a,sm.i));
+    samaDari(p).forEach(sm=>satukan(kunci(a.id,p.id),kunci(sm.a,sm.i)));
   }));
   const mid={}, asal={}, dari={}, people={};
   const petaFoto=fotoTerbaruPeta();

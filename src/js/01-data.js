@@ -78,7 +78,7 @@ function bilasSimpan(){ if(tundaSimpan){ clearTimeout(tundaSimpan); tulisStore()
 window.addEventListener('pagehide',bilasSimpan);
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') bilasSimpan(); });
 function anakDari(id){ return Object.values(data.people).filter(p=>p.idAyah===id||p.idIbu===id); }
-let urutKetat=false, rootPaksa=null, modeGaris=false;
+let urutKetat=false, rootPaksa=null, modeGaris=false, sorotId=null;
 function rootAktif(){ if(rootPaksa&&data.people[rootPaksa]) return rootPaksa; return data.people[ROOT_ID] ? ROOT_ID : Object.keys(data.people)[0]; }
 function bacaAngka(el){ const n=parseInt(el.value,10); return isNaN(n)?null:n; }
 

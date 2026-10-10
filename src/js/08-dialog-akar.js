@@ -5,6 +5,7 @@ function drawerTerbuka(){ return $('drawer').classList.contains('buka'); }
 $('btnMenu').addEventListener('click',bukaDrawer);
 $('drawerScrim').addEventListener('click',tutupDrawer);
 $('btnPusat').addEventListener('click',pasKeLayar);
+$('btnLihatSemua').addEventListener('click',pasSemua);
 
 // ===== Dialog konfirmasi =====
 let dlgResolve=null;
@@ -75,7 +76,7 @@ function segarkanPin(){
 }
 function gantiAkar(id){
   const a=store.akar.find(x=>x.id===id); if(!a) return;
-  tutupKartu(); tutupRingkasan();
+  tutupKartu(); tutupRingkasan(); sorotId=null; aturChipSorot();
   if(!$('modalOverlay').classList.contains('hidden')) tutupModal();
   if(id!==store.aktifId){
     store.aktifId=id; data=a.data; simpanData();

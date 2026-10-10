@@ -2,10 +2,10 @@
   --bg:#f3ede0; --ink:#2f2a20; --ink-soft:#6b6252;
   --root:#3c5b45; --root-deep:#24382b;
   --card:#fffaf0; --card-border:#ddd2b8; --gold:#a97d34;
-  --hidup:#4f7a5a; --meninggal:#a3453b; --garis:#a8946b;
+  --hidup:#4f7a5a; --meninggal:#a3453b; --garis:#8d7a54;
   --font-title:Georgia,'Iowan Old Style','Times New Roman',serif;
   --font-body:-apple-system,Roboto,'Segoe UI',sans-serif;
-  --pz:1;
+  --pz:1; --tekan:#eadfc6; --input:#fff;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:var(--font-body);overflow:hidden;overscroll-behavior:none;}
@@ -36,13 +36,13 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .node.pudar{opacity:.3;filter:grayscale(1);}
 .line.pudar{opacity:.2;}
 .label-cerai.pudar{opacity:.3;}
-.label-blok{position:absolute;font-size:12px;color:#7a6e58;opacity:.8;white-space:nowrap;pointer-events:none;}
+.label-blok{position:absolute;font-size:12px;color:var(--ink-soft);opacity:.8;white-space:nowrap;pointer-events:none;}
 .peran-sheet{max-height:88%;overflow-y:auto;}
-.peran-info{font-size:13px;color:#6b5f49;margin:0 8px 8px;line-height:1.4;}
+.peran-info{font-size:13px;color:var(--ink-soft);margin:0 8px 8px;line-height:1.4;}
 .peran-akar{margin:8px 4px;padding:10px;border:1px solid var(--card-border);border-radius:12px;background:var(--card);}
 .peran-nama{font-family:var(--font-title);font-size:16px;color:var(--root-deep);margin-bottom:6px;}
-.peran-baris{display:block;font-size:12px;color:#6b5f49;margin-top:6px;}
-.peran-sel{display:block;width:100%;padding:9px;border:1px solid var(--card-border);border-radius:8px;background:#fff;font-size:14px;color:var(--ink);margin-top:3px;}
+.peran-baris{display:block;font-size:12px;color:var(--ink-soft);margin-top:6px;}
+.peran-sel{display:block;width:100%;padding:9px;border:1px solid var(--card-border);border-radius:8px;background:var(--input);font-size:14px;color:var(--ink);margin-top:3px;}
 .sheet button.peran-tutup{text-align:center;background:var(--root);color:#fff;margin-top:8px;}
 
 /* Tombol aksi kiri bawah - absolute terhadap .frame-ponsel, tidak ikut pan/zoom. */

@@ -2,7 +2,7 @@
 .topbar{display:flex;align-items:center;gap:12px;}
 .btn-menu{pointer-events:auto;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
 .btn-pusat{position:absolute;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:15;width:48px;height:48px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,0.15);}
-.btn-pusat:active,.btn-menu:active{background:#eadfc6;}
+.btn-pusat:active,.btn-menu:active{background:var(--tekan);}
 
 /* ===== Drawer ===== */
 .scrim{position:absolute;inset:0;background:rgba(36,30,20,0.45);z-index:30;}
@@ -14,7 +14,7 @@
 .drawer-kepala p{margin:4px 0 0;font-size:12px;opacity:.75;}
 .drawer-isi{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
 .drawer-isi button,.drawer-bawah button{width:100%;text-align:left;padding:13px 14px;border-radius:10px;border:none;background:transparent;color:var(--root-deep);font-size:15px;}
-.drawer-isi button:active{background:#eadfc6;}
+.drawer-isi button:active{background:var(--tekan);}
 .drawer-spacer{flex:1;}
 .drawer-bawah{padding:10px 12px 0;border-top:1px solid var(--card-border);margin:0 8px;}
 .drawer-bawah button{color:var(--meninggal);border:1px solid var(--card-border);background:var(--card);text-align:center;font-size:14px;}
@@ -48,7 +48,7 @@
 .dlg{width:100%;max-width:320px;background:var(--card);border-radius:16px;padding:20px 18px 14px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
 .dlg h3{margin:0 0 8px;font-family:var(--font-title);font-weight:normal;font-size:18px;color:var(--meninggal);}
 .dlg p{margin:0 0 16px;font-size:14px;line-height:1.45;color:var(--ink);}
-.dlg input{display:block;width:100%;padding:10px;border:1px solid var(--card-border);border-radius:8px;background:#fff;font-size:15px;margin-bottom:14px;color:var(--ink);}
+.dlg input{display:block;width:100%;padding:10px;border:1px solid var(--card-border);border-radius:8px;background:var(--input);font-size:15px;margin-bottom:14px;color:var(--ink);}
 .dlg h3.netral{color:var(--root-deep);}
 .dlg-tombol button.utama{background:var(--root);border-color:var(--root);color:#fff;}
 .drawer-isi button small{display:block;font-size:12px;color:var(--ink-soft);margin-top:2px;}

@@ -27,14 +27,14 @@
 .drawer-judul{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);padding:14px 20px 6px;}
 .daftar-akar{padding:0 10px;display:flex;flex-direction:column;gap:4px;}
 .akar-baris{display:flex;align-items:center;gap:12px;padding:10px 8px 10px 12px;border-radius:12px;cursor:pointer;}
-.akar-baris:active{background:#eadfc6;}
+.akar-baris:active{background:var(--tekan);}
 .akar-baris.aktif{background:#e9e0c8;}
 .akar-titik{width:16px;height:16px;border-radius:50%;flex:none;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18);}
 .akar-teks{flex:1;min-width:0;}
 .akar-nama{font-size:15px;color:var(--root-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .akar-sub{font-size:12px;color:var(--ink-soft);}
 .akar-menu{flex:none;width:36px;height:36px;border:none;background:transparent;color:var(--ink-soft);font-size:20px;border-radius:50%;}
-.akar-menu:active{background:#d9ceb0;}
+.akar-menu:active{background:var(--tekan);}
 .btn-akar-baru{margin:8px 10px 4px;width:calc(100% - 20px);padding:12px;border-radius:12px;border:1px dashed var(--card-border);background:transparent;color:var(--root);font-size:14px;text-align:center;}
 .drawer-pemisah{height:1px;background:var(--card-border);margin:10px 18px;}
 .pin-akar{position:absolute;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
@@ -45,7 +45,7 @@
 .sheet{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:14px 14px calc(16px + var(--bawah-aman));}
 .sheet-judul{font-family:var(--font-title);font-size:17px;color:var(--root-deep);padding:2px 8px 10px;}
 .sheet button{display:block;width:100%;text-align:left;padding:13px 10px;border:none;background:transparent;font-size:15px;color:var(--root-deep);border-radius:10px;}
-.sheet button:active{background:#eadfc6;}
+.sheet button:active{background:var(--tekan);}
 .sheet button.bahaya{color:var(--meninggal);}
 .sheet-warna{display:flex;gap:10px;flex-wrap:wrap;padding:10px;}
 .sheet-warna button{width:34px;height:34px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2);}
@@ -54,7 +54,7 @@
 
 /* ===== Ringkasan generasi ===== */
 .btn-ringkasan{position:absolute;left:18px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
-.btn-ringkasan:active{background:#eadfc6;}
+.btn-ringkasan:active{background:var(--tekan);}
 .ringkasan{width:min(100%,340px);max-height:78dvh;background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
 .ringkasan-kepala{padding:16px 18px 12px;background:var(--root-deep);color:#f3ede0;}
 .ringkasan-kepala h3{margin:0;font-family:var(--font-title);font-weight:normal;font-size:19px;}
@@ -141,3 +141,77 @@
 .sheet .set-aksi button{flex:1;width:auto;text-align:center;padding:9px 4px;border:1px solid var(--card-border);background:var(--bg);font-size:13px;}
 .sheet .set-aksi button.bahaya{color:var(--meninggal);}
 .sheet button.set-baru{text-align:center;border:1px dashed var(--card-border);margin:8px 4px 0;width:calc(100% - 8px);}
+
+
+/* ===== Form edit: baris baru, kolom & teks sedikit lebih besar ===== */
+.modal-body label,.modal-body .fld{font-size:12.5px;}
+.modal-body input,.modal-body select{margin-top:3px;padding:9px 10px;font-size:15px;border-radius:9px;}
+.modal-body .baris-tgl{gap:8px;}
+.modal-body .baris-2{gap:10px;}
+.baris-nama{display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;}
+.baris-nama .f-nama{flex:1;min-width:0;margin-bottom:0;}
+.saklar.kecil{flex:none;}
+.saklar.kecil button{padding:9px 7px;font-size:12.5px;white-space:nowrap;}
+.baris-ortu{display:grid;grid-template-columns:1fr 1fr 58px;gap:8px;}
+.baris-ortu>label{min-width:0;}
+.baris-ortu input{text-align:center;padding-left:4px;padding-right:4px;}
+.baris-psg-foto{align-items:start;}
+.baris-psg-foto .psg-baris{flex-direction:column;align-items:stretch;gap:3px;margin:0 0 6px;font-size:13px;}
+.baris-psg-foto .psg-baris select{width:100%;min-width:0;font-size:14px;padding:7px 8px;}
+.baris-psg-foto .fld{margin-bottom:6px;}
+#daftarPasangan{margin-top:4px;color:var(--ink);}
+
+.blok-sama{margin-top:6px;padding-top:8px;border-top:1px solid var(--card-border);}
+.blok-sama>.judul-blok{font-size:12.5px;color:var(--ink-soft);margin-bottom:2px;}
+.sama-cocok,.sama-hasil{margin-top:8px;}
+.sama-judul{font-size:12px;color:var(--root-deep);margin:0 0 4px;font-weight:600;}
+.sama-hint{font-size:12px;color:var(--ink-soft);}
+.sama-daftar{max-height:210px;overflow-y:auto;border:1px solid var(--card-border);border-radius:10px;background:var(--card);}
+.sama-baris{display:flex;align-items:center;gap:9px;padding:8px 10px;font-size:14px;color:var(--ink);}
+.sama-daftar .sama-baris+.sama-baris{border-top:1px solid var(--card-border);}
+.sama-baris.bisa{cursor:pointer;}
+.sama-baris.bisa:active{background:var(--tekan);}
+.sama-baris.cocok{background:#eef3e6;border:1px solid #cfdcc0;border-radius:10px;margin-bottom:5px;}
+.sama-baris .akar-titik{flex:none;width:10px;height:10px;border-radius:50%;}
+.sama-teks{flex:1;min-width:0;}
+.sama-teks b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sama-teks small{display:block;font-size:11.5px;color:var(--ink-soft);line-height:1.3;}
+.sama-lepas{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--meninggal);font-size:14px;padding:0;}
+
+
+/* ===== Warna kartu menurut jenis kelamin; wafat lebih redup ===== */
+.node.gm .avatar{background-color:#d6e3d8;border:2px solid #9db8a3;}
+.node.gf .avatar{background-color:#f1d9cc;border:2px solid #d8aa97;color:#6b3626;}
+.node.wafat .avatar{border-color:#8a8474;filter:saturate(.55) brightness(.97);}
+.node.wafat .nama{color:var(--ink-soft);}
+.node.gm.aktif .avatar,.node.gf.aktif .avatar{box-shadow:0 0 0 2px var(--gold);}
+/* garis pasangan */
+.line.psg{background:#b07a3f;}
+.line-h.psg.cerai{background:repeating-linear-gradient(to right,#b07a3f 0,#b07a3f 6px,transparent 6px,transparent 10px);}
+.titik-psg{position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#b07a3f;border:2px solid var(--bg);box-sizing:border-box;}
+.titik-psg.pudar{opacity:.2;}
+/* sorot jalur */
+.node.redup{opacity:.2;}
+.line.redup,.titik-psg.redup{opacity:.12;}
+.chip-sorot{position:absolute;left:50%;transform:translateX(-50%);top:calc(68px + env(safe-area-inset-top,0px));z-index:12;display:flex;align-items:center;gap:6px;background:var(--root);color:#fff;border-radius:999px;padding:5px 6px 5px 14px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.3);max-width:70%;}
+.chip-sorot.hidden{display:none;}
+.chip-sorot span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.chip-sorot button{flex:none;width:26px;height:26px;border-radius:50%;border:none;background:rgba(255,255,255,.22);color:#fff;font-size:12px;padding:0;}
+.node.kilat .avatar{animation:kilat 1.6s ease-out 1;}
+@keyframes kilat{0%{box-shadow:0 0 0 0 rgba(169,125,52,.9);}60%{box-shadow:0 0 0 14px rgba(169,125,52,0);}100%{box-shadow:0 0 0 0 rgba(169,125,52,0);}}
+/* tombol */
+.btn-semua{bottom:calc(76px + env(safe-area-inset-bottom,0px));}
+.btn-cari{top:calc(110px + env(safe-area-inset-top,0px));}
+.kartu-sorot{position:absolute;top:12px;right:60px;height:40px;padding:0 14px;border-radius:20px;border:none;background:rgba(255,250,240,0.92);color:var(--root-deep);font-size:13px;box-shadow:0 1px 6px rgba(0,0,0,0.3);}
+/* pencarian nama */
+.cari-input{display:block;width:calc(100% - 16px);margin:0 8px 8px;padding:11px 12px;border:1px solid var(--card-border);border-radius:10px;background:var(--card);font-size:16px;color:var(--ink);}
+.cari-hasil{max-height:52vh;overflow-y:auto;margin:0 4px;}
+.cari-baris{padding:10px 12px;border-bottom:1px solid var(--card-border);cursor:pointer;font-size:15px;color:var(--ink);}
+.cari-baris b{display:block;font-weight:600;}
+.cari-baris small{color:var(--ink-soft);font-size:12px;}
+.cari-baris:active{background:var(--tekan);}
+/* kartu: aksi cepat + ulang tahun */
+.kartu-aksi{display:flex;gap:8px;margin:2px 0 10px;}
+.kartu-aksi .aksi{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;border:1px solid var(--card-border);background:var(--bg);color:var(--root-deep);font-size:11.5px;text-decoration:none;}
+.kartu-aksi .aksi.wa{background:#e1efe3;border-color:#b8d6bd;color:#1f5b2c;}
+.kartu-ultah{font-size:13px;color:#8a5a14;background:#fbf0d4;border:1px solid #ecd9a3;border-radius:10px;padding:5px 10px;margin:0 0 8px;display:inline-block;}

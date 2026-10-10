@@ -7,41 +7,6 @@ function bacaTanggal(t,b,y){
 }
 // Terapkan isi form ke data (dipakai Simpan, dan otomatis sebelum menambah anggota
 // supaya ketikan yang belum disimpan tidak hilang).
-let samaAwal='';
-function isiSama(o){
-  const w=$('wrapSama'), sel=$('fSama');
-  const lain=store.akar.filter(a=>a.id!==store.aktifId);
-  w.style.display=lain.length?'':'none'; sel.innerHTML=''; samaAwal='';
-  if(!lain.length) return;
-  const k=document.createElement('option'); k.value=''; k.textContent='\u2014 belum ditandai \u2014'; sel.appendChild(k);
-  lain.forEach(a=>{
-    const g=document.createElement('optgroup'); g.label=a.nama;
-    Object.values(a.data.people).sort((x,y)=>String(x.nama||'').localeCompare(String(y.nama||''))).forEach(q=>{
-      const op=document.createElement('option'); op.value=a.id+'|'+q.id;
-      op.textContent=(q.nama||'Tanpa nama')+((q.lahir&&q.lahir.tahun)?' ('+q.lahir.tahun+')':'');
-      g.appendChild(op);
-    });
-    sel.appendChild(g);
-  });
-  let nilai='';
-  if(o.sama && store.akar.some(a=>a.id===o.sama.a && a.data.people[o.sama.i])) nilai=o.sama.a+'|'+o.sama.i;
-  else {
-    for(const a of lain){
-      const q=Object.values(a.data.people).find(z=>z.sama&&z.sama.a===store.aktifId&&z.sama.i===o.id);
-      if(q){ nilai=a.id+'|'+q.id; break; }
-    }
-  }
-  sel.value=nilai; samaAwal=sel.value;
-}
-function terapkanSama(o){
-  if($('wrapSama').style.display==='none') return;
-  store.akar.forEach(a=>{
-    if(a.id===store.aktifId||a.terkunci) return;
-    Object.values(a.data.people).forEach(q=>{ if(q.sama&&q.sama.a===store.aktifId&&q.sama.i===o.id) delete q.sama; });
-  });
-  const v=$('fSama').value;
-  if(v){ const i=v.indexOf('|'); o.sama={a:v.slice(0,i),i:v.slice(i+1)}; } else delete o.sama;
-}
 function terapkanForm(o){
   o.nama=$('fNama').value.trim();
   o.status=$('fStatus').value;
@@ -101,7 +66,7 @@ function hubungkanPasangan(a,b){
 }
 function gantiId(lama,baru){
   const o=data.people[lama]; delete data.people[lama]; o.id=baru; data.people[baru]=o;
-  store.akar.forEach(ak=>Object.values(ak.data.people).forEach(q=>{ if(q.sama&&q.sama.a===store.aktifId&&q.sama.i===lama) q.sama.i=baru; }));
+  store.akar.forEach(ak=>Object.values(ak.data.people).forEach(q=>{ samaDari(q).forEach(x=>{ if(x.a===store.aktifId&&x.i===lama) x.i=baru; }); }));
   Object.values(data.people).forEach(p=>{
     if(p.idAyah===lama) p.idAyah=baru;
     if(p.idIbu===lama) p.idIbu=baru;

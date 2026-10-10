@@ -24,7 +24,7 @@ function barisKontak(o){
   let h='';
   if(o.hp){
     const tel=String(o.hp).replace(/[^\d+]/g,''), wa=nomorWa(o.hp);
-    h+=`<div class="kartu-baris"><b>Ponsel:</b> <a class="kontak" href="tel:${esc(tel)}">${esc(o.hp)}</a>`+(wa.length>=8?` <a class="kontak chip-wa" href="https://wa.me/${esc(wa)}">WhatsApp</a>`:'')+`</div>`;
+    h+=`<div class="kartu-baris"><b>Ponsel:</b> <a class="kontak" href="tel:${esc(tel)}">${esc(o.hp)}</a></div>`;
   }
   if(o.email) h+=`<div class="kartu-baris"><b>Email:</b> <a class="kontak" href="mailto:${esc(o.email)}">${esc(o.email)}</a></div>`;
   return h;
@@ -50,6 +50,28 @@ function alamatWarisan(o,P,hop){
   let r=ay?alamatEfektif(ay,P,hop):null; if(r) return {alamat:r.alamat,dari:'ayah',id:ay.id};
   r=ib?alamatEfektif(ib,P,hop):null; if(r) return {alamat:r.alamat,dari:'ibu',id:ib.id};
   return null;
+}
+const IK_TEL='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7a2 2 0 011.8 2z"/></svg>';
+const IK_WA='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 01-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1121 11.5z"/><path d="M9 9.5c.3 2.2 2.3 4.3 5 5l1.2-1.2-1.8-.9-.8.6c-.9-.4-1.6-1.1-2-2l.6-.8-.9-1.8z"/></svg>';
+const IK_MAIL='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';
+function aksiKontak(o){
+  const a=[];
+  if(o.hp){ const tel=String(o.hp).replace(/[^\d+]/g,''), wa=nomorWa(o.hp);
+    a.push(`<a class="aksi" href="tel:${esc(tel)}">${IK_TEL}<span>Telepon</span></a>`);
+    if(wa.length>=8) a.push(`<a class="aksi wa" href="https://wa.me/${esc(wa)}">${IK_WA}<span>WhatsApp</span></a>`);
+  }
+  if(o.email) a.push(`<a class="aksi" href="mailto:${esc(o.email)}">${IK_MAIL}<span>Email</span></a>`);
+  return a.length?`<div class="kartu-aksi">${a.join('')}</div>`:'';
+}
+function hariUlangTahun(o){
+  const l=o.lahir; if(o.status==='meninggal'||!l||!l.bulan||!l.tanggal) return null;
+  const n=new Date(), hari=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  let d=new Date(hari.getFullYear(),l.bulan-1,l.tanggal); if(d<hari) d=new Date(hari.getFullYear()+1,l.bulan-1,l.tanggal);
+  return Math.round((d-hari)/86400000);
+}
+function barisUltah(o){
+  const h=hariUlangTahun(o); if(h===null||h>30) return '';
+  return `<div class="kartu-ultah">\u{1F382} ${h===0?'Ulang tahun hari ini':'Ulang tahun '+h+' hari lagi'}</div>`;
 }
 function barisPasangan(o){
   const t=(o.idPasangan||[]).filter(x=>data.people[x]).map(x=>tautanOrang(x)+(((o.statusPasangan||{})[x]==='cerai')?' <span class="ket-cerai">(cerai)</span>':''));
@@ -89,6 +111,7 @@ function bukaKartu(id){
   if(umur!==null) sub.push(meninggal?`${umur} tahun (saat wafat)`:`${umur} tahun`);
   let h=`<div class="kartu-nama">${esc(o.nama||'Tanpa nama')}</div>`;
   h+=`<div class="kartu-sub">${esc(sub.join(' \u00b7 '))}</div>`;
+  h+=barisUltah(o)+aksiKontak(o);
   if(lahir) h+=`<div class="kartu-baris"><b>Lahir:</b> ${esc(lahir)}</div>`;
   if(meninggal&&wafat) h+=`<div class="kartu-baris"><b>Wafat:</b> ${esc(wafat)}</div>`;
   const efAl=alamatEfektif(o,data.people,0), txtAlamat=efAl?teksAlamat(efAl.alamat):'';
@@ -109,10 +132,12 @@ $('kartuInfo').addEventListener('click',e=>{
   const t=e.target.closest&&e.target.closest('.tautan');
   if(t){ e.preventDefault(); bukaKartu(t.dataset.id); }
 });
+$('kartuSorot').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if(id){ sorotId=id; aturChipSorot(); render(false); } });
 $('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if(id) bukaModal(id); });
 
 // ===== Tombol Back Android =====
 function tanganiBack(){
+  if(cariTerbuka()){ tutupCari(); return true; }
   if(setTerbuka()){ tutupSet(); return true; }
   if(pilihTerbuka()){ tutupPilih(null); return true; }
   if(modeGaris){ keluarModeGaris(); return true; }

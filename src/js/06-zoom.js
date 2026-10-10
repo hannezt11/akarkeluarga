@@ -1,7 +1,29 @@
 // ===== Pan & zoom =====
 let tx=0,ty=0,sk=1;
 function pasangTransform(){ canvas.style.transform=`translate(${tx}px,${ty}px) scale(${sk})`; }
+// Tampilan awal: bila seluruh pohon muat dengan ukuran nyaman (>= 0.9x) pas ke layar; bila tidak,
+// perbesar ke 0.9x dan pusatkan pada "saya" supaya nama dan umur terbaca. Tombol kedua = lihat semua.
 function pasKeLayar(){
+  const vp=viewport.getBoundingClientRect();
+  const fit=Math.max(0.15,Math.min(1,(vp.width-24)/Math.max(contentW,1),(vp.height-130)/Math.max(contentH,1)));
+  const el=canvas.querySelector('.node.aktif');
+  if(fit>=0.9||!el){ pasSemua(); return; }
+  sk=0.9;
+  const cx=parseFloat(el.style.left)+44, cy=parseFloat(el.style.top)+44;
+  tx=vp.width/2-cx*sk; ty=(vp.height+60)/2-cy*sk;
+  pasangTransform();
+}
+function pusatkanKe(id){
+  const el=canvas.querySelector('.node[data-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); if(!el) return false;
+  const vp=viewport.getBoundingClientRect();
+  sk=Math.max(sk,0.9);
+  const cx=parseFloat(el.style.left)+44, cy=parseFloat(el.style.top)+44;
+  tx=vp.width/2-cx*sk; ty=(vp.height+60)/2-cy*sk;
+  pasangTransform();
+  el.classList.remove('kilat'); void el.offsetWidth; el.classList.add('kilat');
+  return true;
+}
+function pasSemua(){
   const vp=viewport.getBoundingClientRect();
   sk=Math.min(1,(vp.width-24)/Math.max(contentW,1),(vp.height-130)/Math.max(contentH,1));
   sk=Math.max(sk,0.15);
@@ -51,9 +73,11 @@ function selesaiPointer(e){
 // Modal dibuka dari event 'click' (SESUDAH jari terangkat) supaya ketukan yang sama tidak
 // "tembus" ke isi modal yang baru muncul di bawah jari (mis. membuka pilihan Status/Ayah/Ibu).
 viewport.addEventListener('click',e=>{
-  if(geserTerakhir || Date.now()<blokirKlikSampai || modeGaris) return;
+  if(geserTerakhir || Date.now()<blokirKlikSampai) return;
   const n=e.target.closest ? e.target.closest('.node') : null;
+  if(modeGaris) return;
   if(n){ if(n.dataset.akar) bukaLatar(n.dataset.id,n.dataset.akar); else bukaKartu(n.dataset.id); }
+  else if(sorotId) hapusSorot();
 });
 viewport.addEventListener('pointerup',selesaiPointer);
 viewport.addEventListener('pointercancel',selesaiPointer);

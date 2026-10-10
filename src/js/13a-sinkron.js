@@ -40,7 +40,7 @@ function bangunGugusSama(){
     let pertama=null;
     akars.forEach(a=>{ const pid=a.peran&&a.peran[rk]; if(!pid||!a.data.people[pid]) return; const k=kunci(a.id,pid); if(pertama===null) pertama=k; else satukan(pertama,k); });
   });
-  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{ const sm=p.sama; if(sm) satukan(kunci(a.id,p.id),kunci(sm.a,sm.i)); }));
+  akars.forEach(a=>Object.values(a.data.people).forEach(p=>{ samaDari(p).forEach(sm=>satukan(kunci(a.id,p.id),kunci(sm.a,sm.i))); }));
   return {induk,cari,kunci};
 }
 // Salinan orang yang sama di akar lain: [{a:akar, p:orang}]
@@ -88,34 +88,35 @@ function potretForm(o){
 }
 // Menerapkan isi form + sinkronisasi. Mengembalikan false bila dibatalkan (form tetap terbuka, tidak ada yang berubah).
 async function terapkanFormLengkap(o){
-  const sebelum=klon(o), awal=samaAwal, kini=$('fSama').value;
-  let tautan=null, menang='A';
-  if(kini && kini!==awal && $('wrapSama').style.display!=='none'){
-    const i=kini.indexOf('|'), ak=store.akar.find(a=>a.id===kini.slice(0,i)), q=ak&&ak.data.people[kini.slice(i+1)];
-    if(q){
-      tautan={ak,q};
-      const po=potretForm(o);
+  const sebelum=klon(o);
+  const awal=new Set(samaAwal?samaAwal.split(','):[]);
+  const baru=samaPilih.filter(x=>!x.tetap&&!awal.has(kunciSama(x)));
+  const tautan=[];   // tautan yang baru ditambahkan: {ak,q,menang}
+  if(baru.length){
+    const po=potretForm(o), label=Object.fromEntries(UNIT_SINKRON.map(u=>[u[0],u[1]]));
+    for(const x of baru){
+      const ak=akarDari(x.a), q=ak&&ak.data.people[x.i]; if(!q) continue;
+      let menang='A';
       const beda=UNIT_SINKRON.map(u=>u[0]).filter(k=>k!=='foto'&&nilaiUnit(po,k)&&nilaiUnit(q,k)&&nilaiUnit(po,k)!==nilaiUnit(q,k));
       if(beda.length){
-        const label=Object.fromEntries(UNIT_SINKRON.map(u=>[u[0],u[1]]));
-        const baris=beda.map(k=>label[k]+': '+teksUnit(po,k)+'  ↔  '+teksUnit(q,k));
         const nm=ak.nama||'akar lain';
         const pil=await pilihSumber('Data berbeda',
           'Orang ini ditandai sama dengan orang di akar "'+nm+'", tetapi isinya berbeda (kiri: akar ini, kanan: "'+nm+'"). Data mana yang dipakai?',
-          baris,
+          beda.map(k=>label[k]+': '+teksUnit(po,k)+'  \u2194  '+teksUnit(q,k)),
           ak.terkunci ? 'Pakai data akar ini (akar "'+nm+'" tidak diubah)' : 'Pakai data akar ini (akar "'+nm+'" ikut berubah)',
           'Pakai data dari "'+nm+'"');
         if(pil===null) return false;
         menang=pil;
       }
+      tautan.push({ak,q,menang});
     }
   }
   terapkanForm(o);
   const akarUbah=new Set();
-  if(tautan && selaraskanDua(o,tautan.q,!tautan.ak.terkunci,menang)) akarUbah.add(tautan.ak.id);
+  tautan.forEach(t=>{ if(selaraskanDua(o,t.q,!t.ak.terkunci,t.menang)) akarUbah.add(t.ak.id); });
   sebarkanSinkron(o,sebelum,akarUbah);
   // gugus yang lebih besar (salinan lain dari orang yang sama): data akar ini yang dipakai
-  if(tautan) kerabatSama(store.aktifId,o.id).forEach(x=>{ if(x.p!==tautan.q && !x.a.terkunci && selaraskanDua(o,x.p,true,'A')) akarUbah.add(x.a.id); });
+  if(tautan.length) kerabatSama(store.aktifId,o.id).forEach(x=>{ if(tautan.some(t=>t.q===x.p)) return; if(!x.a.terkunci && selaraskanDua(o,x.p,true,'A')) akarUbah.add(x.a.id); });
   if(akarUbah.size) tampilToast('Data ikut diperbarui di '+akarUbah.size+' akar lain');
   return true;
 }

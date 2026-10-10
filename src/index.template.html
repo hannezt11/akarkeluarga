@@ -18,6 +18,8 @@
   </header>
   <button id="btnRingkasan" class="btn-ringkasan" aria-label="Ringkasan generasi"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h6a4 4 0 014 4v11a3 3 0 00-3-3H2z"/><path d="M22 5h-6a4 4 0 00-4 4v11a3 3 0 013-3h7z"/></svg></button>
   <div id="pinAkar" class="pin-akar"></div>
+  <button id="btnCari" class="btn-ringkasan btn-cari" aria-label="Cari nama"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+  <div id="chipSorot" class="chip-sorot hidden"><span id="chipSorotTeks"></span><button id="chipSorotX" aria-label="Hapus sorotan">&#10005;</button></div>
   <div id="barGaris" class="bar-garis hidden"><span>Mode edit: seret nama ke kiri/kanan untuk mengatur posisi; seret bulatan &#8661; untuk menggeser garis keluarga.</span><button id="garisReset">Atur ulang</button><button id="garisSelesai" class="utama">Selesai</button></div>
 
   <main id="viewport" class="viewport">
@@ -25,6 +27,7 @@
   </main>
   <div id="cetakWrap"><div id="cetakJudul" class="cetak-judul"></div><div id="cetakGen" class="cetak-gen"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
 
+  <button id="btnLihatSemua" class="btn-pusat btn-semua" aria-label="Lihat seluruh pohon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
 
   <input type="file" id="inputRestore" accept="application/json,.json">
@@ -36,14 +39,17 @@
         <button id="btnTutup" class="btn-icon">&times;</button>
       </div>
       <div class="modal-body">
-        <label>Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
-        <div class="baris-2 saklar-baris">
-          <div class="saklar" id="skStatus"><button type="button" data-v="hidup">Hidup</button><button type="button" data-v="meninggal">Wafat</button></div>
-          <div class="saklar" id="skGender"><button type="button" data-v="m">Pria</button><button type="button" data-v="f">Wanita</button></div>
+        <div class="baris-nama">
+          <label class="f-nama">Nama <input type="text" id="fNama" placeholder="Tanpa nama"></label>
+          <div class="saklar kecil" id="skGender"><button type="button" data-v="m">Pria</button><button type="button" data-v="f">Wanita</button></div>
+          <div class="saklar kecil" id="skStatus"><button type="button" data-v="hidup">Hidup</button><button type="button" data-v="meninggal">Wafat</button></div>
         </div>
         <select id="fStatus" style="display:none"><option value="hidup">Hidup</option><option value="meninggal">Meninggal</option></select>
         <select id="fGender" style="display:none"><option value="m">Laki-laki</option><option value="f">Perempuan</option></select>
-        <div class="baris-2">
+        <div class="baris-2 baris-psg-foto">
+          <div class="fld">Pasangan
+            <div id="daftarPasangan"></div>
+          </div>
           <div class="fld">Foto
             <div class="foto-ctl">
               <div id="previewFoto"></div>
@@ -51,9 +57,6 @@
             </div>
             <input type="file" id="fFotoFile" accept="image/*" style="display:none">
           </div>
-          <label id="wrapAnakKe">Anak ke-
-            <input type="number" id="fAnakKe" min="1" max="99" placeholder="boleh kosong">
-          </label>
         </div>
         <label>Lahir
           <div class="baris-tgl">
@@ -69,9 +72,10 @@
             <input type="number" id="fWafatThn" placeholder="tahun" min="1" max="2100">
           </div>
         </label>
-        <div class="baris-2">
+        <div class="baris-ortu">
           <label>Ayah <select id="fAyah"></select></label>
           <label>Ibu <select id="fIbu"></select></label>
+          <label id="wrapAnakKe">Anak ke <input type="number" id="fAnakKe" min="1" max="99" placeholder="-" inputmode="numeric"></label>
         </div>
         <div class="baris-2">
           <label>No. ponsel <input type="tel" id="fHp" inputmode="tel" autocomplete="off" placeholder="08xx / +62xx"></label>
@@ -98,10 +102,11 @@
           <button type="button" id="btnAlamatKembali" class="btn-teks" style="display:none"></button>
           </div>
         </div>
-        <label id="wrapSama">Sama dengan orang di akar lain (jarang perlu) <select id="fSama"></select></label>
-        <div class="relasi-info">
-          <div class="judul-blok">Pasangan</div>
-          <div id="daftarPasangan"></div>
+        <div id="wrapSama" class="blok-sama">
+          <div class="judul-blok">Sama dengan orang di akar lain</div>
+          <input type="search" id="fCariSama" placeholder="Cari nama di semua akar lain..." autocomplete="off" autocapitalize="off">
+          <div id="samaCocok" class="sama-cocok"></div>
+          <div id="samaHasil" class="sama-hasil"></div>
         </div>
       </div>
       <div class="modal-actions">
@@ -136,6 +141,7 @@
         <button id="btnEditGaris">Edit tampilan<small>Geser nama & garis penghubung</small></button>
         <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
         <button id="btnPeran">Peran saya di tiap akar</button>
+        <button id="btnTema">Tampilan<small id="temaTeks"></small></button>
         <button id="btnSetGabung">Set gabungan<small>Gabung beberapa akar jadi satu tampilan</small></button>
       </div>
     </div>
@@ -152,6 +158,7 @@
   <div id="kartuOverlay" class="kartu-overlay hidden">
     <div class="kartu">
       <div id="kartuFoto" class="kartu-foto"></div>
+      <button id="kartuSorot" class="kartu-sorot" aria-label="Sorot jalur">Sorot jalur</button>
       <button id="kartuEdit" class="kartu-edit" aria-label="Edit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
       <div id="kartuInfo" class="kartu-info"></div>
     </div>
@@ -173,6 +180,14 @@
       <button id="amPin"></button>
       <button id="amGabung"></button>
       <button id="amHapus" class="bahaya">Hapus akar ini</button>
+    </div>
+  </div>
+
+  <div id="cariOverlay" class="sheet-overlay hidden">
+    <div id="cariSheet" class="sheet peran-sheet">
+      <div class="sheet-judul">Cari nama</div>
+      <input type="search" id="fCari" class="cari-input" placeholder="Ketik nama..." autocomplete="off" autocapitalize="off">
+      <div id="cariHasil" class="cari-hasil"></div>
     </div>
   </div>
 

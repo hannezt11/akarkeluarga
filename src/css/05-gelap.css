@@ -1,0 +1,27 @@
+/* ===== Mode gelap (dipilih lewat drawer: Otomatis / Terang / Gelap) ===== */
+/* Hasil cetak selalu memakai warna terang */
+#cetakWrap{--bg:#f3ede0;--ink:#2f2a20;--ink-soft:#6b6252;--root:#3c5b45;--root-deep:#24382b;--card:#fffaf0;--card-border:#ddd2b8;--garis:#8d7a54;--hidup:#4f7a5a;--meninggal:#a3453b;--gold:#a97d34;color:#2f2a20;}
+:root[data-tema="gelap"]{
+  color-scheme:dark;
+  --bg:#1c1913; --ink:#eae2d0; --ink-soft:#a79d86; --root:#4f7a5a; --root-deep:#cfe0cc;
+  --card:#26231a; --card-border:#3d382b; --gold:#d0a255; --hidup:#6fb07c; --meninggal:#e0705f; --garis:#8f8160;
+  --tekan:#38342a; --input:#2d2a20;
+}
+:root[data-tema="gelap"] .drawer-kepala,:root[data-tema="gelap"] .ringkasan-kepala{background:#24382b;color:#f3ede0;}
+:root[data-tema="gelap"] .kartu-edit,:root[data-tema="gelap"] .kartu-sorot{background:rgba(38,35,26,.92);color:var(--root-deep);}
+:root[data-tema="gelap"] #canvas .node .avatar{background-color:#3a3528;color:var(--ink);border-color:#4d4736;}
+:root[data-tema="gelap"] #canvas .node.gm .avatar{background-color:#2e4736;border-color:#5f8a68;color:#d7e8d8;}
+:root[data-tema="gelap"] #canvas .node.gf .avatar{background-color:#4a2f27;border-color:#9a6a58;color:#f0d3c6;}
+:root[data-tema="gelap"] #canvas .node.wafat .avatar{border-color:#6f6a5c;}
+:root[data-tema="gelap"] .kartu-foto.kosong.m{background:linear-gradient(160deg,#3a5340,#2c4033);}
+:root[data-tema="gelap"] .kartu-foto.kosong.f{background:linear-gradient(160deg,#5a3a30,#43291f);}
+:root[data-tema="gelap"] .kartu-foto.kosong .inisial{color:rgba(240,236,224,.7);}
+:root[data-tema="gelap"] .alamat-ikut,:root[data-tema="gelap"] .sama-baris.cocok{background:#243026;border-color:#3f5a45;}
+:root[data-tema="gelap"] .kartu-aksi .aksi.wa{background:#23382a;border-color:#3f6b4a;color:#9fd6ac;}
+:root[data-tema="gelap"] .kartu-ultah{background:#3a311a;border-color:#6b5a2a;color:#e6c97a;}
+:root[data-tema="gelap"] .tautan{color:#8db4ff;}
+:root[data-tema="gelap"] .rk-bar{background:#3a3628;}
+:root[data-tema="gelap"] .line.psg,:root[data-tema="gelap"] .titik-psg{background:#d09a55;}
+:root[data-tema="gelap"] .line-h.psg.cerai{background:repeating-linear-gradient(to right,#d09a55 0,#d09a55 6px,transparent 6px,transparent 10px);}
+:root[data-tema="gelap"] .akar-titik{border-color:#26231a;}
+:root[data-tema="gelap"] .akar-baris.aktif{background:#3a3628;}
