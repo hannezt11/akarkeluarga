@@ -252,7 +252,7 @@ function gambarPohonBlok(target,M,L,g){
     const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong'); nm.textContent=o.nama||'Tanpa nama';
     const um=document.createElement('div'); um.className='umur';
     const u=hitungUmur(o);
-    um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' \u2020':'')) : formatTglSingkat(o.lahir);
+    um.textContent = u!==null ? (u+' th'+'') : formatTglSingkat(o.lahir);
     n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); }
     if(modeGaris&&!M.cetak&&riilId(o.id)) pasangGeserNama(n,o,pos);
     target.appendChild(n);
@@ -287,6 +287,7 @@ function bangunTunggal(akar){
   return {data:{people},riil:new Set(Object.keys(people)),dari:{}};
 }
 function gambarDenganLatar(target,M){
+  aturUkuranSlot(M);
   const overlay=bangunGabungan();
   if(!M.cetak) gabunganTampil=overlay;
   const g=overlay||bangunTunggal();
@@ -320,6 +321,8 @@ const M_CETAK_KARTU={NODE_H:150,CX:52,CY:41,T:5,cetak:true,kartu:true};
 // Bentuk kartu (bulat / kartu ID) dipilih dari drawer, tersimpan di localStorage
 const BENTUK_KEY='akarBentuk';
 function bentukPilihan(){ try{ return localStorage.getItem(BENTUK_KEY)==='kartu'?'kartu':'bulat'; }catch(e){ return 'bulat'; } }
+// Jarak slot & antar generasi menyesuaikan bentuk kartu (kartu ID lebih lebar/tinggi)
+function aturUkuranSlot(M){ NODE_W=M.kartu?124:108; GAP_GEN=M.kartu?72:56; }
 function mLayar(){ return bentukPilihan()==='kartu'?M_LAYAR_KARTU:M_LAYAR_BULAT; }
 function mCetak(tanpaHp){ return bentukPilihan()==='kartu'?Object.assign({},M_CETAK_KARTU,{tanpaHp:!!tanpaHp}):M_CETAK_BULAT; }
 // Isi kartu ID: foto kecil, "umur. nama", kecamatan, no. hp
@@ -333,7 +336,7 @@ function isiNodeKartu(n,o,P,M){
   const wafat=o.status==='meninggal', u=hitungUmur(o);
   const nama=o.nama||'Tanpa nama';
   const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong');
-  nm.textContent = u!==null ? (u+' th'+(wafat?' \u2020 ':'. ')+nama) : nama;
+  nm.textContent = u!==null ? (u+' th'+'. '+nama) : nama;
   n.appendChild(nm);
   let kec=''; try{ const r=alamatEfektif(o,P); kec=(r&&r.alamat&&r.alamat.kec)||''; }catch(e){}
   kec=String(kec).replace(/^\s*(kecamatan|kec\.?)\s+/i,'').trim();
@@ -460,7 +463,7 @@ function gambarPohon(target,M){
     const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong'); nm.textContent=o.nama||'Tanpa nama';
     const um=document.createElement('div'); um.className='umur';
     const u=hitungUmur(o);
-    um.textContent = u!==null ? (u+' th'+(o.status==='meninggal'?' †':'')) : formatTglSingkat(o.lahir);
+    um.textContent = u!==null ? (u+' th'+'') : formatTglSingkat(o.lahir);
 
     n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
     }

@@ -139,7 +139,7 @@ function barisRingkasGen(){
   return baris;
 }
 async function cetakAkar(akar,opsi){
-  opsi=opsi||{}; const MC=mCetak(opsi.tanpaHp===true);
+  opsi=opsi||{}; const MC=mCetak(opsi.tanpaHp===true); aturUkuranSlot(MC);
   // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
   let u, ringBaris=[]; const dataAsli=data; data=akar.data;
   const wrapUkur=$('cetakWrap'); wrapUkur.style.display='block'; wrapUkur.style.visibility='hidden'; wrapUkur.style.position='absolute'; wrapUkur.style.left='-99999px'; // agar tinggi kartu bisa diukur saat menggambar
