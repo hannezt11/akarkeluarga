@@ -113,10 +113,12 @@ function gambarPohonBlok(target,M,L,g){
   Object.values(posisi).forEach(q=>{ q.y=yGen[q.gen]; });
   const kelasDari=(...ids)=>(ids.every(riilId)?'':'pudar')+rd(...ids);
   const siku=(pts,kelas)=>{
+    const els=[];
     for(let i=0;i<pts.length-1;i++){
       const [x1,y1]=pts[i], [x2,y2]=pts[i+1];
-      if(x1===x2) garisV(target,x1,y1,y2,M.T,kelas); else garisH(target,x1,y1,x2,M.T,kelas);
+      els.push(x1===x2 ? garisV(target,x1,y1,y2,M.T,kelas) : garisH(target,x1,y1,x2,M.T,kelas));
     }
+    return els;
   };
   const pasKey=(a,b)=>a<b?a+'|'+b:b+'|'+a;
   const uPas={};
@@ -157,13 +159,14 @@ function gambarPohonBlok(target,M,L,g){
     });
   });
   // 4) garis keluarga di dalam blok
+  const tempelSatu=[], tempelSilang=[];
   Object.values(keluarga).forEach(f=>{
     const ortu=f.ids.map(id=>posisi[id]);
     const yU=f.rapat?uPas[pasKey(f.ids[0],f.ids[1])]:undefined;
     const yMulai=(yU!==undefined)?yU:(f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H);
     const kunciGaris=f.ids.join('|');
     const dMaks=f.anak[0].y-(Math.max(yMulai,...ortu.map(q=>q.y+M.NODE_H))+6);
-    const dOto=12+f.lajur*LAJUR_H, dSimpan=(data&&data.garis)?data.garis[kunciGaris]:undefined;
+    const dOto=22+f.lajur*LAJUR_H, dSimpan=(data&&data.garis)?data.garis[kunciGaris]:undefined;
     let dGaris=(typeof dSimpan==='number')?dSimpan:dOto;
     if(dMaks>=8) dGaris=Math.min(Math.max(dGaris,8),dMaks); else dGaris=dOto;
     const yBus=f.anak[0].y-dGaris;
@@ -172,7 +175,7 @@ function gambarPohonBlok(target,M,L,g){
     const anakRiil=f.idAnak.map(id=>ortuRiil&&riilId(id));
     const kBus=(S&&!(f.ids.some(id=>S.has(id))&&f.idAnak.some(id=>S.has(id))))?'redup':'';
     const kAnak=ix=>(S&&!S.has(f.idAnak[ix]))?'redup':kBus;
-    const gv=(x,y1,y2,k)=>{ const el=garisV(target,x,y1,y2,M.T,k); rec.items.push(y1===yBus?{el,role:'k',y2}:{el,role:'p',y1}); rekam('v',x,y1,y2,f.blok); };
+    const gv=(x,y1,y2,k)=>{ const el=garisV(target,x,y1,y2,M.T,k); const it=y1===yBus?{el,role:'k',y2}:{el,role:'p',y1}; rec.items.push(it); if(it.role==='p'&&f.ids.length===1) tempelSatu.push({it,id:f.ids[0],rec}); rekam('v',x,y1,y2,f.blok); };
     const gh=(x1,y,x2,k)=>{ const el=garisH(target,x1,y,x2,M.T,k); rec.items.push({el,role:'b'}); rekam('h',y,x1,x2,f.blok); };
     if(ortuRiil&&anakRiil.every(Boolean)){
       gv(f.midX,yMulai,yBus,kBus);
@@ -222,8 +225,9 @@ function gambarPohonBlok(target,M,L,g){
     const kx=k.x+M.CX, ky=k.y, py=pp[0].y;
     const kls=kelasDari(sv.kid,...sv.ortu);
     if(py+M.NODE_H < ky-4){
-      const ym=ky-12-(lajurSilang.get(sv)||0)*LAJUR_H, ya=rapat ? py+M.CY : py+M.NODE_H;
-      siku([[kx,ky],[kx,ym],[mx,ym],[mx,ya]],kls);
+      const ym=ky-22-(lajurSilang.get(sv)||0)*LAJUR_H, ya=rapat ? py+M.CY : py+M.NODE_H;
+      const els=siku([[kx,ky],[kx,ym],[mx,ym],[mx,ya]],kls);
+      if(!rapat&&pp.length===1) tempelSilang.push({el:els[2],id:sv.ortu[0],ym});
     } else {
       const yb=ky+M.NODE_H+10;
       siku([[kx,ky+M.NODE_H],[kx,yb],[mx,yb],[mx,py]],kls);
@@ -251,6 +255,18 @@ function gambarPohonBlok(target,M,L,g){
     n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
     if(modeGaris&&!M.cetak&&riilId(o.id)) pasangGeserNama(n,o,pos);
     target.appendChild(n);
+  });
+  // anak dengan 1 orang tua: garis menempel tepat di bawah teks nama/umur orang tua
+  tempelSilang.forEach(t=>{
+    const pos=posisi[t.id], nd=target.querySelector('.node[data-id="'+t.id+'"]'); if(!pos||!nd) return;
+    const y1=Math.min(pos.y+(nd.offsetHeight||(M.cetak?112:62)), t.ym-4);
+    t.el.style.top=y1+'px'; t.el.style.height=(t.ym-y1)+'px';
+  });
+  tempelSatu.forEach(t=>{
+    const pos=posisi[t.id], nd=target.querySelector('.node[data-id="'+t.id+'"]'); if(!pos||!nd) return;
+    const h=nd.offsetHeight||(M.cetak?112:62);
+    const y1=Math.min(pos.y+h, t.rec.yAnak-t.rec.d-4);
+    t.it.y1=y1; pasangGarisKeluarga(t.rec,t.rec.yAnak-t.rec.d);
   });
   if(!M.cetak) L.label.forEach(lb=>{
     const el=document.createElement('div'); el.className='label-blok';
@@ -296,8 +312,8 @@ function inisial(nama){ return (nama||'?').trim().split(/\s+/).filter(w=>/^[A-Za
 let contentW=0, contentH=0;
 
 // Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
-const M_LAYAR={NODE_H:88,CX:44,CY:22,T:3,cetak:false};
-const M_CETAK={NODE_H:150,CX:50,CY:36,T:3,cetak:true};
+const M_LAYAR={NODE_H:88,CX:44,CY:22,T:4,cetak:false};
+const M_CETAK={NODE_H:150,CX:50,CY:36,T:5,cetak:true};
 function garisV(tg,x,y1,y2,T,kelas){
   const d=document.createElement('div'); d.className='line line-v'+(kelas?' '+kelas:'');
   d.style.cssText=`left:${x-T/2}px;top:${Math.min(y1,y2)}px;height:${Math.abs(y2-y1)}px;width:${T}px`;
@@ -375,7 +391,7 @@ function gambarPohon(target,M){
   Object.values(keluarga).forEach(f=>{
     const ortu=f.ids.map(id=>posisi[id]);
     const yMulai=f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H;
-    const yBus=f.anak[0].y-12-f.lajur*LAJUR_H;
+    const yBus=f.anak[0].y-22-f.lajur*LAJUR_H;
     const ortuRiil=f.ids.some(riilId);
     const anakRiil=f.idAnak.map(id=>ortuRiil&&riilId(id));
     if(ortuRiil&&anakRiil.every(Boolean)){

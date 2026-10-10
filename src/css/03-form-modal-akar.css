@@ -188,7 +188,7 @@
 /* garis pasangan */
 .line.psg{background:#b07a3f;}
 .line-h.psg.cerai{background:repeating-linear-gradient(to right,#b07a3f 0,#b07a3f 6px,transparent 6px,transparent 10px);}
-.titik-psg{position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#b07a3f;border:2px solid var(--bg);box-sizing:border-box;}
+.titik-psg{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#b07a3f;border:2px solid var(--bg);box-sizing:border-box;}
 .titik-psg.pudar{opacity:.2;}
 /* sorot jalur */
 .node.redup{opacity:.2;}

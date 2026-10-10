@@ -2,8 +2,8 @@ const STORAGE_KEY='akarKeluargaData';
 const ROOT_ID='diri';
 const NODE_W=108, GEN_H=140, NODE_H=88;   // lebar slot kartu (kartu 88px + celah 20px)
 const GAP_CABANG=22;  // jarak ekstra antar cabang keluarga (seperti akar yang menyebar)
-const GAP_GEN=26;     // celah dasar antar generasi
-const LAJUR_H=8;      // tinggi tiap lajur garis; celah generasi melebar sesuai jumlah lajur
+const GAP_GEN=56;     // celah dasar antar generasi
+const LAJUR_H=12;     // tinggi tiap lajur garis; celah generasi melebar sesuai jumlah lajur
 const CX=44; // titik tengah horizontal avatar di dalam kartu .node (lebar 88px)
 const $=id=>document.getElementById(id);
 

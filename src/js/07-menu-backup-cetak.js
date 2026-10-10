@@ -140,12 +140,13 @@ function barisRingkasGen(){
 async function cetakAkar(akar){
   // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
   let u, ringBaris=[]; const dataAsli=data; data=akar.data;
+  const wrapUkur=$('cetakWrap'); wrapUkur.style.display='block'; wrapUkur.style.visibility='hidden'; wrapUkur.style.position='absolute'; wrapUkur.style.left='-99999px'; // agar tinggi kartu bisa diukur saat menggambar
   try{
     const g=bangunTunggal(akar); let L=null;
     try{ L=susunBlok(g); }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
     u = L ? gambarPohonBlok($('cetakCanvas'),M_CETAK,L,g) : gambarPohon($('cetakCanvas'),M_CETAK);
     ringBaris=barisRingkasGen();
-  } finally { data=dataAsli; }
+  } finally { data=dataAsli; ['display','visibility','position','left'].forEach(k=>wrapUkur.style.removeProperty(k)); }
   const cg=$('cetakGen'); cg.textContent=ringBaris.join('\n'); cg.style.display=ringBaris.length?'block':'none';
   const ringH=ringBaris.length?ringBaris.length*20+18:0;
   $('cetakCanvas').style.width=u.w+'px'; $('cetakCanvas').style.height=u.h+'px';
