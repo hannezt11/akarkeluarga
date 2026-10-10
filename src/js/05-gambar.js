@@ -137,11 +137,6 @@ function gambarPohonBlok(target,M,L,g){
       const kls=kelasDari(o.id,pid);
       if(blokDari(o.id)===blokDari(pid) && pos.gen===pos2.gen && uPas[pasKey(o.id,pid)]===undefined){
         garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,[cerai?'cerai':'',kls].filter(Boolean).join(' '));
-        if(cerai){
-          const lb=document.createElement('div'); lb.className='label-cerai'+(kls?' pudar':''); lb.textContent='cerai';
-          lb.style.left=((pos.x+pos2.x)/2+M.CX)+'px'; lb.style.top=(pos.y+M.CY-M.T-(M.cetak?16:11))+'px';
-          target.appendChild(lb);
-        }
       } else {
         const yb=(uPas[pasKey(o.id,pid)]!==undefined)?uPas[pasKey(o.id,pid)]:Math.max(pos.y,pos2.y)+M.NODE_H+8;
         siku([[pos.x+M.CX,pos.y+M.NODE_H],[pos.x+M.CX,yb],[pos2.x+M.CX,yb],[pos2.x+M.CX,pos2.y+M.NODE_H]],kls||'');
@@ -359,11 +354,6 @@ function gambarPohon(target,M){
         const cerai=((o.statusPasangan||{})[pid]==='cerai');
         const lp=!(riilId(o.id)&&riilId(pid));
         garisH(target,pos.x+M.CX,pos.y+M.CY,pos2.x+M.CX,M.T,[cerai?'cerai':'',lp?'pudar':''].filter(Boolean).join(' '));
-        if(cerai){
-          const lb=document.createElement('div'); lb.className='label-cerai'+(lp?' pudar':''); lb.textContent='cerai';
-          lb.style.left=((pos.x+pos2.x)/2+M.CX)+'px'; lb.style.top=(pos.y+M.CY-M.T-(M.cetak?16:11))+'px';
-          target.appendChild(lb);
-        }
       }
     });
   });
