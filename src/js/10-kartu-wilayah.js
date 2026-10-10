@@ -29,6 +29,28 @@ function barisKontak(o){
   if(o.email) h+=`<div class="kartu-baris"><b>Email:</b> <a class="kontak" href="mailto:${esc(o.email)}">${esc(o.email)}</a></div>`;
   return h;
 }
+// ===== Alamat "ikut" (tidak disalin; dihitung dari hubungan keluarga) =====
+// Urutan: alamat sendiri -> (perempuan yang sudah punya suami) alamat suami -> alamat ayah -> alamat ibu.
+// Istri yang suaminya belum beralamat dibiarkan kosong; pasangan yang sudah cerai tidak diikuti.
+function alamatAda(a){ return !!(a&&(a.jalan||a.desaId||a.kecId||a.desa||a.kec)); }
+function suamiDari(o,P){
+  if(genderDari(o)!=='f') return null;
+  for(const id of (o.idPasangan||[])){ const q=P[id]; if(q&&genderDari(q)==='m'&&(o.statusPasangan||{})[id]!=='cerai') return q; }
+  return null;
+}
+function alamatEfektif(o,P,hop){
+  if((hop||0)>12) return null;
+  if(alamatAda(o.alamat)) return {alamat:o.alamat,dari:null,id:o.id};
+  return alamatWarisan(o,P,(hop||0)+1);
+}
+function alamatWarisan(o,P,hop){
+  const s=suamiDari(o,P);
+  if(s){ const r=alamatEfektif(s,P,hop); return r?{alamat:r.alamat,dari:'suami',id:s.id}:null; }
+  const ay=o.idAyah&&P[o.idAyah], ib=o.idIbu&&P[o.idIbu];
+  let r=ay?alamatEfektif(ay,P,hop):null; if(r) return {alamat:r.alamat,dari:'ayah',id:ay.id};
+  r=ib?alamatEfektif(ib,P,hop):null; if(r) return {alamat:r.alamat,dari:'ibu',id:ib.id};
+  return null;
+}
 function barisPasangan(o){
   const t=(o.idPasangan||[]).filter(x=>data.people[x]).map(x=>tautanOrang(x)+(((o.statusPasangan||{})[x]==='cerai')?' <span class="ket-cerai">(cerai)</span>':''));
   return t.length?`<div class="kartu-baris"><b>Pasangan:</b> ${t.join(', ')}</div>`:'';
@@ -69,8 +91,8 @@ function bukaKartu(id){
   h+=`<div class="kartu-sub">${esc(sub.join(' \u00b7 '))}</div>`;
   if(lahir) h+=`<div class="kartu-baris"><b>Lahir:</b> ${esc(lahir)}</div>`;
   if(meninggal&&wafat) h+=`<div class="kartu-baris"><b>Wafat:</b> ${esc(wafat)}</div>`;
-  const txtAlamat=teksAlamat(o.alamat);
-  if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}</div>`;
+  const efAl=alamatEfektif(o,data.people,0), txtAlamat=efAl?teksAlamat(efAl.alamat):'';
+  if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}${efAl.dari?` <span class="ket-ikut">(ikut ${efAl.dari} ${esc(namaDari(efAl.id)||'')})</span>`:''}</div>`;
   h+=barisKontak(o);
   h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
   h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
@@ -91,6 +113,8 @@ $('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if
 
 // ===== Tombol Back Android =====
 function tanganiBack(){
+  if(setTerbuka()){ tutupSet(); return true; }
+  if(pilihTerbuka()){ tutupPilih(null); return true; }
   if(modeGaris){ keluarModeGaris(); return true; }
   if(cetakTerbuka()){ tutupCetakDlg(); return true; }
   if(peranTerbuka()){ tutupPeran(); return true; }
@@ -206,12 +230,35 @@ $('fKec').addEventListener('change',()=>{
   muatDesa();
 });
 $('fDesa').addEventListener('change',()=>{ wilF.desaId=$('fDesa').value; wilF.desa=teksPilihan($('fDesa')); });
-function simpanAlamat(o){
+let alamatIkut=false, alamatWar=null;
+function segarkanTampilAlamat(){
+  const w=alamatWar;
+  $('alamatIsi').style.display=alamatIkut?'none':'';
+  $('alamatIkut').style.display=alamatIkut?'':'none';
+  $('btnAlamatKembali').style.display=(!alamatIkut&&w)?'':'none';
+  if(w){
+    const s='Ikut alamat '+w.dari+' ('+(namaDari(w.id)||'Tanpa nama')+')';
+    $('alamatIkutTeks').textContent=s+': '+teksAlamat(w.alamat);
+    $('btnAlamatKembali').textContent=s+' lagi';
+  }
+}
+function aturModeAlamat(o){
+  alamatWar=alamatWarisan(o,data.people,0);
+  alamatIkut=!alamatAda(o.alamat)&&!!alamatWar;
+  segarkanTampilAlamat();
+}
+$('btnAlamatSendiri').addEventListener('click',()=>{ alamatIkut=false; if(alamatWar) siapkanAlamat({alamat:alamatWar.alamat}); segarkanTampilAlamat(); });
+$('btnAlamatKembali').addEventListener('click',()=>{ alamatIkut=true; segarkanTampilAlamat(); });
+function bacaAlamatForm(){
+  if(alamatIkut) return null;
   const jalan=$('fJalan').value.trim();
-  if(wilF.kecId||wilF.desaId||jalan){
-    o.alamat={jalan,desaId:wilF.desaId,desa:wilF.desa,kecId:wilF.kecId,kec:wilF.kec,kabId:wilF.kabId,kab:wilF.kab,provId:wilF.provId,prov:wilF.prov};
-  } else delete o.alamat;
-  if(wilF.kabId && $('fUtama').checked && !$('wilayahPilih').classList.contains('hidden')){
+  if(wilF.kecId||wilF.desaId||jalan) return {jalan,desaId:wilF.desaId,desa:wilF.desa,kecId:wilF.kecId,kec:wilF.kec,kabId:wilF.kabId,kab:wilF.kab,provId:wilF.provId,prov:wilF.prov};
+  return null;
+}
+function simpanAlamat(o){
+  const al=bacaAlamatForm();
+  if(al) o.alamat=al; else delete o.alamat;
+  if(!alamatIkut && wilF.kabId && $('fUtama').checked && !$('wilayahPilih').classList.contains('hidden')){
     data.wilayah={provId:wilF.provId,prov:wilF.prov,kabId:wilF.kabId,kab:wilF.kab};
   }
 }

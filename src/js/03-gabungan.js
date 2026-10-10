@@ -4,13 +4,27 @@
 // "sama dengan" (p.sama={a:idAkar,i:idOrang}) dilebur jadi satu supaya pohonnya tersambung.
 let infoLatar=null, gabunganTampil=null;
 const PERAN=[['saya','Saya'],['pasangan','Pasangan saya'],['ayah','Ayah saya'],['ibu','Ibu saya'],['mertuaAyah','Ayah mertua'],['mertuaIbu','Ibu mertua']];
-function idGabunganAktif(){
-  const g=(store.gabung||[]).filter(id=>store.akar.some(a=>a.id===id));
-  return (g.length>1 && g.includes(store.aktifId)) ? g : [];
+// Set gabungan: store.setGabung=[{id,nama,akar:[idAkar,...]}]. Akar yang sedang dibuka menampilkan set yang
+// memuatnya (bila ada beberapa, set yang terakhir dipilih: store.setAktifId). Mis. set 1 = A+B, set 2 = C+D.
+function semuaSet(){
+  if(!Array.isArray(store.setGabung)){
+    store.setGabung=[];
+    const g=(store.gabung||[]).filter(id=>store.akar.some(a=>a.id===id));
+    if(g.length>1) store.setGabung.push({id:'s'+Date.now().toString(36),nama:'Gabungan 1',akar:g});
+    delete store.gabung;
+  }
+  return store.setGabung;
 }
+function akarSetAda(s){ return s.akar.filter(id=>store.akar.some(a=>a.id===id)); }
+function setGabunganAktif(){
+  const ada=semuaSet().filter(s=>s.akar.includes(store.aktifId)&&akarSetAda(s).length>1);
+  if(!ada.length) return null;
+  return ada.find(s=>s.id===store.setAktifId)||ada[0];
+}
+function idGabunganAktif(){ const s=setGabunganAktif(); return s?akarSetAda(s):[]; }
 function jumlahLatar(){ const g=idGabunganAktif(); return g.length ? g.length-1 : 0; }
-function jumlahTautanGabung(){
-  const g=(store.gabung||[]).filter(id=>store.akar.some(a=>a.id===id)); let n=0;
+function jumlahTautanGabung(daftar){
+  const g=(daftar||[]).filter(id=>store.akar.some(a=>a.id===id)); let n=0;
   const adaSaya=g.filter(aid=>{ const a=store.akar.find(x=>x.id===aid); return a.peran&&a.peran.saya&&a.data.people[a.peran.saya]; }).length;
   if(adaSaya>=2) n+=adaSaya-1;
   g.forEach(aid=>{

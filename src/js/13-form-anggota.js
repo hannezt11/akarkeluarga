@@ -7,10 +7,11 @@ function bacaTanggal(t,b,y){
 }
 // Terapkan isi form ke data (dipakai Simpan, dan otomatis sebelum menambah anggota
 // supaya ketikan yang belum disimpan tidak hilang).
+let samaAwal='';
 function isiSama(o){
   const w=$('wrapSama'), sel=$('fSama');
   const lain=store.akar.filter(a=>a.id!==store.aktifId);
-  w.style.display=lain.length?'':'none'; sel.innerHTML='';
+  w.style.display=lain.length?'':'none'; sel.innerHTML=''; samaAwal='';
   if(!lain.length) return;
   const k=document.createElement('option'); k.value=''; k.textContent='\u2014 belum ditandai \u2014'; sel.appendChild(k);
   lain.forEach(a=>{
@@ -30,7 +31,7 @@ function isiSama(o){
       if(q){ nilai=a.id+'|'+q.id; break; }
     }
   }
-  sel.value=nilai;
+  sel.value=nilai; samaAwal=sel.value;
 }
 function terapkanSama(o){
   if($('wrapSama').style.display==='none') return;
@@ -69,9 +70,9 @@ function terapkanForm(o){
   }
   idAktif=o.id;
 }
-$('btnSimpan').addEventListener('click',()=>{
+$('btnSimpan').addEventListener('click',async()=>{
   const o=data.people[idAktif]; if(!o) return;
-  terapkanForm(o);
+  if(!(await terapkanFormLengkap(o))) return;
   simpanData(); tutupModal(); render(false);
 });
 $('btnHapus').addEventListener('click',()=>{
@@ -177,9 +178,9 @@ function aturTombolOrtu(o){
 // Tambah anggota tanpa dialog: anggota baru langsung dibuat dengan isian kosong dan
 // formnya terbuka (kursor di nama). Jenis kelamin bisa diubah di form (ID ikut menyesuaikan).
 document.querySelectorAll('.modal-tambah-tombol button').forEach(btn=>{
-  btn.addEventListener('click',()=>{
+  btn.addEventListener('click',async()=>{
     const o=data.people[idAktif]; if(!o) return;
-    terapkanForm(o);
+    if(!(await terapkanFormLengkap(o))) return;
     const rel=btn.dataset.rel; let baru=null;
 
     if(rel==='anak'){

@@ -109,7 +109,7 @@ function isiSheet(){
   $('akarMenuJudul').textContent=a.nama;
   $('amBagikan').style.display=a.terkunci?'none':'';
   $('amPin').textContent=a.pin?'Lepas dari layar (pojok kanan atas)':'Pin ke layar (pojok kanan atas)';
-  $('amGabung').textContent=(store.gabung||[]).includes(a.id)?'Keluarkan dari tampilan gabungan':'Ikutkan ke tampilan gabungan';
+  $('amGabung').textContent='Atur set gabungan\u2026';
   const w=$('amWarna'); w.innerHTML='';
   WARNA_AKAR.forEach(c=>{ const b=document.createElement('button'); b.style.background=c; b.dataset.warna=c; b.setAttribute('aria-label','Warna '+c); if(c===a.warna) b.className='pilih'; w.appendChild(b); });
 }
@@ -166,17 +166,7 @@ function isiPeran(){
 $('btnPeran').addEventListener('click',()=>{ tutupDrawer(); isiPeran(); $('peranOverlay').classList.remove('hidden'); });
 $('peranTutup').addEventListener('click',tutupPeran);
 $('peranOverlay').addEventListener('click',e=>{ if(e.target===$('peranOverlay')) tutupPeran(); });
-$('amGabung').addEventListener('click',()=>{
-  const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
-  store.gabung=store.gabung||[];
-  const ada=store.gabung.includes(a.id);
-  if(ada) store.gabung=store.gabung.filter(x=>x!==a.id); else store.gabung.push(a.id);
-  simpanData(); isiSheet(); perbaruiJudul(); render(true);
-  if(!ada){
-    if(store.gabung.length<2) alert('Ikutkan juga minimal satu akar lain. Akar yang sedang dipilih tampil nyata, akar lain tampil pudar di latarnya.');
-    else if(!jumlahTautanGabung()) alert('Belum ada orang yang ditandai sama. Buka menu "Peran saya di tiap akar" di drawer, lalu pilih siapa Anda di tiap akar supaya pohonnya tersambung.');
-  }
-});
+$('amGabung').addEventListener('click',()=>{ tutupSheet(); bukaSet(); });
 $('amNama').addEventListener('click',async()=>{
   const a=store.akar.find(x=>x.id===akarMenuId); if(!a) return;
   const id=a.id; tutupSheet();
@@ -192,7 +182,7 @@ $('amHapus').addEventListener('click',async()=>{
   if(!ya) return;
   const aktifDihapus=a.id===store.aktifId;
   store.akar=store.akar.filter(x=>x.id!==a.id);
-  store.gabung=(store.gabung||[]).filter(x=>x!==a.id);
+  store.setGabung=semuaSet().map(x=>Object.assign({},x,{akar:x.akar.filter(i=>i!==a.id)})).filter(x=>x.akar.length>1);
   if(aktifDihapus){ store.aktifId=store.akar[0].id; data=store.akar[0].data; perbaruiJudul(); render(true); }
   simpanData(); segarkanDaftarAkar(); segarkanPin();
 });

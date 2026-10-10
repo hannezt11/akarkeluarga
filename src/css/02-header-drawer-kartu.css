@@ -68,3 +68,10 @@
 
 .kartu-baris a.kontak{color:var(--root-deep);text-decoration:underline;word-break:break-all;}
 .kartu-baris a.chip-wa{display:inline-block;margin-left:4px;padding:1px 8px;border-radius:10px;background:#e1efe3;border:1px solid #b8d6bd;color:#1f5b2c;text-decoration:none;font-size:12px;word-break:normal;}
+
+.dlg-tombol.kolom{flex-direction:column;}
+.pilih-daftar{margin:-6px 0 14px;padding:8px 10px;background:var(--bg);border:1px solid var(--card-border);border-radius:8px;font-size:12.5px;line-height:1.45;color:var(--ink);max-height:30vh;overflow-y:auto;}
+.pilih-daftar div+div{margin-top:4px;}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(28px + var(--bawah-aman));z-index:60;max-width:82%;background:rgba(36,30,20,.92);color:#f3ede0;padding:10px 16px;border-radius:20px;font-size:13px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.35);pointer-events:none;}
+.toast.hidden{display:none;}
+.ket-ikut{color:var(--ink-soft);font-size:12px;}

@@ -126,3 +126,18 @@
 
 .node.geser{touch-action:none;cursor:grab;outline:2px dashed var(--root);outline-offset:3px;border-radius:10px;z-index:5;}
 .node.geser:active{cursor:grabbing;}
+
+.alamat-ikut{padding:10px 12px;background:#eef3e6;border:1px solid #cfdcc0;border-radius:10px;font-size:13px;line-height:1.45;color:var(--ink);}
+.alamat-ikut .btn-teks{margin-top:6px;padding:0;}
+#btnAlamatKembali{display:block;margin-top:8px;padding:0;text-align:left;}
+
+.set-kartu{margin:8px 4px;padding:10px 12px;border:1px solid var(--card-border);border-radius:12px;background:var(--card);}
+.set-kepala{font-family:var(--font-title);font-size:16px;color:var(--root-deep);}
+.set-ket{font-size:12px;color:var(--meninggal);margin-top:2px;}
+.set-akar{margin:6px 0 4px;}
+.set-akar label{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px;color:var(--ink);}
+.set-akar input[type=checkbox]{width:18px;height:18px;margin:0;flex:none;}
+.sheet .set-aksi{display:flex;gap:6px;margin-top:6px;}
+.sheet .set-aksi button{flex:1;width:auto;text-align:center;padding:9px 4px;border:1px solid var(--card-border);background:var(--bg);font-size:13px;}
+.sheet .set-aksi button.bahaya{color:var(--meninggal);}
+.sheet button.set-baru{text-align:center;border:1px dashed var(--card-border);margin:8px 4px 0;width:calc(100% - 8px);}

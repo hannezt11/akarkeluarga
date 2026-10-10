@@ -79,6 +79,8 @@
         </div>
         <div class="blok-alamat">
           <div class="judul-blok">Alamat</div>
+          <div id="alamatIkut" class="alamat-ikut" style="display:none"><div id="alamatIkutTeks"></div><button type="button" id="btnAlamatSendiri" class="btn-teks">Isi alamat sendiri</button></div>
+          <div id="alamatIsi">
           <div id="wilayahInfo" class="wilayah-info hidden"><span id="wilayahTeks"></span><button type="button" id="btnUbahWilayah" class="btn-teks">Ubah</button></div>
           <div id="wilayahPilih" class="hidden">
             <div class="baris-2">
@@ -93,6 +95,8 @@
           </div>
           <label>Jalan / dusun <input type="text" id="fJalan" placeholder="Contoh: Dusun Krajan"></label>
           <div id="wilStatus" class="wil-status"></div>
+          <button type="button" id="btnAlamatKembali" class="btn-teks" style="display:none"></button>
+          </div>
         </div>
         <label id="wrapSama">Sama dengan orang di akar lain (jarang perlu) <select id="fSama"></select></label>
         <div class="relasi-info">
@@ -132,6 +136,7 @@
         <button id="btnEditGaris">Edit tampilan<small>Geser nama & garis penghubung</small></button>
         <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
         <button id="btnPeran">Peran saya di tiap akar</button>
+        <button id="btnSetGabung">Set gabungan<small>Gabung beberapa akar jadi satu tampilan</small></button>
       </div>
     </div>
     <div class="drawer-versi">versi 135<br>by Yohanes div2</div>
@@ -171,6 +176,16 @@
     </div>
   </div>
 
+  <div id="setOverlay" class="sheet-overlay hidden">
+    <div id="setSheet" class="sheet peran-sheet">
+      <div class="sheet-judul">Set gabungan</div>
+      <p class="peran-info">Satu set = beberapa akar yang tampil menyatu. Contoh: set 1 berisi Akar A + B, set 2 berisi Akar C + D. Saat kamu membuka akar mana pun, set yang memuat akar itu otomatis tampil.</p>
+      <div id="setDaftar"></div>
+      <button id="setBaru" class="set-baru">+ Set baru</button>
+      <button id="setTutup" class="peran-tutup">Selesai</button>
+    </div>
+  </div>
+
   <div id="peranOverlay" class="sheet-overlay hidden">
     <div id="peranSheet" class="sheet peran-sheet">
       <div class="sheet-judul">Peran saya di tiap akar</div>
@@ -207,6 +222,16 @@
       <div class="dlg-tombol"><button id="namaBatal">Batal</button><button id="namaSimpan" class="utama">Simpan</button></div>
     </div>
   </div>
+
+  <div id="pilihOverlay" class="dlg-overlay hidden">
+    <div class="dlg">
+      <h3 id="pilihJudul" class="netral"></h3>
+      <p id="pilihTeks"></p>
+      <div id="pilihDaftar" class="pilih-daftar"></div>
+      <div class="dlg-tombol kolom"><button id="pilihA" class="utama"></button><button id="pilihB"></button><button id="pilihBatal">Batal</button></div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
 
   <div id="dlgOverlay" class="dlg-overlay hidden">
     <div class="dlg">

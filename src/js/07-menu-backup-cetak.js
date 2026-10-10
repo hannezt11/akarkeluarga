@@ -24,10 +24,16 @@ async function kirimBerkas(isi,namaFile,judulBagikan,dialogTitle,mime){
 function stempelTanggal(){ const t=new Date(); const p=n=>String(n).padStart(2,'0'); return `${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}`; }
 $('btnBackup').addEventListener('click',async()=>{
   tutupFab();
-  const isi=JSON.stringify({format:'akar-keluarga',versi:2,aktifId:store.aktifId,gabung:store.gabung||[],pengguna:store.pengguna||null,akar:store.akar},null,1);
+  const isi=JSON.stringify({format:'akar-keluarga',versi:2,aktifId:store.aktifId,setGabung:semuaSet(),setAktifId:store.setAktifId||null,pengguna:store.pengguna||null,akar:store.akar},null,1);
   await kirimBerkas(isi,`akar-keluarga-${stempelTanggal()}.json`,'Backup Akar Keluarga','Simpan backup ke...','application/json');
 });
 $('btnRestore').addEventListener('click',()=>{ tutupFab(); $('inputRestore').value=''; $('inputRestore').click(); });
+function setDariBerkas(d,ids){
+  const ada=id=>ids.includes(id);
+  if(Array.isArray(d.setGabung)) return d.setGabung.filter(s=>s&&Array.isArray(s.akar)).map((s,i)=>({id:String(s.id||('s'+i)),nama:String(s.nama||('Gabungan '+(i+1))),akar:s.akar.filter(ada)})).filter(s=>s.akar.length>1);
+  if(Array.isArray(d.gabung)){ const g=d.gabung.filter(ada); if(g.length>1) return [{id:'s1',nama:'Gabungan 1',akar:g}]; }
+  return [];
+}
 function normalisasiPeople(people){
   Object.keys(people).forEach(k=>{
     const p=people[k]; if(!p||typeof p!=='object') throw new Error('format');
@@ -49,7 +55,7 @@ $('inputRestore').addEventListener('change',e=>{
         });
         if(!confirm('Semua akar saat ini ('+store.akar.length+') akan diganti dengan isi file backup ('+daftar.length+' akar). Lanjutkan?')) return;
         const lamaPengguna=store.pengguna;
-        store={versi:2,aktifId:daftar.some(a=>a.id===d.aktifId)?d.aktifId:daftar[0].id,akar:daftar,gabung:(Array.isArray(d.gabung)?d.gabung.filter(x=>daftar.some(a=>a.id===x)):[]),pengguna:(d.pengguna&&d.pengguna.id&&d.pengguna.nama)?{id:String(d.pengguna.id),nama:String(d.pengguna.nama)}:lamaPengguna};
+        store={versi:2,aktifId:daftar.some(a=>a.id===d.aktifId)?d.aktifId:daftar[0].id,akar:daftar,setGabung:setDariBerkas(d,daftar.map(a=>a.id)),setAktifId:d.setAktifId||null,pengguna:(d.pengguna&&d.pengguna.id&&d.pengguna.nama)?{id:String(d.pengguna.id),nama:String(d.pengguna.nama)}:lamaPengguna};
         if(store.pengguna) store.akar.forEach(a=>{ if(!a.pemilikId&&!a.terkunci){ a.pemilikId=store.pengguna.id; a.pemilikNama=store.pengguna.nama; } });
         data=akarAktif().data;
       } else {
