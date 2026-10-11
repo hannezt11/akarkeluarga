@@ -23,3 +23,18 @@
   .viewport{position:static;}
   .canvas{position:relative !important;transform:none !important;zoom:var(--pz);}
 }
+
+/* ===== Kepala cetak: judul di tengah, kotak ringkasan di kanan atas ===== */
+.cetak-kepala{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:44px;}
+.cetak-kiri,.cetak-rk{width:300px;flex:none;}
+.cetak-judul{flex:1;margin:0 !important;}
+.cetak-rk .ringkasan{width:300px;max-height:none;box-shadow:none;border:1px solid #cfe8df;border-radius:16px;overflow:hidden;background:#fff;display:block;}
+.cetak-rk .ringkasan-kepala{background:linear-gradient(135deg,#2BA084,#4cc2a0);color:#fff;padding:14px 16px 11px;}
+.cetak-rk .ringkasan-kepala h3{font-size:18px;}
+.cetak-rk .ringkasan-isi{padding:10px 16px 14px;overflow:visible;}
+.cetak-rk .rk-judul{color:#2a7f6a;}
+.cetak-rk .rk-gen-atas,.cetak-rk .rk-baris{font-size:13px;}
+.cetak-rk .rk-bar{background:#d9f0e8;}
+.cetak-rk .rk-bar i{background:linear-gradient(90deg,#2BA084,#5fcfae);}
+.cetak-rk .rk-baris span:last-child,.cetak-rk .rk-gen-atas b{color:#1f7a64;font-weight:600;}
+.cetak-rk .rk-pemisah{background:#d9eee7;}

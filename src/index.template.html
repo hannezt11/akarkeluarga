@@ -25,7 +25,7 @@
   <main id="viewport" class="viewport">
     <div id="canvas" class="canvas"></div>
   </main>
-  <div id="cetakWrap"><div id="cetakJudul" class="cetak-judul"></div><div id="cetakGen" class="cetak-gen"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
+  <div id="cetakWrap"><div class="cetak-kepala"><div id="cetakKiri" class="cetak-kiri"></div><div id="cetakJudul" class="cetak-judul"></div><div id="cetakRk" class="cetak-rk"></div></div><div id="cetakGen" class="cetak-gen"></div><div id="cetakCanvas" class="canvas cetak"></div></div>
 
   <button id="btnLihatSemua" class="btn-pusat btn-semua" aria-label="Lihat seluruh pohon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   <button id="btnPusat" class="btn-pusat" aria-label="Kembali ke tengah pohon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
@@ -58,20 +58,29 @@
             <input type="file" id="fFotoFile" accept="image/*" style="display:none">
           </div>
         </div>
-        <label>Lahir
-          <div class="baris-tgl">
-            <input type="number" id="fLahirTgl" placeholder="tgl" min="1" max="31">
-            <input type="number" id="fLahirBln" placeholder="bln" min="1" max="12">
-            <input type="number" id="fLahirThn" placeholder="tahun" min="1" max="2100">
+        <div class="fld" id="blokLahir">
+          <div class="kepala-lahir"><span>Lahir</span>
+            <div class="saklar kecil" id="skLahir"><button type="button" data-v="tanggal">Tanggal</button><button type="button" data-v="umur">Perkiraan umur</button><button type="button" data-v="kategori">Kategori</button></div>
           </div>
-        </label>
-        <label id="wrapWafat">Wafat
-          <div class="baris-tgl">
-            <input type="number" id="fWafatTgl" placeholder="tgl" min="1" max="31">
-            <input type="number" id="fWafatBln" placeholder="bln" min="1" max="12">
-            <input type="number" id="fWafatThn" placeholder="tahun" min="1" max="2100">
+          <input type="hidden" id="fLahirMode" value="tanggal">
+          <div id="pnlTanggal">
+            <button type="button" class="tgl-btn" id="fLahirBtn">Pilih tanggal</button>
+            <input type="hidden" id="fLahirTgl"><input type="hidden" id="fLahirBln"><input type="hidden" id="fLahirThn">
           </div>
-        </label>
+          <div id="pnlUmur" style="display:none">
+            <input type="number" id="fLahirUmur" min="0" max="130" placeholder="Umur sekarang (tahun)" inputmode="numeric">
+            <small class="cat-kecil">Disimpan sebagai perkiraan tahun lahir, jadi umurnya ikut bertambah sendiri.</small>
+          </div>
+          <div id="pnlKategori" style="display:none">
+            <div class="chip-baris" id="skKategori"><button type="button" data-v="anak">Anak-anak</button><button type="button" data-v="remaja">Remaja</button><button type="button" data-v="lansia">Lansia</button></div>
+            <input type="hidden" id="fKategori">
+            <small class="cat-kecil">Dewasa dibiarkan kosong (tanpa tanda). Pilihan ini tidak ikut bertambah umur, periksa lagi tiap tahun.</small>
+          </div>
+        </div>
+        <div class="fld" id="wrapWafat">Wafat
+          <button type="button" class="tgl-btn" id="fWafatBtn">Pilih tanggal</button>
+          <input type="hidden" id="fWafatTgl"><input type="hidden" id="fWafatBln"><input type="hidden" id="fWafatThn">
+        </div>
         <div class="baris-ortu">
           <label>Ayah <select id="fAyah"></select></label>
           <label>Ibu <select id="fIbu"></select></label>
@@ -147,7 +156,7 @@
         <button id="btnSetGabung">Set gabungan<small>Gabung beberapa akar jadi satu tampilan</small></button>
       </div>
     </div>
-    <div class="drawer-versi">versi 135<br>by Yohanes div2</div>
+    <div class="drawer-versi"><div class="dv-baris"><span>Design by</span><span>:</span><span>Yohanes div2</span></div><div class="dv-baris"><span>Versi</span><span>:</span><span>@@VERSI@@</span></div></div>
   </aside>
 
   <div id="ringkasanOverlay" class="kartu-overlay hidden">
@@ -209,6 +218,15 @@
       <p class="peran-info">Pilih siapa Anda di setiap akar. Orang dengan peran yang sama di akar berbeda otomatis dianggap satu orang, jadi akar-akar itu tersambung. Cukup isi yang ada di akar tersebut.</p>
       <div id="peranIsi"></div>
       <button id="peranTutup" class="peran-tutup">Selesai</button>
+    </div>
+  </div>
+
+  <div id="kalOverlay" class="dlg-overlay hidden">
+    <div class="kal">
+      <div class="kal-judul" id="kalJudul">Pilih tanggal</div>
+      <div class="kal-krum" id="kalKrum"></div>
+      <div class="kal-isi" id="kalIsi"></div>
+      <div class="kal-aksi" id="kalAksi"></div>
     </div>
   </div>
 

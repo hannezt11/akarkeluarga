@@ -252,8 +252,8 @@ function gambarPohonBlok(target,M,L,g){
     const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong'); nm.textContent=o.nama||'Tanpa nama';
     const um=document.createElement('div'); um.className='umur';
     const u=hitungUmur(o);
-    um.textContent = u!==null ? (u+' th'+'') : formatTglSingkat(o.lahir);
-    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); if((o.kembar||[]).length){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; wrap.appendChild(b); } }
+    um.textContent = teksUmurKartu(o);
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); if((o.kembar||[]).length){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; wrap.appendChild(b); } { const tg=tagKategoriEl(o); if(tg){ wrap.appendChild(tg); wrap.classList.add('ada-kat'); } } }
     if(modeGaris&&!M.cetak&&riilId(o.id)) pasangGeserNama(n,o,pos);
     target.appendChild(n);
   });
@@ -316,8 +316,8 @@ let contentW=0, contentH=0;
 // Metrik gambar: layar memakai ukuran biasa; cetak memakai lingkaran & teks lebih besar.
 const M_LAYAR_BULAT={NODE_H:88,CX:44,CY:22,T:4,cetak:false};
 const M_CETAK_BULAT={NODE_H:150,CX:50,CY:36,T:5,cetak:true};
-const M_LAYAR_KARTU={NODE_H:112,CX:48,CY:30,T:4,cetak:false,kartu:true};
-const M_CETAK_KARTU={NODE_H:150,CX:52,CY:41,T:5,cetak:true,kartu:true};
+const M_LAYAR_KARTU={NODE_H:124,CX:48,CY:30,T:4,cetak:false,kartu:true};
+const M_CETAK_KARTU={NODE_H:162,CX:52,CY:41,T:5,cetak:true,kartu:true};
 // Bentuk kartu (bulat / kartu ID) dipilih dari drawer, tersimpan di localStorage
 const BENTUK_KEY='akarBentuk';
 function bentukPilihan(){ try{ return localStorage.getItem(BENTUK_KEY)==='kartu'?'kartu':'bulat'; }catch(e){ return 'bulat'; } }
@@ -337,9 +337,11 @@ function isiNodeKartu(n,o,P,M){
   const wafat=o.status==='meninggal', u=hitungUmur(o);
   const nama=o.nama||'Tanpa nama';
   const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong');
-  nm.textContent = u!==null ? (u+' th'+'. '+nama) : nama;
+  const lu=labelUmur(o);
+  nm.textContent = lu!==null ? (lu+'. '+nama) : nama;
   n.appendChild(nm);
   if((o.kembar||[]).length) lencanaKembar(n);
+  { const tg=tagKategoriEl(o); if(tg){ n.appendChild(tg); n.classList.add('ada-kat'); } }
   let kec=''; try{ const r=alamatEfektif(o,P); kec=(r&&r.alamat&&r.alamat.kec)||''; }catch(e){}
   kec=String(kec).replace(/^\s*(kecamatan|kec\.?)\s+/i,'').trim();
   if(kec){ const e=document.createElement('div'); e.className='kt-kec'; e.textContent=kec; n.appendChild(e); }
@@ -465,9 +467,9 @@ function gambarPohon(target,M){
     const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong'); nm.textContent=o.nama||'Tanpa nama';
     const um=document.createElement('div'); um.className='umur';
     const u=hitungUmur(o);
-    um.textContent = u!==null ? (u+' th'+'') : formatTglSingkat(o.lahir);
+    um.textContent = teksUmurKartu(o);
 
-    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); if((o.kembar||[]).length){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; wrap.appendChild(b); }
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); if((o.kembar||[]).length){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; wrap.appendChild(b); } { const tg=tagKategoriEl(o); if(tg){ wrap.appendChild(tg); wrap.classList.add('ada-kat'); } }
     }
     target.appendChild(n);
   });

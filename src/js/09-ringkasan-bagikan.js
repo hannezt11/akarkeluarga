@@ -1,8 +1,8 @@
 // ===== Ringkasan generasi =====
 function ringkasanTerbuka(){ return !$('ringkasanOverlay').classList.contains('hidden'); }
 function tutupRingkasan(){ $('ringkasanOverlay').classList.add('hidden'); }
-function bukaRingkasan(){
-  const a=akarAktif();
+// Isi ringkasan (HTML) untuk akar yang sedang dipakai (variabel data); dipakai di aplikasi dan di cetak PDF
+function htmlRingkasanIsi(){
   const posisi=hitungLayout();
   const ids=Object.keys(posisi);
   const genMin=Math.min(...ids.map(id=>posisi[id].gen));
@@ -11,9 +11,12 @@ function bukaRingkasan(){
   const daftarGen=Object.keys(perGen).map(Number).sort((x,y)=>x-y);
   const maks=Math.max(...daftarGen.map(g=>perGen[g].length));
   const semua=ids.map(id=>data.people[id]);
-  const hidup=semua.filter(o=>o.status!=='meninggal').length;
+  const hidupL=semua.filter(o=>o.status!=='meninggal');
+  const hidup=hidupL.length;
   const laki=semua.filter(o=>genderDari(o)!=='f').length;
   const terlepas=Object.keys(data.people).length-ids.length;
+  const kat={anak:0,remaja:0,lansia:0}; let tanpa=0;
+  hidupL.forEach(o=>{ const k=kategoriUsia(o); if(k) kat[k]++; else if(!(o.lahir&&o.lahir.tahun)&&!o.kategori) tanpa++; });
   let h='<div class="rk-judul">Per generasi</div>';
   daftarGen.forEach(g=>{
     const n=perGen[g].length;
@@ -26,9 +29,16 @@ function bukaRingkasan(){
   h+=`<div class="rk-baris"><span>Laki-laki</span><span>${laki}</span></div>`;
   h+=`<div class="rk-baris"><span>Perempuan</span><span>${semua.length-laki}</span></div>`;
   h+=`<div class="rk-baris"><span>Jumlah generasi</span><span>${daftarGen.length}</span></div>`;
+  h+='<div class="rk-pemisah"></div>';
+  ['anak','remaja','lansia'].forEach(k=>{ h+=`<div class="rk-baris"><span><i class="rk-titik ${k}"></i>${NAMA_KATEGORI[k]}</span><span>${kat[k]}</span></div>`; });
+  if(tanpa>0) h+=`<div class="rk-baris rk-kecil"><span>Umur belum diisi</span><span>${tanpa}</span></div>`;
   if(terlepas>0) h+=`<div class="rk-catatan">${terlepas} orang belum tersambung ke pohon ini, jadi tidak ikut dihitung.</div>`;
+  return h;
+}
+function bukaRingkasan(){
+  const a=akarAktif();
   $('rkAkar').textContent=a.nama;
-  $('rkIsi').innerHTML=h; $('rkIsi').scrollTop=0;
+  $('rkIsi').innerHTML=htmlRingkasanIsi(); $('rkIsi').scrollTop=0;
   $('ringkasanOverlay').classList.remove('hidden');
 }
 $('btnRingkasan').addEventListener('click',()=>{ tutupFab(); bukaRingkasan(); });

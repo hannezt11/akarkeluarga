@@ -4,7 +4,7 @@
 // Akar bergembok (hasil impor) tidak pernah ditimpa.
 const UNIT_SINKRON=[
   ['nama','Nama',['nama']],['status','Status',['status','wafat']],['foto','Foto',['foto','fotoAt']],
-  ['lahir','Lahir',['lahir']],['alamat','Alamat',['alamat']],['hp','Ponsel',['hp']],['email','Email',['email']]
+  ['lahir','Lahir',['lahir']],['kategori','Kategori umur',['kategori']],['alamat','Alamat',['alamat']],['hp','Ponsel',['hp']],['email','Email',['email']]
 ];
 const klon=v=>(v===undefined)?v:JSON.parse(JSON.stringify(v));
 function nilaiUnit(o,k){
@@ -21,6 +21,7 @@ function setUnit(ke,k,dari){
 function teksUnit(o,k){
   if(k==='status') return o.status==='meninggal' ? 'wafat'+(o.wafat&&o.wafat.tahun?' '+formatTglSingkat(o.wafat):'') : 'hidup';
   if(k==='lahir') return formatTglSingkat(o.lahir)||'-';
+  if(k==='kategori') return NAMA_KATEGORI[o.kategori]||'-';
   if(k==='alamat') return teksAlamat(o.alamat)||'-';
   return String(o[k]||'-');
 }
@@ -80,7 +81,7 @@ function sebarkanSinkron(o,sebelum,akarUbah){
 function potretForm(o){
   const po={nama:$('fNama').value.trim(),status:$('fStatus').value,foto:fotoTemp||''};
   if(fotoTemp) po.fotoAt=(fotoTemp!==o.foto)?Date.now():o.fotoAt;
-  const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn')); if(lh) po.lahir=lh;
+  { const lf=bacaLahirForm(); if(lf.lahir) po.lahir=lf.lahir; if(lf.kategori) po.kategori=lf.kategori; }
   if(po.status==='meninggal'){ const wf=bacaTanggal($('fWafatTgl'),$('fWafatBln'),$('fWafatThn')); if(wf) po.wafat=wf; }
   const hp=$('fHp').value.trim(), em=$('fEmail').value.trim(); if(hp) po.hp=hp; if(em) po.email=em;
   const al=bacaAlamatForm(); if(al) po.alamat=al;

@@ -108,7 +108,9 @@ function bukaKartu(id){
   const umur=hitungUmur(o);
   const lahir=formatTglSingkat(o.lahir), wafat=formatTglSingkat(o.wafat);
   const sub=[];
-  if(umur!==null) sub.push(meninggal?`${umur} tahun (saat wafat)`:`${umur} tahun`);
+  const pk=(o.lahir&&o.lahir.perkiraan)?'\u00b1 ':'';
+  if(umur!==null) sub.push(meninggal?`${pk}${umur} tahun (saat wafat)`:`${pk}${umur} tahun`);
+  { const kt=kategoriUsia(o); if(kt) sub.push(NAMA_KATEGORI[kt]); }
   let h=`<div class="kartu-nama">${esc(o.nama||'Tanpa nama')}</div>`;
   h+=`<div class="kartu-sub">${esc(sub.join(' \u00b7 '))}</div>`;
   h+=barisUltah(o)+aksiKontak(o);
@@ -137,6 +139,7 @@ $('kartuEdit').addEventListener('click',()=>{ const id=kartuId; tutupKartu(); if
 
 // ===== Tombol Back Android =====
 function tanganiBack(){
+  if(kalTerbuka()){ tutupKal(undefined); return true; }
   if(cariTerbuka()){ tutupCari(); return true; }
   if(setTerbuka()){ tutupSet(); return true; }
   if(pilihTerbuka()){ tutupPilih(null); return true; }

@@ -22,7 +22,7 @@ function bukaModal(id,fokusNama){
   const lh=o.lahir||{}, wf=o.wafat||{};
   $('fLahirTgl').value=lh.tanggal||''; $('fLahirBln').value=lh.bulan||''; $('fLahirThn').value=lh.tahun||'';
   $('fWafatTgl').value=wf.tanggal||''; $('fWafatBln').value=wf.bulan||''; $('fWafatThn').value=wf.tahun||'';
-  aturWafat();
+  aturWafat(); isiLahirForm(o);
   $('fHp').value=o.hp||''; $('fEmail').value=o.email||'';
   siapkanAlamat(o); aturModeAlamat(o);
   isiPilihanOrtu(o); aturTombolOrtu(o); isiKembar(o);

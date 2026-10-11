@@ -81,7 +81,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 
 
 /* ===== Bentuk kartu ID ===== */
-.node.kt{width:96px;height:112px;box-sizing:border-box;padding:5px 4px 0;gap:3px;background:var(--card);border:1px solid var(--card-border);border-top:3px solid #6b9a74;border-radius:10px;overflow:hidden;}
+.node.kt{width:96px;height:124px;box-sizing:border-box;padding:5px 4px 0;gap:3px;background:var(--card);border:1px solid var(--card-border);border-top:3px solid #6b9a74;border-radius:10px;overflow:hidden;}
 .node.kt.gf{border-top-color:#c58a74;}
 .node.kt .avatar-wrap{width:44px;height:44px;flex:none;}
 .node.kt .avatar{width:44px;height:44px;border-radius:8px;font-size:15px;}
@@ -90,7 +90,7 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .node.kt .kt-kec,.node.kt .kt-hp{font-size:10px;line-height:1.2;color:var(--ink-soft);width:100%;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .node.kt .kt-hp{color:var(--ink);}
 .node.kt.aktif{box-shadow:0 0 0 2px var(--gold);}
-.cetak .node.kt{width:104px;height:150px;padding:8px 5px 0;gap:4px;}
+.cetak .node.kt{width:104px;height:162px;padding:8px 5px 0;gap:4px;}
 .cetak .node.kt .avatar-wrap{width:60px;height:60px;}
 .cetak .node.kt .avatar{width:60px;height:60px;border-radius:10px;font-size:20px;border:1px solid #cdbf9d;}
 .cetak .node.kt .nama{font-size:13px;line-height:1.2;max-height:2.4em;}
@@ -106,3 +106,16 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .cetak .lencana-kembar i{width:18px;height:18px;border-width:2.5px;}
 .cetak .lencana-kembar i+i{margin-left:-8px;}
 .cetak .node.kt .lencana-kembar{right:6px;bottom:6px;}
+
+/* ===== Tanda kategori umur: bulatan warna di kanan bawah (anak / remaja / lansia; dewasa tanpa tanda) ===== */
+.tag-kat{position:absolute;right:-3px;bottom:-3px;width:13px;height:13px;border-radius:50%;border:2px solid var(--bg);box-sizing:border-box;pointer-events:none;}
+.tag-kat.anak{background:#e0a53a;}
+.tag-kat.remaja{background:#4aa3d9;}
+.tag-kat.lansia{background:#8e6fc2;}
+.avatar-wrap.ada-kat .lencana-kembar{right:14px;}
+.node.kt .tag-kat{right:7px;bottom:7px;border-color:var(--card);}
+.node.kt.ada-kat .lencana-kembar{right:23px;}
+.cetak .tag-kat{width:17px;height:17px;border-width:2.5px;right:-4px;bottom:-4px;}
+.cetak .node.kt .tag-kat{right:8px;bottom:8px;border-color:#fffaf0;}
+.cetak .node.kt.ada-kat .lencana-kembar{right:30px;}
+.cetak .avatar-wrap.ada-kat .lencana-kembar{right:18px;}

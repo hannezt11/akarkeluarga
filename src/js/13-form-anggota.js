@@ -18,8 +18,9 @@ function terapkanForm(o){
   { const hp=$('fHp').value.trim(), em=$('fEmail').value.trim(); if(hp) o.hp=hp; else delete o.hp; if(em) o.email=em; else delete o.email; }
   simpanAlamat(o);
   terapkanStatusPasangan(o);
-  const lh=bacaTanggal($('fLahirTgl'),$('fLahirBln'),$('fLahirThn'));
-  if(lh) o.lahir=lh; else delete o.lahir;
+  const lf=bacaLahirForm();
+  if(lf.lahir) o.lahir=lf.lahir; else delete o.lahir;
+  if(lf.kategori) o.kategori=lf.kategori; else delete o.kategori;
   const wf=o.status==='meninggal' ? bacaTanggal($('fWafatTgl'),$('fWafatBln'),$('fWafatThn')) : null;
   if(wf) o.wafat=wf; else delete o.wafat;
   const nomorAnak=bacaAngka($('fAnakKe'));

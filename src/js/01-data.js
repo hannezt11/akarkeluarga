@@ -126,11 +126,41 @@ function hitungUmur(o){
   if(aBulan<lBulan || (aBulan===lBulan && aTanggal<lTanggal)) umur--;
   return umur>=0 ? umur : null;
 }
+const BULAN_SINGKAT=['jan','feb','mar','apr','mei','jun','jul','agu','sep','okt','nov','des'];
+// Tampilan tanggal: "11 okt 2026", "okt 2026", atau "2026"; perkiraan umur: "perkiraan 2018"
 function formatTglSingkat(t){
   if(!t||!t.tahun) return '';
-  if(t.tanggal&&t.bulan) return `${t.tanggal}/${t.bulan}/${t.tahun}`;
-  if(t.bulan) return `${t.bulan}/${t.tahun}`;
+  if(t.perkiraan) return `perkiraan ${t.tahun}`;
+  if(t.tanggal&&t.bulan) return `${t.tanggal} ${BULAN_SINGKAT[t.bulan-1]} ${t.tahun}`;
+  if(t.bulan) return `${BULAN_SINGKAT[t.bulan-1]} ${t.tahun}`;
   return `${t.tahun}`;
+}
+// Teks umur untuk kartu: "30 th", "\u00b1 8 th" (perkiraan), atau tanggal lahir bila umur belum bisa dihitung
+function labelUmur(o){
+  const u=hitungUmur(o); if(u===null) return null;
+  return ((o.lahir&&o.lahir.perkiraan)?'\u00b1 ':'')+u+' th';
+}
+function teksUmurKartu(o){ const l=labelUmur(o); return l!==null ? l : formatTglSingkat(o.lahir); }
+// Kategori umur untuk tanda di kartu: anak (0-12), remaja (13-17), lansia (60+); dewasa = tanpa tanda.
+// Bila tanggal/perkiraan lahir ada, kategori dihitung otomatis; bila tidak, memakai pilihan manual (o.kategori).
+// Orang yang sudah wafat tidak diberi tanda.
+const BATAS_ANAK=12, BATAS_REMAJA=17, BATAS_LANSIA=60;
+function kategoriUsia(o){
+  if(!o||o.status==='meninggal') return null;
+  if(o.lahir&&o.lahir.tahun){
+    const u=hitungUmur(o); if(u===null) return null;
+    if(u<=BATAS_ANAK) return 'anak';
+    if(u<=BATAS_REMAJA) return 'remaja';
+    if(u>=BATAS_LANSIA) return 'lansia';
+    return null;
+  }
+  return (o.kategori==='anak'||o.kategori==='remaja'||o.kategori==='lansia')?o.kategori:null;
+}
+const NAMA_KATEGORI={anak:'Anak-anak',remaja:'Remaja',lansia:'Lansia'};
+const TAG_KATEGORI={anak:'Anak',remaja:'Remaja',lansia:'Lansia'};
+function tagKategoriEl(o){
+  const k=kategoriUsia(o); if(!k) return null;
+  const e=document.createElement('div'); e.className='tag-kat '+k; e.title=NAMA_KATEGORI[k]; return e;
 }
 
 // Urutan saudara memakai TANGGAL LAHIR (bukan umur): umur orang meninggal berhenti di saat wafat,

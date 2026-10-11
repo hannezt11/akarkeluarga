@@ -4,6 +4,8 @@ const fs=require('fs'), path=require('path');
 const baca=(d,ext)=>fs.readdirSync(path.join(__dirname,'src',d)).filter(f=>f.endsWith(ext)).sort()
   .map(f=>fs.readFileSync(path.join(__dirname,'src',d,f),'utf8')).join('');
 const tpl=fs.readFileSync(path.join(__dirname,'src','index.template.html'),'utf8');
-const hasil=tpl.replace('@@CSS@@\n',()=>baca('css','.css')).replace('@@JS@@\n',()=>baca('js','.js'));
+// Nomor versi: di GitHub Actions diisi dari nomor build (env VERSI); build lokal memakai teks "lokal".
+const VERSI=String(process.env.VERSI||'lokal').replace(/[^0-9A-Za-z._-]/g,'');
+const hasil=tpl.replace('@@CSS@@\n',()=>baca('css','.css')).replace('@@JS@@\n',()=>baca('js','.js')).replace('@@VERSI@@',()=>VERSI);
 fs.writeFileSync(path.join(__dirname,'www','index.html'),hasil);
 console.log('www/index.html dibuat ('+hasil.length+' karakter)');

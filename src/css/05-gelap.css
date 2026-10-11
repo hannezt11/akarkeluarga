@@ -25,3 +25,5 @@
 :root[data-tema="gelap"] .line-h.psg.cerai{background:repeating-linear-gradient(to right,#d09a55 0,#d09a55 6px,transparent 6px,transparent 10px);}
 :root[data-tema="gelap"] .akar-titik{border-color:#26231a;}
 :root[data-tema="gelap"] .akar-baris.aktif{background:#3a3628;}
+
+:root[data-tema="gelap"] .tgl-btn,:root[data-tema="gelap"] .chip-baris button{background:var(--input);}

@@ -141,26 +141,28 @@ function barisRingkasGen(){
 async function cetakAkar(akar,opsi){
   opsi=opsi||{}; const MC=mCetak(opsi.tanpaHp===true); aturUkuranSlot(MC);
   // hanya data akar terpilih: tanpa orang/garis pudar dari akar lain
-  let u, ringBaris=[]; const dataAsli=data; data=akar.data;
-  const wrapUkur=$('cetakWrap'); wrapUkur.style.display='block'; wrapUkur.style.visibility='hidden'; wrapUkur.style.position='absolute'; wrapUkur.style.left='-99999px'; // agar tinggi kartu bisa diukur saat menggambar
+  let u, boxH=0; const dataAsli=data; data=akar.data;
+  const wrapUkur=$('cetakWrap'); wrapUkur.style.display='block'; wrapUkur.style.visibility='hidden'; wrapUkur.style.position='absolute'; wrapUkur.style.left='-99999px'; // agar tinggi kartu & kotak ringkasan bisa diukur
   try{
     const g=bangunTunggal(akar); let L=null;
     try{ L=susunBlok(g); }catch(e){ console.error('penataan blok gagal, memakai tata letak lama',e); }
     u = L ? gambarPohonBlok($('cetakCanvas'),MC,L,g) : gambarPohon($('cetakCanvas'),MC);
-    ringBaris=barisRingkasGen();
+    // kotak ringkasan di kanan atas (rancangan sama dengan ringkasan di aplikasi, kepala berwarna hijau toska)
+    const rk=$('cetakRk');
+    rk.innerHTML='<div class="ringkasan"><div class="ringkasan-kepala"><h3>Ringkasan</h3><p>'+esc(akar.nama||'')+'</p></div><div class="ringkasan-isi">'+htmlRingkasanIsi()+'</div></div>';
+    boxH=rk.offsetHeight;
   } finally { data=dataAsli; ['display','visibility','position','left'].forEach(k=>wrapUkur.style.removeProperty(k)); }
-  const cg=$('cetakGen'); cg.textContent=ringBaris.join('\n'); cg.style.display=ringBaris.length?'block':'none';
-  const ringH=ringBaris.length?ringBaris.length*20+18:0;
+  $('cetakGen').style.display='none';
   $('cetakCanvas').style.width=u.w+'px'; $('cetakCanvas').style.height=u.h+'px';
-  const PAD=64;
+  const PAD=64, BOXW=300;
   const judul=(akar.nama||'').trim();
-  const W=Math.max(u.w,1)+2*PAD;
-  const fs=Math.max(26,Math.min(56,(W-2*PAD)/(Math.max(judul.length,1)*0.62)));
+  const isiW=Math.max(u.w,1,2*BOXW+420);          // lebar isi: cukup untuk judul di antara dua kotak
+  const W=isiW+2*PAD;
+  const fs=Math.max(26,Math.min(56,(isiW-2*BOXW-24)/(Math.max(judul.length,1)*0.62)));
   const jd=$('cetakJudul');
-  jd.textContent=judul; jd.style.display=judul?'block':'none';
-  jd.style.fontSize=fs+'px'; jd.style.marginBottom='44px';
-  const judulH=judul?Math.ceil(fs*1.25)+44:0;
-  const H=Math.max(u.h,1)+2*PAD+judulH+ringH;
+  jd.textContent=judul; jd.style.display='block'; jd.style.fontSize=fs+'px';
+  const kepalaH=Math.max(judul?Math.ceil(fs*1.25):0,boxH)+44;
+  const H=Math.max(u.h,1)+2*PAD+kepalaH;
   const wrap=$('cetakWrap');
   wrap.style.width=W+'px'; wrap.style.padding=PAD+'px';
   const k=pilihKertas(W,H);
