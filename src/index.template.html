@@ -86,7 +86,13 @@
           <label>Ibu <select id="fIbu"></select></label>
           <label id="wrapAnakKe">Anak ke <input type="number" id="fAnakKe" min="1" max="99" placeholder="-" inputmode="numeric"></label>
         </div>
-        <label id="wrapKembar">Kembar dengan <select id="fKembar"></select></label>
+        <div class="baris-kembar">
+          <label id="wrapKembar">Kembar dengan <select id="fKembar"></select></label>
+          <div class="fld" id="wrapAngkat">Hubungan
+            <div class="saklar kecil" id="skAngkat"><button type="button" data-v="kandung">Kandung</button><button type="button" data-v="angkat">Angkat</button></div>
+            <input type="hidden" id="fAngkat" value="kandung">
+          </div>
+        </div>
         <div class="baris-2">
           <label>No. ponsel <input type="tel" id="fHp" inputmode="tel" autocomplete="off" placeholder="08xx / +62xx"></label>
           <label>Email <input type="email" id="fEmail" inputmode="email" autocomplete="off" autocapitalize="off" placeholder="nama@email.com"></label>

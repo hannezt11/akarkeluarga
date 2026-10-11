@@ -29,6 +29,7 @@ function terapkanForm(o){
   o.idAyah=ay; o.idIbu=(ib&&ib!==ay)?ib:null;
   if(o.idAyah&&o.idIbu) hubungkanPasangan(o.idAyah,o.idIbu);
   terapkanKembar(o);
+  if((o.idAyah||o.idIbu)&&$('fAngkat').value==='angkat') o.angkat=true; else delete o.angkat;
   terapkanSama(o);
   if(gBaru!==gLama && o.id!==rootAktif()){
     o.jalur=jalurDari(o);
@@ -210,3 +211,20 @@ function terapkanKembar(o){
 }
 $('fAyah').addEventListener('change',()=>{ const o=data.people[idAktif]; if(o) isiKembar(o); });
 $('fIbu').addEventListener('change',()=>{ const o=data.people[idAktif]; if(o) isiKembar(o); });
+
+// ===== Anak angkat: saklar Kandung / Angkat (bawaan Kandung; hanya aktif bila ayah atau ibu sudah dipilih) =====
+function setAngkatForm(v){
+  $('fAngkat').value=v;
+  document.querySelectorAll('#skAngkat button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+}
+function segarAngkatAktif(){
+  const ada=!!($('fAyah').value||$('fIbu').value);
+  $('skAngkat').classList.toggle('mati',!ada);
+  if(!ada) setAngkatForm('kandung');
+}
+function isiAngkat(o){ setAngkatForm(o.angkat&&(o.idAyah||o.idIbu)?'angkat':'kandung'); segarAngkatAktif(); }
+document.querySelectorAll('#skAngkat button').forEach(b=>b.addEventListener('click',()=>{
+  if($('skAngkat').classList.contains('mati')) return; setAngkatForm(b.dataset.v);
+}));
+$('fAyah').addEventListener('change',segarAngkatAktif);
+$('fIbu').addEventListener('change',segarAngkatAktif);

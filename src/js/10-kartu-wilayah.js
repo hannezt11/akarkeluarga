@@ -119,6 +119,7 @@ function bukaKartu(id){
   const efAl=alamatEfektif(o,data.people,0), txtAlamat=efAl?teksAlamat(efAl.alamat):'';
   if(txtAlamat) h+=`<div class="kartu-baris"><b>Alamat:</b> ${esc(txtAlamat)}${efAl.dari?` <span class="ket-ikut">(ikut ${efAl.dari} ${esc(namaDari(efAl.id)||'')})</span>`:''}</div>`;
   h+=barisKontak(o);
+  if(o.angkat&&(o.idAyah||o.idIbu)) h+='<div class="kartu-baris"><b>Hubungan:</b> Anak angkat</div>';
   h+=barisRelasi('Ayah',[o.idAyah].filter(x=>x&&data.people[x]));
   h+=barisRelasi('Ibu',[o.idIbu].filter(x=>x&&data.people[x]));
   h+=barisPasangan(o);

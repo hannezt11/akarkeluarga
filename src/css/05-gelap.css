@@ -27,3 +27,4 @@
 :root[data-tema="gelap"] .akar-baris.aktif{background:#3a3628;}
 
 :root[data-tema="gelap"] .tgl-btn,:root[data-tema="gelap"] .chip-baris button{background:var(--input);}
+:root[data-tema="gelap"] .tanda-angkat{color:#c9b98a;}

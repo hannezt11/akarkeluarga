@@ -1,12 +1,22 @@
 // Geser nama manual (mode Edit): data.geser[id] = selisih x (px) dari posisi otomatis. Hanya untuk orang di akar aktif.
-function terapkanGeser(posisi,riilId){
-  const gs=data&&data.geser; if(!gs) return;
-  Object.keys(posisi).forEach(id=>{
+// Geser nama: tidak ada batas kiri. Bila ada nama yang melewati tepi kiri, SELURUH pohon digeser ke kanan sebesar
+// selisihnya (offsetKiri); render() mengimbangi dengan menggeser tampilan supaya pohon tidak terlihat meloncat.
+let offsetKiriTerakhir=0, offsetKiriLayar=0;
+function terapkanGeser(posisi,riilId,labelBlok){
+  offsetKiriTerakhir=0;
+  const gs=data&&data.geser;
+  if(gs) Object.keys(posisi).forEach(id=>{
     const q=posisi[id]; if(q.xOto!==undefined) return;
     q.xOto=q.x;
     const d=gs[id]; if(typeof d!=='number'||!riilId(id)) return;
-    q.x=Math.max(0,q.x+d);
+    q.x=q.x+d;
   });
+  let mn=0; Object.values(posisi).forEach(q=>{ if(q.x<mn) mn=q.x; });
+  if(mn<0){
+    offsetKiriTerakhir=-mn;
+    Object.values(posisi).forEach(q=>{ q.x-=mn; });
+    if(labelBlok) labelBlok.forEach(lb=>{ lb.x-=mn; });
+  }
 }
 function pasangGeserNama(n,o,pos){
   n.classList.add('geser');
@@ -15,7 +25,7 @@ function pasangGeserNama(n,o,pos){
     const x0=e.clientX, d0=(data.geser&&data.geser[o.id])||0, oto=(pos.xOto!==undefined)?pos.xOto:pos.x;
     let bingkai=0;
     const gerak=ev=>{
-      const dn=Math.round(Math.max(-oto,d0+(ev.clientX-x0)/sk));
+      const dn=Math.round(d0+(ev.clientX-x0)/sk);
       data.geser=data.geser||{}; data.geser[o.id]=dn;
       if(!bingkai) bingkai=requestAnimationFrame(()=>{ bingkai=0; render(false); });
     };
@@ -35,7 +45,7 @@ function pasangGeserNama(n,o,pos){
 }
 function gambarPohonBlok(target,M,L,g){
   const orang=g.data.people, posisi=L.posisi;
-  terapkanGeser(posisi,id=>g.riil.has(id));
+  terapkanGeser(posisi,id=>g.riil.has(id),L.label);
   // Sorot jalur: leluhur + keturunan (beserta pasangan keturunan) orang terpilih; yang lain diredupkan
   let S=null;
   if(!M.cetak&&sorotId&&orang[sorotId]){
@@ -166,7 +176,7 @@ function gambarPohonBlok(target,M,L,g){
     const yMulai=(yU!==undefined)?yU:(f.rapat ? ortu[0].y+M.CY : ortu[0].y+M.NODE_H);
     const kunciGaris=f.ids.join('|');
     const dMaks=f.anak[0].y-(Math.max(yMulai,...ortu.map(q=>q.y+M.NODE_H))+6);
-    const dOto=22+f.lajur*LAJUR_H, dSimpan=(data&&data.garis)?data.garis[kunciGaris]:undefined;
+    const dOto=(f.idAnak.some(id=>orang[id]&&orang[id].angkat)?36:22)+f.lajur*LAJUR_H, dSimpan=(data&&data.garis)?data.garis[kunciGaris]:undefined;
     let dGaris=(typeof dSimpan==='number')?dSimpan:dOto;
     if(dMaks>=8) dGaris=Math.min(Math.max(dGaris,8),dMaks); else dGaris=dOto;
     const yBus=f.anak[0].y-dGaris;
@@ -193,6 +203,10 @@ function gambarPohonBlok(target,M,L,g){
         f.anak.forEach((q,i)=>{ if(anakRiil[i]) gv(q.x+M.CX,yBus,q.y); });
       }
     }
+    f.anak.forEach((q,ix)=>{
+      const oa=orang[f.idAnak[ix]];
+      if(anakRiil[ix]&&oa&&oa.angkat) rec.items.push({el:tandaAngkat(target,q.x+M.CX,yBus,q.y,kAnak(ix)),role:'t',yAnak:q.y});
+    });
     if(modeGaris&&!M.cetak&&ortuRiil&&anakRiil.some(Boolean)&&dMaks>8){
       const hx=(f.kanan>f.kiri)?(f.kiri+f.kanan)/2:f.midX;
       const h=document.createElement('div'); h.className='handle-garis';
@@ -225,8 +239,9 @@ function gambarPohonBlok(target,M,L,g){
     const kx=k.x+M.CX, ky=k.y, py=pp[0].y;
     const kls=kelasDari(sv.kid,...sv.ortu);
     if(py+M.NODE_H < ky-4){
-      const ym=ky-22-(lajurSilang.get(sv)||0)*LAJUR_H, ya=rapat ? py+M.CY : py+M.NODE_H;
+      const ym=ky-((orang[sv.kid]&&orang[sv.kid].angkat)?36:22)-(lajurSilang.get(sv)||0)*LAJUR_H, ya=rapat ? py+M.CY : py+M.NODE_H;
       const els=siku([[kx,ky],[kx,ym],[mx,ym],[mx,ya]],kls);
+      if(orang[sv.kid]&&orang[sv.kid].angkat) tandaAngkat(target,kx,ym,ky,kls);
       if(!rapat&&pp.length===1) tempelSilang.push({el:els[2],id:sv.ortu[0],ym});
     } else {
       const yb=ky+M.NODE_H+10;
@@ -357,8 +372,19 @@ function garisH(tg,x1,y,x2,T,kelas){
   d.style.cssText=`left:${Math.min(x1,x2)-T/2}px;top:${y-T/2}px;width:${Math.abs(x2-x1)+T}px;height:${T}px`;
   tg.appendChild(d); return d;
 }
+// Tanda "≈" di tengah garis terakhir menuju anak angkat (sambungan khusus)
+function tandaAngkat(target,x,yAtas,yAnak,kelas){
+  const t=document.createElement('div'); t.className='tanda-angkat'+(kelas?' '+kelas:'');
+  t.innerHTML='<svg viewBox="0 0 16 12" width="100%" height="100%"><path d="M1.5 4.2Q4.5 1.2 8 4.2T14.5 4.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M1.5 9.2Q4.5 6.2 8 9.2T14.5 9.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+  t.style.left=x+'px'; letakTandaAngkat(t,yAtas,yAnak);
+  target.appendChild(t); return t;
+}
+function letakTandaAngkat(t,yAtas,yAnak){
+  t.style.top=((yAtas+yAnak)/2)+'px'; t.style.display=(yAnak-yAtas<20)?'none':'';
+}
 function pasangGarisKeluarga(rec,yBus){
   rec.items.forEach(it=>{
+    if(it.role==='t'){ letakTandaAngkat(it.el,yBus,it.yAnak); return; }
     if(it.role==='b'){ it.el.style.top=(yBus-rec.T/2)+'px'; }
     else { const a=(it.role==='p')?it.y1:yBus, b=(it.role==='p')?yBus:it.y2; it.el.style.top=Math.min(a,b)+'px'; it.el.style.height=Math.abs(b-a)+'px'; }
   });
@@ -477,6 +503,7 @@ function gambarPohon(target,M){
 }
 function render(pasKeLayarJuga){
   const u=gambarDenganLatar(canvas,mLayar());
+  { const s=offsetKiriTerakhir, d=s-offsetKiriLayar; offsetKiriLayar=s; if(d&&!pasKeLayarJuga){ tx-=d*sk; } }
   contentW=u.w; contentH=u.h;
   canvas.style.width=contentW+'px'; canvas.style.height=contentH+'px';
   if(pasKeLayarJuga) pasKeLayar(); else pasangTransform();
