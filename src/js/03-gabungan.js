@@ -117,7 +117,7 @@ function bangunGabungan(){
     if(mid[r]===undefined){
       const m=(a.id===store.aktifId) ? p.id : (a.id+'~'+p.id);
       const c=Object.assign({},p);
-      c.gender=genderDari(p); c.id=m; c.idAyah=null; c.idIbu=null; c.idPasangan=[]; c.statusPasangan={}; delete c.sama;
+      c.gender=genderDari(p); c.id=m; c.idAyah=null; c.idIbu=null; c.idPasangan=[]; c.statusPasangan={}; c.kembar=[]; delete c.sama;
       mid[r]=m; people[m]=c; asal[m]=new Set(); dari[m]=a.id;
     } else {
       const c=people[mid[r]];
@@ -131,6 +131,7 @@ function bangunGabungan(){
     const peta=x=>(x&&a.data.people[x]) ? idGab(a.id,x) : null;
     if(!c.idAyah) c.idAyah=peta(p.idAyah);
     if(!c.idIbu) c.idIbu=peta(p.idIbu);
+    (p.kembar||[]).forEach(x=>{ const t=peta(x); if(t&&t!==m&&!c.kembar.includes(t)) c.kembar.push(t); });
     (p.idPasangan||[]).forEach(x=>{
       const t=peta(x); if(!t||t===m) return;
       if(!c.idPasangan.includes(t)) c.idPasangan.push(t);
@@ -149,6 +150,7 @@ function bangunGabungan(){
     if(c.idIbu===c.id) c.idIbu=null;
     if(c.idAyah && c.idAyah===c.idIbu) c.idIbu=null;
     if(!Object.keys(c.statusPasangan).length) delete c.statusPasangan;
+    if(!c.kembar.length) delete c.kembar;
   });
   const riil=new Set(); Object.keys(people).forEach(m=>{ if(asal[m].has(store.aktifId)) riil.add(m); });
   // batang: saya + pasangan + keturunan selalu nyata, di akar mana pun dicatat

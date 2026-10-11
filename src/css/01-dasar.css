@@ -97,3 +97,12 @@ html,body{margin:0;height:100%;background:#1b1712;color:var(--ink);font-family:v
 .cetak .node.kt .kt-kec,.cetak .node.kt .kt-hp{font-size:12px;}
 .cetak .node.kt .kt-hp{font-size:11px;letter-spacing:-.2px;}
 .cetak .node.kt{padding-left:2px;padding-right:2px;}
+
+/* ===== Lencana kembar: dua lingkaran bertumpuk di kanan bawah ===== */
+.lencana-kembar{position:absolute;right:-5px;bottom:-3px;display:flex;align-items:center;pointer-events:none;}
+.lencana-kembar i{display:block;width:14px;height:14px;border-radius:50%;border:2px solid #b8832f;background:transparent;box-sizing:border-box;}
+.lencana-kembar i+i{margin-left:-6px;border-color:#6b8f9c;}
+.node.kt .lencana-kembar{right:5px;bottom:5px;}
+.cetak .lencana-kembar i{width:18px;height:18px;border-width:2.5px;}
+.cetak .lencana-kembar i+i{margin-left:-8px;}
+.cetak .node.kt .lencana-kembar{right:6px;bottom:6px;}

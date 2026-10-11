@@ -25,7 +25,7 @@ function bukaModal(id,fokusNama){
   aturWafat();
   $('fHp').value=o.hp||''; $('fEmail').value=o.email||'';
   siapkanAlamat(o); aturModeAlamat(o);
-  isiPilihanOrtu(o); aturTombolOrtu(o);
+  isiPilihanOrtu(o); aturTombolOrtu(o); isiKembar(o);
   isiDaftarPasangan(o); isiSama(o);
   blokirKlikSampai=Date.now()+600;
   $('modalOverlay').classList.remove('hidden');

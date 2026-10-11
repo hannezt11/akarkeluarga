@@ -253,7 +253,7 @@ function gambarPohonBlok(target,M,L,g){
     const um=document.createElement('div'); um.className='umur';
     const u=hitungUmur(o);
     um.textContent = u!==null ? (u+' th'+'') : formatTglSingkat(o.lahir);
-    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); }
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); if((o.kembar||[]).length){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; wrap.appendChild(b); } }
     if(modeGaris&&!M.cetak&&riilId(o.id)) pasangGeserNama(n,o,pos);
     target.appendChild(n);
   });
@@ -326,6 +326,7 @@ function aturUkuranSlot(M){ NODE_W=M.kartu?124:108; GAP_GEN=M.kartu?72:56; }
 function mLayar(){ return bentukPilihan()==='kartu'?M_LAYAR_KARTU:M_LAYAR_BULAT; }
 function mCetak(tanpaHp){ return bentukPilihan()==='kartu'?Object.assign({},M_CETAK_KARTU,{tanpaHp:!!tanpaHp}):M_CETAK_BULAT; }
 // Isi kartu ID: foto kecil, "umur. nama", kecamatan, no. hp
+function lencanaKembar(n){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; n.appendChild(b); }
 function isiNodeKartu(n,o,P,M){
   n.classList.add('kt');
   const wrap=document.createElement('div'); wrap.className='avatar-wrap';
@@ -338,6 +339,7 @@ function isiNodeKartu(n,o,P,M){
   const nm=document.createElement('div'); nm.className='nama'+(o.nama?'':' kosong');
   nm.textContent = u!==null ? (u+' th'+'. '+nama) : nama;
   n.appendChild(nm);
+  if((o.kembar||[]).length) lencanaKembar(n);
   let kec=''; try{ const r=alamatEfektif(o,P); kec=(r&&r.alamat&&r.alamat.kec)||''; }catch(e){}
   kec=String(kec).replace(/^\s*(kecamatan|kec\.?)\s+/i,'').trim();
   if(kec){ const e=document.createElement('div'); e.className='kt-kec'; e.textContent=kec; n.appendChild(e); }
@@ -465,7 +467,7 @@ function gambarPohon(target,M){
     const u=hitungUmur(o);
     um.textContent = u!==null ? (u+' th'+'') : formatTglSingkat(o.lahir);
 
-    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um);
+    n.appendChild(wrap); n.appendChild(nm); n.appendChild(um); if((o.kembar||[]).length){ const b=document.createElement('div'); b.className='lencana-kembar'; b.innerHTML='<i></i><i></i>'; wrap.appendChild(b); }
     }
     target.appendChild(n);
   });

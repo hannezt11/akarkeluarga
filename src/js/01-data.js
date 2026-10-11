@@ -136,6 +136,12 @@ function formatTglSingkat(t){
 // Urutan saudara memakai TANGGAL LAHIR (bukan umur): umur orang meninggal berhenti di saat wafat,
 // jadi tidak bisa dipakai untuk membandingkan. Lahir kosong = paling kanan.
 function kunciLahir(o){ const l=o&&o.lahir; if(!l||!l.tahun) return null; return l.tahun*10000+(l.bulan||1)*100+(l.tanggal||1); }
+// Kembar: p.kembar = daftar id kembarannya (dua arah). Satu kelompok = semua yang tersambung lewat tautan kembar.
+function kelompokKembar(id,P){
+  P=P||data.people; const s=new Set([id]), st=[id];
+  while(st.length){ const x=st.pop(); const q=P[x]; ((q&&q.kembar)||[]).forEach(y=>{ if(P[y]&&!s.has(y)){ s.add(y); st.push(y); } }); }
+  return s;
+}
 function bandingLahir(a,b){
   // Nomor "Anak ke-" (bila diisi) menang atas tanggal lahir; yang bernomor di kiri, yang tak bernomor sesudahnya.
   const na=(a&&a.anakKe>0)?a.anakKe:null, nb=(b&&b.anakKe>0)?b.anakKe:null;

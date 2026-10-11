@@ -93,6 +93,10 @@ function hitungLayout(){
   function anakUnitTerurut(unit){
     const rawKids=anakDariUnit(unit);
     rawKids.sort((a,b)=>bandingLahir(data.people[a],data.people[b]));
+    // kembar selalu berdampingan: seluruh kelompok kembar dikumpulkan di posisi anggota pertamanya
+    { const dipakai=new Set(), tersusun=[];
+      rawKids.forEach(id=>{ if(dipakai.has(id)) return; const k=kelompokKembar(id); const anggota=rawKids.filter(x=>k.has(x)); anggota.forEach(x=>dipakai.add(x)); tersusun.push(...anggota); });
+      rawKids.splice(0,rawKids.length,...tersusun); }
     const hasil=[]; const sudahUnit=new Set();
     rawKids.forEach(id=>{
       const u=idKeUnit[id];

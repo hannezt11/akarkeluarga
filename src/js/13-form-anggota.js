@@ -27,6 +27,7 @@ function terapkanForm(o){
   const ay=$('fAyah').value||null, ib=$('fIbu').value||null;
   o.idAyah=ay; o.idIbu=(ib&&ib!==ay)?ib:null;
   if(o.idAyah&&o.idIbu) hubungkanPasangan(o.idAyah,o.idIbu);
+  terapkanKembar(o);
   terapkanSama(o);
   if(gBaru!==gLama && o.id!==rootAktif()){
     o.jalur=jalurDari(o);
@@ -49,6 +50,7 @@ $('btnHapus').addEventListener('click',()=>{
     if(p.idAyah===id) p.idAyah=null;
     if(p.idIbu===id) p.idIbu=null;
     p.idPasangan=(p.idPasangan||[]).filter(x=>x!==id);
+    if(p.kembar){ p.kembar=p.kembar.filter(x=>x!==id); if(!p.kembar.length) delete p.kembar; }
     if(p.statusPasangan){ delete p.statusPasangan[id]; if(!Object.keys(p.statusPasangan).length) delete p.statusPasangan; }
   });
   simpanData(); tutupModal(); render(false);
@@ -71,6 +73,7 @@ function gantiId(lama,baru){
     if(p.idAyah===lama) p.idAyah=baru;
     if(p.idIbu===lama) p.idIbu=baru;
     p.idPasangan=(p.idPasangan||[]).map(x=>x===lama?baru:x);
+    if(p.kembar) p.kembar=p.kembar.map(x=>x===lama?baru:x);
     if(p.statusPasangan&&p.statusPasangan[lama]){ p.statusPasangan[baru]=p.statusPasangan[lama]; delete p.statusPasangan[lama]; }
   });
 }
@@ -180,3 +183,29 @@ document.querySelectorAll('.modal-tambah-tombol button').forEach(btn=>{
     if(baru){ simpanData(); render(false); bukaModal(baru.id,true); }
   });
 });
+
+// ===== Kembar: pilih kembarannya dari saudara kandung (anak ayah/ibu yang sama) =====
+function saudaraKandung(o,ay,ib){
+  return Object.values(data.people).filter(p=>p.id!==o.id && ((ay&&p.idAyah===ay)||(ib&&p.idIbu===ib)));
+}
+function isiKembar(o){
+  const el=$('fKembar'); el.innerHTML='';
+  const kosong=document.createElement('option'); kosong.value=''; kosong.textContent='- bukan kembar -'; el.appendChild(kosong);
+  const ay=$('fAyah').value||null, ib=$('fIbu').value||null;
+  const ada=new Set((o.kembar||[]).filter(x=>data.people[x]));
+  const daftar=saudaraKandung(o,ay,ib); ada.forEach(x=>{ if(!daftar.some(p=>p.id===x)) daftar.push(data.people[x]); });
+  daftar.forEach(p=>{ const op=document.createElement('option'); op.value=p.id; op.textContent=(p.nama||'Tanpa nama')+' ('+p.id+')'; el.appendChild(op); });
+  el.value=[...ada][0]||'';
+}
+function terapkanKembar(o){
+  const pilih=$('fKembar').value||null;
+  // lepas dulu semua tautan lama
+  (o.kembar||[]).forEach(x=>{ const q=data.people[x]; if(q&&q.kembar){ q.kembar=q.kembar.filter(y=>y!==o.id); if(!q.kembar.length) delete q.kembar; } });
+  delete o.kembar;
+  if(pilih&&data.people[pilih]&&pilih!==o.id){
+    const q=data.people[pilih];
+    o.kembar=[pilih]; q.kembar=q.kembar||[]; if(!q.kembar.includes(o.id)) q.kembar.push(o.id);
+  }
+}
+$('fAyah').addEventListener('change',()=>{ const o=data.people[idAktif]; if(o) isiKembar(o); });
+$('fIbu').addEventListener('change',()=>{ const o=data.people[idAktif]; if(o) isiKembar(o); });
