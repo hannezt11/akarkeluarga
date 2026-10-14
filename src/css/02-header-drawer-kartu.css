@@ -19,7 +19,7 @@
 .drawer-bawah{padding:10px 12px 0;border-top:1px solid var(--card-border);margin:0 8px;}
 .drawer-bawah button{color:var(--meninggal);border:1px solid var(--card-border);background:var(--card);text-align:center;font-size:14px;}
 
-.drawer-versi{margin:0 8px;border-top:1px solid var(--card-border);padding:12px 12px 0;font-size:11.5px;line-height:1.6;color:var(--ink-soft);display:grid;justify-content:center;}
+.drawer-versi{margin:6px 8px 0;border-top:1px solid var(--card-border);padding:12px 12px 8px;font-size:11.5px;line-height:1.6;color:var(--ink-soft);display:grid;justify-content:center;}
 .dv-baris{display:grid;grid-template-columns:62px 10px auto;}
 
 /* ===== Kartu profil ===== */

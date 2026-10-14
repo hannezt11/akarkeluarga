@@ -20,9 +20,3 @@ $('btnBentuk').addEventListener('click',()=>{
 });
 terapkanBentuk();
 
-// ===== Info layar (untuk memeriksa skala di tiap ponsel) =====
-(function(){
-  const e=$('infoLayar'); if(!e) return;
-  const w=Math.round(screen.width), a=window.LEBAR_ACUAN||0;
-  e.textContent=w+' dp \u00b7 tata letak '+Math.round(window.innerWidth)+(a>0?' (acuan '+a+')':'');
-})();
