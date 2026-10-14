@@ -9,12 +9,12 @@
 .hidden{display:none !important;}
 
 /* ===== Crop foto ===== */
-.crop-overlay{position:absolute;inset:0;z-index:25;background:#14110b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;}
+.crop-overlay{position:absolute;top:0;right:0;bottom:0;left:0;z-index:25;background:#14110b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;}
 .crop-overlay.hidden{display:none;}
 .crop-judul{color:#f3ede0;font-size:15px;}
-.crop-frame{position:relative;width:min(86vw,340px);aspect-ratio:1/1;overflow:hidden;background:#000;touch-action:none;outline:2px solid rgba(255,255,255,0.9);}
+.crop-frame{position:relative;width:min(86vw,340px);height:min(86vw,340px);aspect-ratio:1/1;overflow:hidden;background:#000;touch-action:none;outline:2px solid rgba(255,255,255,0.9);}
 .crop-frame img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;}
-.crop-grid{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px)),linear-gradient(to bottom,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px));}
+.crop-grid{position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;background:linear-gradient(to right,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px)),linear-gradient(to bottom,transparent 33.3%,rgba(255,255,255,.35) 33.3%,rgba(255,255,255,.35) calc(33.3% + 1px),transparent calc(33.3% + 1px),transparent 66.6%,rgba(255,255,255,.35) 66.6%,rgba(255,255,255,.35) calc(66.6% + 1px),transparent calc(66.6% + 1px));}
 .crop-zoom{width:min(86vw,340px);}
 .crop-tombol{display:flex;gap:10px;width:min(86vw,340px);}
 .crop-tombol button{flex:1;padding:12px;border-radius:10px;border:1px solid #5b5240;background:#2a2418;color:#f3ede0;font-size:14px;}
@@ -40,7 +40,7 @@
 .pin-akar{position:absolute;right:12px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
 .pin-akar .pin{pointer-events:auto;width:42px;height:42px;border-radius:50%;border:2px solid #fff;color:#fff;font-family:var(--font-title);font-size:17px;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.3);}
 .pin-akar .pin.aktif{box-shadow:0 0 0 3px var(--gold),0 2px 6px rgba(0,0,0,.3);}
-.sheet-overlay{position:absolute;inset:0;background:rgba(24,20,13,.55);z-index:45;display:flex;align-items:flex-end;}
+.sheet-overlay{position:absolute;top:0;right:0;bottom:0;left:0;background:rgba(24,20,13,.55);z-index:45;display:flex;align-items:flex-end;}
 .sheet-overlay.hidden{display:none;}
 .sheet{width:100%;background:var(--bg);border-radius:16px 16px 0 0;padding:14px 14px calc(16px + var(--bawah-aman));}
 .sheet-judul{font-family:var(--font-title);font-size:17px;color:var(--root-deep);padding:2px 8px 10px;}
@@ -55,7 +55,7 @@
 /* ===== Ringkasan generasi ===== */
 .btn-ringkasan{position:absolute;left:18px;top:calc(64px + env(safe-area-inset-top,0px));z-index:12;width:38px;height:38px;border-radius:50%;border:1px solid var(--card-border);background:var(--card);color:var(--root-deep);display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
 .btn-ringkasan:active{background:var(--tekan);}
-.ringkasan{width:min(100%,340px);max-height:78dvh;background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
+.ringkasan{width:min(100%,340px);max-height:78vh;max-height:78dvh;background:var(--card);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 36px rgba(0,0,0,0.45);border:1px solid var(--card-border);}
 .ringkasan-kepala{padding:16px 18px 12px;background:var(--root-deep);color:#f3ede0;}
 .ringkasan-kepala h3{margin:0;font-family:var(--font-title);font-weight:normal;font-size:19px;}
 .ringkasan-kepala p{margin:3px 0 0;font-size:12px;opacity:.78;}
@@ -226,12 +226,12 @@
 .chip-baris button{flex:1;min-width:84px;padding:10px 6px;border:1px solid var(--card-border);border-radius:999px;background:var(--input,#fff);font-size:14px;color:var(--ink-soft);}
 .chip-baris button.on{background:var(--root);border-color:var(--root);color:#fff;font-weight:600;}
 #fLahirUmur{width:100%;}
-.kal{width:min(94vw,340px);background:var(--card);border-radius:18px;padding:14px;box-shadow:0 10px 36px rgba(0,0,0,.45);display:flex;flex-direction:column;max-height:82dvh;}
+.kal{width:min(94vw,340px);background:var(--card);border-radius:18px;padding:14px;box-shadow:0 10px 36px rgba(0,0,0,.45);display:flex;flex-direction:column;max-height:82vh;max-height:82dvh;}
 .kal-judul{font-size:15px;font-weight:600;color:var(--root-deep);margin-bottom:8px;}
 .kal-krum{display:flex;gap:6px;margin-bottom:8px;}
 .kal-krum button{flex:1;padding:8px 4px;border:1px solid var(--card-border);border-radius:10px;background:transparent;color:var(--ink-soft);font-size:14px;}
 .kal-krum button.on{background:var(--root);border-color:var(--root);color:#fff;font-weight:600;}
-.kal-isi{overflow-y:auto;min-height:150px;max-height:48dvh;position:relative;}
+.kal-isi{overflow-y:auto;min-height:150px;max-height:48vh;max-height:48dvh;position:relative;}
 .kal-grid{display:grid;gap:6px;}
 .kal-grid.tahun{grid-template-columns:repeat(4,1fr);}
 .kal-grid.bulan{grid-template-columns:repeat(3,1fr);}

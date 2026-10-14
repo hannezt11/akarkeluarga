@@ -335,7 +335,7 @@ const M_LAYAR_KARTU={NODE_H:124,CX:48,CY:30,T:4,cetak:false,kartu:true};
 const M_CETAK_KARTU={NODE_H:162,CX:52,CY:41,T:5,cetak:true,kartu:true};
 // Bentuk kartu (bulat / kartu ID) dipilih dari drawer, tersimpan di localStorage
 const BENTUK_KEY='akarBentuk';
-function bentukPilihan(){ try{ return localStorage.getItem(BENTUK_KEY)==='kartu'?'kartu':'bulat'; }catch(e){ return 'bulat'; } }
+function bentukPilihan(){ try{ return localStorage.getItem(BENTUK_KEY)==='bulat'?'bulat':'kartu'; }catch(e){ return 'kartu'; } }
 // Jarak slot & antar generasi menyesuaikan bentuk kartu (kartu ID lebih lebar/tinggi)
 function aturUkuranSlot(M){ NODE_W=M.kartu?124:108; GAP_GEN=M.kartu?72:56; }
 function mLayar(){ return bentukPilihan()==='kartu'?M_LAYAR_KARTU:M_LAYAR_BULAT; }

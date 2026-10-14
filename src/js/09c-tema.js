@@ -1,24 +1,28 @@
-// ===== Tema: otomatis (ikut sistem) / terang / gelap =====
+// ===== Tema: terang / gelap (bawaan: terang) =====
 const TEMA_KEY='akarTema';
-function temaPilihan(){ try{ return localStorage.getItem(TEMA_KEY)||'otomatis'; }catch(e){ return 'otomatis'; } }
+function temaPilihan(){ try{ return localStorage.getItem(TEMA_KEY)==='gelap'?'gelap':'terang'; }catch(e){ return 'terang'; } }
 function terapkanTema(){
   const p=temaPilihan();
-  const gelap=p==='gelap'||(p==='otomatis'&&!!window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.dataset.tema=gelap?'gelap':'terang';
-  const e=$('temaTeks'); if(e) e.textContent={otomatis:'Otomatis (ikut sistem)',terang:'Terang',gelap:'Gelap'}[p]||'';
+  document.documentElement.dataset.tema=p;
+  const e=$('temaTeks'); if(e) e.textContent=p==='gelap'?'Gelap':'Terang';
 }
 $('btnTema').addEventListener('click',()=>{
-  const urut=['otomatis','terang','gelap'], n=urut[(urut.indexOf(temaPilihan())+1)%urut.length];
-  try{ localStorage.setItem(TEMA_KEY,n); }catch(e){}
+  try{ localStorage.setItem(TEMA_KEY,temaPilihan()==='gelap'?'terang':'gelap'); }catch(e){}
   terapkanTema();
 });
-try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',terapkanTema); }catch(e){}
 terapkanTema();
 
-// ===== Bentuk kartu: bulat / kartu ID =====
+// ===== Bentuk kartu: kartu (bawaan) / bulat =====
 function terapkanBentuk(){ const e=$('bentukTeks'); if(e) e.textContent=bentukPilihan()==='kartu'?'Kartu (foto, nama, alamat, HP)':'Bulat'; }
 $('btnBentuk').addEventListener('click',()=>{
   try{ localStorage.setItem(BENTUK_KEY,bentukPilihan()==='kartu'?'bulat':'kartu'); }catch(e){}
   terapkanBentuk(); render(true);
 });
 terapkanBentuk();
+
+// ===== Info layar (untuk memeriksa skala di tiap ponsel) =====
+(function(){
+  const e=$('infoLayar'); if(!e) return;
+  const w=Math.round(screen.width), a=window.LEBAR_ACUAN||0;
+  e.textContent=w+' dp \u00b7 tata letak '+Math.round(window.innerWidth)+(a>0?' (acuan '+a+')':'');
+})();

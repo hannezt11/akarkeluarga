@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Akar Keluarga</title>
+<script>
+// LEBAR ACUAN (dp): lebar layar logis tempat tata letak ini dirancang. Ponsel yang layarnya lebih lebar/sempit
+// (atau "Ukuran tampilan"-nya diubah) diskalakan proporsional supaya tombol, kolom, dan pohon tampil sama.
+// Isi 0 untuk mematikan. Layar >= 600 dp (tablet) tidak diskalakan.
+(function(){
+  var ACUAN=360; window.LEBAR_ACUAN=ACUAN;
+  try{
+    var m=document.querySelector('meta[name=viewport]'), w=screen.width;
+    if(ACUAN>0 && m && w>=300 && w<600) m.setAttribute('content','width='+ACUAN+', user-scalable=no, viewport-fit=cover');
+  }catch(e){}
+})();
+</script>
 <style>
 @@CSS@@
 </style>
@@ -151,18 +163,18 @@
       <input type="file" id="inputImpor" style="display:none">
       <div class="drawer-pemisah"></div>
       <div class="drawer-isi">
-        <button id="btnBackup">Backup data</button>
-        <button id="btnRestore">Restore data</button>
         <button id="btnCetak">Cetak PDF</button>
         <button id="btnEditGaris">Edit tampilan<small>Geser nama & garis penghubung</small></button>
         <button id="btnPengguna">Nama saya<small id="penggunaTeks"></small></button>
         <button id="btnPeran">Peran saya di tiap akar</button>
-        <button id="btnTema">Tampilan<small id="temaTeks"></small></button>
-        <button id="btnBentuk">Bentuk kartu<small id="bentukTeks"></small></button>
         <button id="btnSetGabung">Set gabungan<small>Gabung beberapa akar jadi satu tampilan</small></button>
+        <button id="btnTema">Tema<small id="temaTeks"></small></button>
+        <button id="btnBentuk">Bentuk kartu<small id="bentukTeks"></small></button>
+        <button id="btnBackup">Backup data</button>
+        <button id="btnRestore">Restore data</button>
       </div>
     </div>
-    <div class="drawer-versi"><div class="dv-baris"><span>Design by</span><span>:</span><span>Yohanes div2</span></div><div class="dv-baris"><span>Versi</span><span>:</span><span>@@VERSI@@</span></div></div>
+    <div class="drawer-versi"><div class="dv-baris"><span>Design by</span><span>:</span><span>Yohanes div2</span></div><div class="dv-baris"><span>Versi</span><span>:</span><span>@@VERSI@@</span></div><div class="dv-baris"><span>Layar</span><span>:</span><span id="infoLayar"></span></div></div>
   </aside>
 
   <div id="ringkasanOverlay" class="kartu-overlay hidden">
@@ -288,7 +300,7 @@
 (async function(){
 @@JS@@
 })().catch(err=>{
-  document.body.insertAdjacentHTML('beforeend','<pre style="position:fixed;inset:0;margin:0;background:#fff;color:#a00;padding:16px;z-index:999;white-space:pre-wrap;font-size:13px">Gagal memulai app:\n'+String(err&&err.stack||err)+'</pre>');
+  document.body.insertAdjacentHTML('beforeend','<pre style="position:fixed;top:0;right:0;bottom:0;left:0;margin:0;background:#fff;color:#a00;padding:16px;z-index:999;white-space:pre-wrap;font-size:13px">Gagal memulai app:\n'+String(err&&err.stack||err)+'</pre>');
 });
 </script>
 </body>
